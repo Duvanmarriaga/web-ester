@@ -1,0 +1,588 @@
+/* ==================================================
+   ESTER - Estilos Globales
+   ================================================== */
+
+/* Sistema SCSS Ester - @use debe ir antes que cualquier otra regla */
+@use "sass:map";
+@use "./styles/variables" as *;
+@use "./styles/mixins" as *;
+@use "./styles/utilities" as *;
+@use "ngx-toastr/toastr";
+
+/* Google Fonts - Inter (Professional sans-serif for accounting software) */
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap");
+
+/* ==================================================
+   Variables CSS (Compatibilidad)
+   ================================================== */
+
+:root {
+  /* Colores Primarios Ester */
+  --ester-primary: #{$ester-primary};
+  --ester-primary-dark: #{$ester-primary-dark};
+  --ester-primary-light: #{$ester-primary-light};
+
+  /* Colores de Estado */
+  --ester-success: #{$ester-success};
+  --ester-success-light: #{$ester-success-light};
+  --ester-warning: #{$ester-warning};
+  --ester-warning-light: #{$ester-warning-light};
+  --ester-danger: #{$ester-danger};
+  --ester-danger-light: #{$ester-danger-light};
+  --ester-info: #{$ester-info};
+  --ester-info-light: #{$ester-info-light};
+
+  /* Texto */
+  --ester-text-primary: #{$ester-text-primary};
+  --ester-text-secondary: #{$ester-text-secondary};
+  --ester-text-tertiary: #{$ester-text-tertiary};
+
+  /* Fondo */
+  --ester-background: #{$ester-bg-secondary};
+  --ester-surface: #{$ester-bg-primary};
+
+  /* Bordes */
+  --ester-border-color: #{$ester-border-primary};
+  --ester-border-primary: #{$ester-border-primary};
+  --ester-border-secondary: #{$ester-border-secondary};
+  --ester-border-tertiary: #{$ester-border-tertiary};
+  --ester-border-light: #{$ester-border-secondary};
+  --ester-border-dark: #{$ester-border-primary};
+}
+
+/* Reset y Base */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+    Oxygen, Ubuntu, Cantarell, sans-serif;
+  background-color: var(--ester-background);
+  color: var(--ester-text-primary);
+  overflow-x: hidden;
+  font-size: 14px;
+  line-height: 1.5;
+  font-feature-settings: "cv02", "cv03", "cv04", "cv11"; // Inter font features
+}
+
+/* ==================================================
+   Scrollbar Personalizado
+   ================================================== */
+
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: $ester-bg-tertiary;
+}
+
+::-webkit-scrollbar-thumb {
+  background: $ester-border-secondary;
+  border-radius: $border-radius-sm;
+
+  &:hover {
+    background: $ester-border-tertiary;
+  }
+}
+
+/* ==================================================
+   Componentes Base
+   ================================================== */
+
+/* Buttons */
+.btn {
+  @include button-base;
+  @include transition(all, $transition-fast);
+  border: 1px solid transparent;
+  font-weight: map.get($font-weights, medium);
+
+  &:hover:not(:disabled) {
+    transform: translateY(-1px);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  }
+
+  &:active:not(:disabled) {
+    transform: translateY(0) scale(0.98);
+  }
+
+  &--primary,
+  &.btn-primary {
+    @include button-variant($ester-primary);
+    box-shadow: 0 1px 2px rgba($ester-primary, 0.2);
+
+    &:hover:not(:disabled) {
+      box-shadow: 0 4px 8px rgba($ester-primary, 0.3);
+    }
+  }
+
+  &--secondary,
+  &.btn-secondary,
+  &.btn-outline-secondary {
+    @include button-variant($ester-bg-tertiary, $ester-text-primary);
+    border-color: $ester-border-primary;
+    background-color: $ester-bg-primary;
+    &:hover:not(:disabled) {
+      border-color: $ester-border-tertiary;
+      background-color: $ester-bg-secondary;
+    }
+  }
+
+  &--success,
+  &.btn-success {
+    @include button-variant($ester-success);
+  }
+
+  &--danger,
+  &.btn-danger {
+    @include button-variant($ester-danger);
+  }
+
+  &--sm,
+  &.btn-sm {
+    height: 32px;
+    padding: 0 map.get($spacing-scale, 3);
+    font-size: 13px;
+    line-height: 1.5;
+  }
+
+  &--lg,
+  &.btn-lg {
+    height: $button-height-lg;
+    padding: 0 map.get($spacing-scale, 6);
+    font-size: map.get($font-sizes, md);
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    transform: none !important;
+  }
+}
+
+/* Forms */
+.form-label {
+  display: block;
+  margin-bottom: map.get($spacing-scale, 1);
+  font-size: map.get($font-sizes, xs);
+  font-weight: map.get($font-weights, semibold);
+  color: $ester-text-secondary;
+}
+
+.form-error {
+  display: block;
+  margin-top: map.get($spacing-scale, 1);
+  font-size: map.get($font-sizes, xs);
+  color: $ester-danger;
+}
+
+.form-control,
+.form-select {
+  width: 100%;
+  padding: 4px 10px;
+  height: 32px;
+  font-size: 13px;
+  line-height: 1.5;
+  font-weight: map.get($font-weights, regular);
+  color: $ester-text-primary;
+  background-color: $ester-bg-primary;
+  border: 1px solid $ester-border-primary;
+  border-radius: $border-radius-md;
+  @include transition(all, $transition-fast);
+
+  &:focus {
+    outline: none;
+    border-color: $ester-primary;
+    box-shadow: 0 0 0 3px rgba($ester-primary, 0.1);
+    background-color: $ester-bg-primary;
+  }
+
+  &:hover:not(:disabled):not(:focus) {
+    border-color: $ester-border-tertiary;
+  }
+
+  &::placeholder {
+    color: $ester-text-tertiary;
+  }
+
+  &:disabled {
+    background-color: $ester-bg-secondary;
+    cursor: not-allowed;
+    opacity: 0.6;
+  }
+
+  &.is-invalid,
+  &:invalid {
+    border-color: $ester-danger;
+
+    &:focus {
+      box-shadow: 0 0 0 3px rgba($ester-danger, 0.1);
+    }
+  }
+
+  &-sm {
+    padding: 3px 8px;
+    height: 24px;
+    font-size: 12px;
+  }
+
+  &-lg {
+    padding: 6px 14px;
+    height: 36px;
+    font-size: 15px;
+  }
+}
+
+textarea.form-control {
+  resize: vertical;
+  min-height: 60px;
+  height: auto;
+  line-height: 1.5;
+  padding: 4px 10px;
+}
+
+.form-select {
+  padding-right: map.get($spacing-scale, 4);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23666' d='M10.293 3.293L6 7.586 1.707 3.293A1 1 0 00.293 4.707l5 5a1 1 0 001.414 0l5-5a1 1 0 10-1.414-1.414z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right map.get($spacing-scale, 2) center;
+  background-size: 12px;
+}
+
+/* Modals */
+.modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: $z-index-modal;
+  overflow: hidden;
+
+  &.d-block {
+    display: flex !important;
+    align-items: center;
+    justify-content: center;
+    background-color: rgba(0, 0, 0, 0.5);
+    animation: fadeIn $transition-fast ease-out;
+  }
+}
+
+.modal-dialog {
+  width: 90%;
+  max-width: 500px;
+  margin: 0;
+  animation: modalSlide $transition-normal ease-out;
+
+  &-centered {
+    display: flex;
+    align-items: center;
+  }
+}
+
+.modal-content {
+  background-color: $ester-bg-primary;
+  border-radius: $border-radius-md !important;
+  box-shadow: $ester-shadow-xl;
+  border: 1px solid $ester-border-primary;
+  overflow: hidden;
+}
+
+.modal-header {
+  @include flex(row, center, space-between);
+  padding: 0 16px;
+  height: 50px;
+  border-bottom: 1px solid $ester-border-primary;
+  background-color: white;
+}
+
+.modal-title {
+  margin: 0;
+  font-size: map.get($font-sizes, xl);
+  font-weight: map.get($font-weights, bold);
+  color: $ester-text-primary;
+}
+
+.modal-body {
+  padding: map.get($spacing-scale, 4);
+}
+
+.modal-footer {
+  @include flex(row, center, flex-end, map.get($spacing-scale, 2));
+  padding: map.get($spacing-scale, 3) map.get($spacing-scale, 4);
+  border-top: 1px solid $ester-border-primary;
+  background-color: $ester-bg-secondary;
+}
+
+.btn-close {
+  @include button-reset;
+  @include size(28px);
+  @include flex-center;
+  border-radius: $border-radius-sm;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 16 16'%3E%3Cpath fill='%23666' d='M2.146 2.146a.5.5 0 01.708 0L8 7.293l5.146-5.147a.5.5 0 01.708.708L8.707 8l5.147 5.146a.5.5 0 01-.708.708L8 8.707l-5.146 5.147a.5.5 0 01-.708-.708L7.293 8 2.146 2.854a.5.5 0 010-.708z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: 14px;
+  height: 30px !important;
+  width: 30px !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  &:hover {
+    color: black;
+    transform: rotate(90deg);
+  }
+
+  &:active {
+    transform: rotate(90deg) scale(0.95);
+  }
+}
+
+@keyframes modalSlide {
+  from {
+    opacity: 0;
+    transform: translateY(-30px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* Loading spinner */
+.spinner {
+  @include size(2rem);
+  border: 3px solid $ester-border-primary;
+  border-top-color: $ester-primary;
+  border-radius: $border-radius-full;
+  animation: spin 0.6s linear infinite;
+
+  &--sm {
+    @include size(1rem);
+    border-width: 2px;
+  }
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* ==================================================
+   Animaciones
+   ================================================== */
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.fade-in {
+  animation: fadeIn $transition-normal ease-in-out;
+}
+
+/* ==================================================
+   Accesibilidad
+   ================================================== */
+
+*:focus-visible {
+  outline: 2px solid $ester-primary;
+  outline-offset: 2px;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+/* ==================================================
+   ng-select Styles
+   ================================================== */
+
+.ng-select {
+  .ng-select-container {
+    min-height: 28px;
+    border: 1px solid $ester-border-primary;
+    border-radius: $border-radius-md;
+    font-size: map.get($font-sizes, sm);
+    background-color: $ester-bg-primary;
+    color: $ester-text-primary;
+    @include transition(border-color, $transition-fast);
+
+    &:hover {
+      border-color: $ester-border-secondary;
+    }
+
+    &.ng-select-focused {
+      border-color: $ester-primary;
+      box-shadow: 0 0 0 3px rgba($ester-primary, 0.1);
+    }
+  }
+  .ng-clear-wrapper {
+    @include flex-center;
+    margin-right: 8px;
+  }
+
+  .ng-placeholder {
+    color: $ester-text-tertiary;
+    font-size: map.get($font-sizes, sm);
+  }
+
+  .ng-value-container {
+    padding: 6.5px 10px;
+    min-height: 32px;
+    gap: 4px;
+
+    .ng-value {
+      background-color: $ester-primary-light;
+      color: $ester-primary;
+      border-radius: $border-radius-sm;
+      font-size: map.get($font-sizes, xs);
+      padding: 2px 6px;
+      @include flex-center;
+
+      .ng-value-label {
+        color: $ester-primary;
+      }
+
+      .ng-value-icon {
+        color: $ester-primary;
+        @include flex-center;
+        @include size(24px, 11px);
+        font-size: 14px;
+        margin: 0;
+        padding: 0;
+        display: flex !important;
+        align-items: center;
+        &:hover {
+          background-color: rgba($ester-primary, 0.1);
+        }
+      }
+    }
+
+    .ng-input {
+      input {
+        font-size: map.get($font-sizes, sm);
+        color: $ester-text-primary;
+      }
+    }
+  }
+
+  .ng-arrow-wrapper {
+    .ng-arrow {
+      border-color: $ester-text-tertiary transparent transparent;
+    }
+  }
+
+  &.ng-select-opened {
+    .ng-arrow {
+      border-color: transparent transparent $ester-text-tertiary;
+    }
+  }
+
+  .ng-dropdown-panel {
+    background-color: $ester-bg-primary;
+    border: 1px solid $ester-border-primary;
+    border-radius: $border-radius-lg;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15), 0 2px 4px rgba(0, 0, 0, 0.1);
+    max-height: 280px;
+    overflow-y: auto;
+    overflow-x: hidden;
+    margin-top: 4px;
+    padding: map.get($spacing-scale, 1) 0;
+
+    // Scrollbar personalizado
+    @include custom-scrollbar(6px, $ester-border-secondary, $ester-bg-tertiary);
+
+    .ng-dropdown-panel-items {
+      .ng-option {
+        background-color: $ester-bg-primary;
+        color: $ester-text-primary;
+        font-size: map.get($font-sizes, sm);
+        padding: map.get($spacing-scale, 2) map.get($spacing-scale, 3);
+        line-height: 1.5;
+        cursor: pointer;
+        @include transition(all, $transition-fast);
+        border-left: 3px solid transparent;
+        margin: 0 map.get($spacing-scale, 1);
+
+        &:first-child {
+          margin-top: map.get($spacing-scale, 1);
+        }
+
+        &:last-child {
+          margin-bottom: map.get($spacing-scale, 1);
+        }
+
+        &:hover {
+          background-color: $ester-bg-tertiary;
+          border-left-color: $ester-primary;
+          padding-left: calc(#{map.get($spacing-scale, 3)} - 3px);
+        }
+
+        &.ng-option-selected {
+          background-color: $ester-primary-light;
+          color: $ester-primary;
+          font-weight: map.get($font-weights, medium);
+          border-left-color: $ester-primary;
+          padding-left: calc(#{map.get($spacing-scale, 3)} - 3px);
+        }
+
+        &.ng-option-marked {
+          background-color: $ester-bg-tertiary;
+          border-left-color: $ester-primary;
+          padding-left: calc(#{map.get($spacing-scale, 3)} - 3px);
+        }
+
+        &.ng-option-disabled {
+          opacity: 0.5;
+          cursor: not-allowed;
+
+          &:hover {
+            background-color: transparent;
+            border-left-color: transparent;
+            padding-left: map.get($spacing-scale, 3);
+          }
+        }
+      }
+
+      .ng-optgroup {
+        padding: map.get($spacing-scale, 2) map.get($spacing-scale, 3);
+        font-size: map.get($font-sizes, xs);
+        font-weight: map.get($font-weights, semibold);
+        color: $ester-text-secondary;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        border-bottom: 1px solid $ester-border-primary;
+        margin-bottom: map.get($spacing-scale, 1);
+      }
+    }
+  }
+}
+
+/* ==================================================
+   Print
+   ================================================== */
+
+@media print {
+  .sidebar,
+  .toolbar,
+  button,
+  .badge {
+    display: none !important;
+  }
+
+  .main-content {
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+}

@@ -1,0 +1,172 @@
+@if (isVisible()) {
+  <div class="modal show d-block" (click)="onBackdropClick($event)">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">
+            {{ isEditing ? "Editar Usuario" : "Nuevo Usuario" }}
+          </h5>
+          <button
+            type="button"
+            class="btn-close"
+            (click)="onClose()"
+            aria-label="Close"
+          >
+            <lucide-icon [img]="icons.X" [size]="16"></lucide-icon>
+          </button>
+        </div>
+        <div class="modal-body">
+          <form [formGroup]="userForm" (ngSubmit)="onSubmit()">
+            <div class="row g-3">
+              <div class="col-12">
+                <label for="name" class="form-label">Nombre Completo</label>
+                <input
+                  type="text"
+                  class="form-control"
+                  id="name"
+                  formControlName="name"
+                  placeholder="Juan Pérez"
+                />
+                @if (userForm.get('name')?.invalid &&
+                userForm.get('name')?.touched) {
+                <small class="form-error">Nombre requerido</small>
+                }
+              </div>
+              <div class="col-12">
+                <label for="email" class="form-label">Email</label>
+                <input
+                  type="email"
+                  class="form-control"
+                  id="email"
+                  formControlName="email"
+                  placeholder="juan.perez@example.com"
+                />
+                @if (userForm.get('email')?.invalid &&
+                userForm.get('email')?.touched) {
+                <small class="form-error">Email válido requerido</small>
+                }
+              </div>
+              @if (!isEditing) {
+              <div class="col-12">
+                <label for="password" class="form-label">Contraseña</label>
+                <div class="password-input-wrapper">
+                  <input
+                    type="password"
+                    class="form-control"
+                    id="password"
+                    [type]="showPassword() ? 'text' : 'password'"
+                    formControlName="password"
+                    placeholder="••••••••"
+                    [class.invalid]="userForm.get('password')?.invalid && userForm.get('password')?.touched"
+                  />
+                  <button
+                    type="button"
+                    class="password-toggle"
+                    (click)="togglePasswordVisibility()"
+                    [attr.aria-label]="showPassword() ? 'Ocultar contraseña' : 'Mostrar contraseña'"
+                  >
+                    <lucide-icon
+                      [img]="showPassword() ? icons.EyeOff : icons.Eye"
+                      [size]="18"
+                    ></lucide-icon>
+                  </button>
+                </div>
+                @if (userForm.get('password')?.invalid &&
+                userForm.get('password')?.touched) {
+                <small class="form-error">Contraseña requerida</small>
+                }
+              </div>
+              <div class="col-12">
+                <label for="confirmPassword" class="form-label">Confirmar Contraseña</label>
+                <div class="password-input-wrapper">
+                  <input
+                    type="password"
+                    class="form-control"
+                    id="confirmPassword"
+                    [type]="showConfirmPassword() ? 'text' : 'password'"
+                    formControlName="confirmPassword"
+                    placeholder="••••••••"
+                    [class.invalid]="(userForm.get('confirmPassword')?.invalid && userForm.get('confirmPassword')?.touched) || passwordsDoNotMatch"
+                  />
+                  <button
+                    type="button"
+                    class="password-toggle"
+                    (click)="toggleConfirmPasswordVisibility()"
+                    [attr.aria-label]="showConfirmPassword() ? 'Ocultar contraseña' : 'Mostrar contraseña'"
+                  >
+                    <lucide-icon
+                      [img]="showConfirmPassword() ? icons.EyeOff : icons.Eye"
+                      [size]="18"
+                    ></lucide-icon>
+                  </button>
+                </div>
+                @if ((userForm.get('confirmPassword')?.invalid && userForm.get('confirmPassword')?.touched) || passwordsDoNotMatch) {
+                <small class="form-error">
+                  @if (passwordsDoNotMatch) {
+                    Las contraseñas no coinciden
+                  } @else {
+                    Confirmación de contraseña requerida
+                  }
+                </small>
+                }
+              </div>
+              }
+              <div class="col-12">
+                <label for="type" class="form-label">Tipo de Usuario</label>
+                <ng-select
+                  id="type"
+                  [items]="userTypes"
+                  bindLabel="name"
+                  bindValue="id"
+                  placeholder="Seleccionar tipo de usuario..."
+                  formControlName="type"
+                  [clearable]="false"
+                  [searchable]="false"
+                  appendTo="body"
+                >
+                </ng-select>
+                @if (userForm.get('type')?.invalid &&
+                userForm.get('type')?.touched) {
+                <small class="form-error">Tipo de usuario requerido</small>
+                }
+              </div>
+              <div class="col-12">
+                <label for="companies" class="form-label">Compañías</label>
+                <ng-select
+                  id="companies"
+                  [items]="companies()"
+                  bindLabel="name"
+                  bindValue="id"
+                  [multiple]="true"
+                  [closeOnSelect]="false"
+                  [clearable]="true"
+                  [searchable]="true"
+                  placeholder="Seleccionar compañías..."
+                  formControlName="companies_ids"
+                  appendTo="body"
+                >
+                </ng-select>
+              </div>
+            </div>
+            <div class="d-flex gap-2 justify-content-end mt-4">
+              <button
+                type="button"
+                class="btn btn-sm btn-outline-secondary"
+                (click)="onClose()"
+              >
+                Cancelar
+              </button>
+              <button
+                type="submit"
+                class="btn btn-sm btn-primary"
+                [disabled]="userForm.invalid"
+              >
+                {{ isEditing ? "Actualizar" : "Crear" }}
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+}

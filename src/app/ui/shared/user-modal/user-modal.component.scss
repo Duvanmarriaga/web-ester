@@ -1,0 +1,324 @@
+@use "sass:map";
+@use "../../../../styles/variables" as *;
+@use "../../../../styles/mixins" as *;
+
+.modal {
+  background-color: rgba(0, 0, 0, 0.5);
+  z-index: $z-index-modal-backdrop;
+}
+
+.modal-dialog {
+  max-width: 600px;
+  margin: 0 auto;
+  overflow: visible; // Permitir que el dropdown salga del modal
+}
+
+.modal-header {
+  @include flex(row, center, space-between);
+  border-bottom: 1px solid $ester-border-primary;
+}
+
+.modal-body {
+  padding: map.get($spacing-scale, 3);
+  overflow: visible; // Permitir que el dropdown salga del modal
+
+  .form-label {
+    display: block;
+    margin-bottom: map.get($spacing-scale, 1);
+    font-size: map.get($font-sizes, sm);
+    font-weight: map.get($font-weights, medium);
+    color: $ester-text-primary;
+  }
+
+  .form-control,
+  .form-select {
+    width: 100%;
+    height: 28px;
+    padding: 4px 10px;
+    font-size: map.get($font-sizes, sm);
+    background-color: $ester-bg-primary;
+    border: 1px solid $ester-border-primary;
+    border-radius: $border-radius-md;
+    color: $ester-text-primary;
+    @include transition(border-color, $transition-fast);
+
+    &:focus {
+      outline: none;
+      border-color: $ester-primary;
+    }
+
+    &::placeholder {
+      color: $ester-text-tertiary;
+    }
+  }
+
+  .password-input-wrapper {
+    position: relative;
+    width: 100%;
+
+    input {
+      width: 100%;
+      padding-right: 40px;
+    }
+
+    .password-toggle {
+      appearance: none;
+      background: none;
+      border: none;
+      padding: 0;
+      margin: 0;
+      @include absolute(50%, 12px, auto, auto);
+      transform: translateY(-50%);
+      @include flex-center;
+      color: $ester-text-tertiary;
+      cursor: pointer;
+      outline: none;
+      @include transition(color, $transition-fast);
+
+      &:hover {
+        color: $ester-text-primary;
+      }
+
+      &:focus-visible {
+        outline: 2px solid $ester-primary;
+        outline-offset: 2px;
+        border-radius: $border-radius-sm;
+      }
+
+      lucide-icon {
+        pointer-events: none;
+      }
+    }
+  }
+
+  .form-error {
+    display: block;
+    margin-top: map.get($spacing-scale, 1);
+    font-size: map.get($font-sizes, xs);
+    color: $ester-danger;
+  }
+
+  .btn {
+    @include button-base;
+    min-width: 80px;
+
+    &.btn-primary {
+      @include button-variant($ester-primary);
+    }
+
+    &.btn-outline-secondary {
+      background-color: transparent;
+      border: 1px solid $ester-border-primary;
+      color: $ester-text-secondary;
+
+      &:hover:not(:disabled) {
+        background-color: $ester-bg-tertiary;
+        border-color: $ester-border-secondary;
+        color: $ester-text-primary;
+      }
+    }
+
+    &:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+  }
+
+  // ng-select styles - Dropdown flotante y chips mejorados
+  :host ::ng-deep {
+    .ng-select {
+      .ng-select-container {
+        min-height: 28px;
+        height: auto;
+        border: 1px solid $ester-border-primary;
+        border-radius: $border-radius-md;
+        background-color: $ester-bg-primary;
+        color: $ester-text-primary;
+        font-size: map.get($font-sizes, sm);
+        box-shadow: none;
+        @include transition(border-color, $transition-fast);
+
+        &:hover {
+          border-color: $ester-border-secondary;
+        }
+
+        &.ng-focused {
+          border-color: $ester-primary;
+          box-shadow: 0 0 0 2px rgba($ester-primary, 0.2);
+        }
+
+        .ng-value-container {
+          padding: 6.5px 10px;
+          min-height: 32px;
+          gap: 4px;
+          align-items: center;
+
+          .ng-value {
+            background: linear-gradient(
+              135deg,
+              $ester-primary-light 0%,
+              rgba($ester-primary, 0.1) 100%
+            );
+            color: $ester-primary;
+            border: 1px solid rgba($ester-primary, 0.2);
+            border-radius: $border-radius-full;
+            font-size: map.get($font-sizes, xs);
+            font-weight: map.get($font-weights, medium);
+            padding: 3px 8px;
+
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            line-height: 1.2;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+
+            .ng-value-label {
+              color: $ester-primary;
+              padding: 0;
+            }
+
+            .ng-value-icon {
+              color: $ester-primary;
+              opacity: 0.7;
+              cursor: pointer;
+              @include transition(all, $transition-fast);
+              padding: 0;
+              margin-left: 4px;
+              display: inline-flex;
+              align-items: center;
+              justify-content: center;
+              width: 16px;
+              height: 16px;
+              border-radius: 50%;
+              background-color: rgba($ester-primary, 0.1);
+              margin: 0;
+              padding: 0;
+              display: flex !important;
+              align-items: center;
+              &:hover {
+                opacity: 1;
+                background-color: rgba($ester-primary, 0.2);
+                transform: scale(1.1);
+              }
+            }
+          }
+
+          .ng-placeholder {
+            color: $ester-text-tertiary;
+            font-size: map.get($font-sizes, sm);
+            padding: 0;
+            margin: 0;
+          }
+
+          .ng-input {
+            input {
+              box-shadow: none !important;
+              height: 20px;
+              line-height: 20px;
+              padding: 0;
+              margin: 0;
+              font-size: map.get($font-sizes, sm);
+              color: $ester-text-primary;
+            }
+          }
+        }
+
+        .ng-arrow-wrapper {
+          .ng-arrow {
+            border-color: $ester-text-tertiary transparent transparent;
+            border-width: 5px 5px 0;
+          }
+        }
+      }
+
+      &.ng-select-opened {
+        .ng-arrow {
+          border-color: transparent transparent $ester-text-tertiary;
+        }
+      }
+    }
+  }
+}
+
+// Estilos globales para el dropdown (se renderiza fuera del componente con appendTo="body")
+::ng-deep .ng-dropdown-panel {
+  position: fixed !important;
+  z-index: 1070 !important; // Mayor que z-index-modal (1060)
+  background-color: $ester-bg-primary !important;
+  border: 1px solid $ester-border-primary !important;
+  border-radius: $border-radius-lg !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15), 0 2px 4px rgba(0, 0, 0, 0.1) !important;
+  max-height: 280px !important;
+  min-width: 200px !important;
+  overflow-y: auto !important;
+  overflow-x: hidden !important;
+  margin-top: 4px !important;
+  padding: map.get($spacing-scale, 1) 0 !important;
+
+  // Scrollbar personalizado para el dropdown
+  @include custom-scrollbar(6px, $ester-border-secondary, $ester-bg-tertiary);
+
+  .ng-dropdown-panel-items {
+    .ng-option {
+      padding: map.get($spacing-scale, 2) map.get($spacing-scale, 3) !important;
+      font-size: map.get($font-sizes, sm) !important;
+      color: $ester-text-primary !important;
+      line-height: 1.5 !important;
+      cursor: pointer !important;
+      @include transition(all, $transition-fast);
+      border-left: 3px solid transparent !important;
+      margin: 0 map.get($spacing-scale, 1) !important;
+      background-color: $ester-bg-primary !important;
+
+      &:first-child {
+        margin-top: map.get($spacing-scale, 1) !important;
+      }
+
+      &:last-child {
+        margin-bottom: map.get($spacing-scale, 1) !important;
+      }
+
+      &:hover {
+        background-color: $ester-bg-tertiary !important;
+        border-left-color: $ester-primary !important;
+        padding-left: calc(#{map.get($spacing-scale, 3)} - 3px) !important;
+      }
+
+      &.ng-option-selected {
+        background-color: $ester-primary-light !important;
+        color: $ester-primary !important;
+        font-weight: map.get($font-weights, medium) !important;
+        border-left-color: $ester-primary !important;
+        padding-left: calc(#{map.get($spacing-scale, 3)} - 3px) !important;
+      }
+
+      &.ng-option-marked {
+        background-color: $ester-bg-tertiary !important;
+        border-left-color: $ester-primary !important;
+        padding-left: calc(#{map.get($spacing-scale, 3)} - 3px) !important;
+      }
+
+      &.ng-option-disabled {
+        opacity: 0.5 !important;
+        cursor: not-allowed !important;
+
+        &:hover {
+          background-color: transparent !important;
+          border-left-color: transparent !important;
+          padding-left: map.get($spacing-scale, 3) !important;
+        }
+      }
+    }
+
+    .ng-optgroup {
+      padding: map.get($spacing-scale, 2) map.get($spacing-scale, 3) !important;
+      font-size: map.get($font-sizes, xs) !important;
+      font-weight: map.get($font-weights, semibold) !important;
+      color: $ester-text-secondary !important;
+      text-transform: uppercase !important;
+      letter-spacing: 0.5px !important;
+      border-bottom: 1px solid $ester-border-primary !important;
+      margin-bottom: map.get($spacing-scale, 1) !important;
+    }
+  }
+}

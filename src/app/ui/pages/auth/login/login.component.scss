@@ -1,0 +1,162 @@
+@use 'sass:map';
+@use '../../../../../styles/variables' as *;
+@use '../../../../../styles/mixins' as *;
+
+.login-container {
+  @include flex-center;
+  min-height: 100vh;
+  background: linear-gradient(135deg, $ester-primary 0%, $ester-secondary 100%);
+  padding: map.get($spacing-scale, 4);
+}
+
+.login-card {
+  @include card(map.get($spacing-scale, 10), xl);
+  width: 100%;
+  max-width: 420px;
+  border-radius: $border-radius-xl;
+}
+
+.login-header {
+  text-align: center;
+  margin-bottom: map.get($spacing-scale, 8);
+
+  h1 {
+    font-size: map.get($font-sizes, 4xl);
+    font-weight: map.get($font-weights, bold);
+    color: $ester-text-primary;
+    margin-bottom: map.get($spacing-scale, 2);
+  }
+
+  p {
+    color: $ester-text-secondary;
+    font-size: map.get($font-sizes, md);
+  }
+}
+
+.login-form {
+  @include flex(column, stretch, flex-start, map.get($spacing-scale, 6));
+}
+
+.form-group {
+  @include flex(column, stretch, flex-start, map.get($spacing-scale, 2));
+
+  label {
+    font-weight: map.get($font-weights, semibold);
+    color: $ester-text-primary;
+    font-size: map.get($font-sizes, base);
+  }
+
+  input {
+    @include input-base;
+    font-size: map.get($font-sizes, md);
+
+    &.invalid {
+      border-color: $ester-danger;
+    }
+  }
+}
+
+.password-input-wrapper {
+  position: relative;
+  width: 100%;
+
+  input {
+    width: 100%;
+    padding-right: 40px;
+  }
+
+  .password-toggle {
+    appearance: none;
+    background: none;
+    border: none;
+    padding: 0;
+    margin: 0;
+    @include absolute(50%, 12px, auto, auto);
+    transform: translateY(-50%);
+    @include flex-center;
+    color: $ester-text-tertiary;
+    @include transition(color, $transition-fast);
+    cursor: pointer;
+    outline: none;
+
+    &:hover {
+      color: $ester-text-primary;
+    }
+
+    &:focus-visible {
+      outline: 2px solid $ester-primary;
+      outline-offset: 2px;
+      border-radius: $border-radius-sm;
+    }
+
+    lucide-icon {
+      pointer-events: none;
+    }
+  }
+}
+
+.error-text {
+  color: $ester-danger;
+  font-size: map.get($font-sizes, sm);
+}
+
+.error-message {
+  padding: map.get($spacing-scale, 3);
+  background-color: $ester-danger-light;
+  color: $ester-danger-dark;
+  border-radius: $border-radius-md;
+  font-size: map.get($font-sizes, base);
+}
+
+.form-actions {
+  @include flex(row, center, flex-end);
+}
+
+.forgot-link {
+  color: $ester-primary;
+  text-decoration: none;
+  font-size: map.get($font-sizes, base);
+  font-weight: map.get($font-weights, medium);
+  @include transition(color);
+
+  &:hover {
+    color: $ester-primary-dark;
+    text-decoration: underline;
+  }
+}
+
+.btn-primary {
+  @include button-base;
+  @include button-variant($ester-primary);
+  height: $button-height-lg;
+  font-size: map.get($font-sizes, md);
+  background: linear-gradient(135deg, $ester-primary 0%, $ester-secondary 100%);
+
+  &:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 20px rgba($ester-primary, 0.3);
+  }
+}
+
+.demo-credentials {
+  margin-top: map.get($spacing-scale, 8);
+  padding: map.get($spacing-scale, 4);
+  background-color: $ester-bg-tertiary;
+  border-radius: $border-radius-md;
+  font-size: map.get($font-sizes, sm);
+  color: $ester-text-secondary;
+
+  p {
+    margin: map.get($spacing-scale, 1) 0;
+  }
+}
+
+@media (max-width: $breakpoint-sm) {
+  .login-card {
+    padding: map.get($spacing-scale, 6);
+  }
+
+  .login-header h1 {
+    font-size: map.get($font-sizes, 3xl);
+  }
+}

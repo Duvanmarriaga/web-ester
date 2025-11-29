@@ -1,0 +1,494 @@
+// ==================================================
+// ESTER - Clases Utilitarias
+// ==================================================
+
+@use 'sass:map';
+@use './variables' as *;
+@use './mixins' as *;
+
+// Display
+.flex {
+  display: flex;
+}
+
+.flex-row {
+  @include flex(row);
+}
+
+.flex-column {
+  @include flex(column);
+}
+
+.flex-center {
+  @include flex-center;
+}
+
+.flex-between {
+  @include flex(row, center, space-between);
+}
+
+.flex-end {
+  @include flex(row, center, flex-end);
+}
+
+.flex-grow {
+  flex-grow: 1;
+}
+
+.grid {
+  display: grid;
+}
+
+// Tamaños
+.full-width {
+  width: 100%;
+}
+
+.full-height {
+  height: 100%;
+}
+
+.full-size {
+  @include full-size;
+}
+
+// Espaciado - Padding
+@each $name, $value in $spacing-scale {
+  .p-#{$name} {
+    padding: $value !important;
+  }
+  
+  .pt-#{$name} {
+    padding-top: $value !important;
+  }
+  
+  .pr-#{$name} {
+    padding-right: $value !important;
+  }
+  
+  .pb-#{$name} {
+    padding-bottom: $value !important;
+  }
+  
+  .pl-#{$name} {
+    padding-left: $value !important;
+  }
+  
+  .px-#{$name} {
+    padding-left: $value !important;
+    padding-right: $value !important;
+  }
+  
+  .py-#{$name} {
+    padding-top: $value !important;
+    padding-bottom: $value !important;
+  }
+}
+
+// Espaciado - Margin
+@each $name, $value in $spacing-scale {
+  .m-#{$name} {
+    margin: $value !important;
+  }
+  
+  .mt-#{$name} {
+    margin-top: $value !important;
+  }
+  
+  .mr-#{$name} {
+    margin-right: $value !important;
+  }
+  
+  .mb-#{$name} {
+    margin-bottom: $value !important;
+  }
+  
+  .ml-#{$name} {
+    margin-left: $value !important;
+  }
+  
+  .mx-#{$name} {
+    margin-left: $value !important;
+    margin-right: $value !important;
+  }
+  
+  .my-#{$name} {
+    margin-top: $value !important;
+    margin-bottom: $value !important;
+  }
+}
+
+.m-auto {
+  margin: auto !important;
+}
+
+.mx-auto {
+  margin-left: auto !important;
+  margin-right: auto !important;
+}
+
+// Gap
+@each $name, $value in $spacing-scale {
+  .gap-#{$name} {
+    gap: $value !important;
+  }
+}
+
+// Tipografía
+.text-xs {
+  font-size: map.get($font-sizes, xs) !important;
+}
+
+.text-sm {
+  font-size: map.get($font-sizes, sm) !important;
+}
+
+.text-base {
+  font-size: map.get($font-sizes, base) !important;
+}
+
+.text-md {
+  font-size: map.get($font-sizes, md) !important;
+}
+
+.text-lg {
+  font-size: map.get($font-sizes, lg) !important;
+}
+
+.text-xl {
+  font-size: map.get($font-sizes, xl) !important;
+}
+
+.text-2xl {
+  font-size: map.get($font-sizes, 2xl) !important;
+}
+
+.text-3xl {
+  font-size: map.get($font-sizes, 3xl) !important;
+}
+
+.text-4xl {
+  font-size: map.get($font-sizes, 4xl) !important;
+}
+
+// Font Weight
+.fw-regular {
+  font-weight: map.get($font-weights, regular) !important;
+}
+
+.fw-medium {
+  font-weight: map.get($font-weights, medium) !important;
+}
+
+.fw-semibold {
+  font-weight: map.get($font-weights, semibold) !important;
+}
+
+.fw-bold {
+  font-weight: map.get($font-weights, bold) !important;
+}
+
+// Text Align
+.text-left {
+  text-align: left !important;
+}
+
+.text-center {
+  text-align: center !important;
+}
+
+.text-right {
+  text-align: right !important;
+}
+
+// Text Transform
+.text-uppercase {
+  text-transform: uppercase !important;
+}
+
+.text-lowercase {
+  text-transform: lowercase !important;
+}
+
+.text-capitalize {
+  text-transform: capitalize !important;
+}
+
+// Line Height
+.leading-tight {
+  line-height: map.get($line-heights, tight) !important;
+}
+
+.leading-normal {
+  line-height: map.get($line-heights, normal) !important;
+}
+
+.leading-relaxed {
+  line-height: map.get($line-heights, relaxed) !important;
+}
+
+// Text Decoration
+.text-no-decoration {
+  text-decoration: none !important;
+}
+
+// Text Truncate
+.text-truncate {
+  @include text-truncate;
+}
+
+.line-clamp-2 {
+  @include line-clamp(2);
+}
+
+.line-clamp-3 {
+  @include line-clamp(3);
+}
+
+// Colores de texto
+.text-primary {
+  color: $ester-text-primary !important;
+}
+
+.text-secondary {
+  color: $ester-text-secondary !important;
+}
+
+.text-tertiary {
+  color: $ester-text-tertiary !important;
+}
+
+.text-inverse {
+  color: $ester-text-inverse !important;
+}
+
+.text-brand-primary {
+  color: $ester-primary !important;
+}
+
+.text-success {
+  color: $ester-success !important;
+}
+
+.text-warning {
+  color: $ester-warning !important;
+}
+
+.text-danger {
+  color: $ester-danger !important;
+}
+
+.text-info {
+  color: $ester-info !important;
+}
+
+// Colores de fondo
+.bg-white {
+  background-color: $ester-bg-primary !important;
+}
+
+.bg-primary {
+  background-color: $ester-bg-secondary !important;
+}
+
+.bg-secondary {
+  background-color: $ester-bg-tertiary !important;
+}
+
+.bg-dark {
+  background-color: $ester-bg-dark !important;
+}
+
+.bg-brand-primary {
+  background-color: $ester-primary !important;
+}
+
+.bg-brand-primary-light {
+  background-color: $ester-primary-light !important;
+}
+
+.bg-success {
+  background-color: $ester-success !important;
+}
+
+.bg-success-light {
+  background-color: $ester-success-light !important;
+}
+
+.bg-warning {
+  background-color: $ester-warning !important;
+}
+
+.bg-warning-light {
+  background-color: $ester-warning-light !important;
+}
+
+.bg-danger {
+  background-color: $ester-danger !important;
+}
+
+.bg-danger-light {
+  background-color: $ester-danger-light !important;
+}
+
+.bg-info {
+  background-color: $ester-info !important;
+}
+
+.bg-info-light {
+  background-color: $ester-info-light !important;
+}
+
+// Bordes
+.border {
+  border: 1px solid $ester-border-primary !important;
+}
+
+.border-top {
+  border-top: 1px solid $ester-border-primary !important;
+}
+
+.border-right {
+  border-right: 1px solid $ester-border-primary !important;
+}
+
+.border-bottom {
+  border-bottom: 1px solid $ester-border-primary !important;
+}
+
+.border-left {
+  border-left: 1px solid $ester-border-primary !important;
+}
+
+.border-0 {
+  border: none !important;
+}
+
+// Border Radius
+.rounded {
+  border-radius: $border-radius-md !important;
+}
+
+.rounded-sm {
+  border-radius: $border-radius-sm !important;
+}
+
+.rounded-lg {
+  border-radius: $border-radius-lg !important;
+}
+
+.rounded-xl {
+  border-radius: $border-radius-xl !important;
+}
+
+.rounded-full {
+  border-radius: $border-radius-full !important;
+}
+
+// Sombras
+.shadow-none {
+  box-shadow: none !important;
+}
+
+.shadow-sm {
+  @include shadow(sm);
+}
+
+.shadow-md {
+  @include shadow(md);
+}
+
+.shadow-lg {
+  @include shadow(lg);
+}
+
+.shadow-xl {
+  @include shadow(xl);
+}
+
+// Cursor
+.pointer {
+  cursor: pointer !important;
+}
+
+.cursor-default {
+  cursor: default !important;
+}
+
+.cursor-not-allowed {
+  cursor: not-allowed !important;
+}
+
+// Overflow
+.overflow-hidden {
+  overflow: hidden !important;
+}
+
+.overflow-auto {
+  overflow: auto !important;
+}
+
+.overflow-scroll {
+  overflow: scroll !important;
+}
+
+// Position
+.relative {
+  position: relative !important;
+}
+
+.absolute {
+  position: absolute !important;
+}
+
+.fixed {
+  position: fixed !important;
+}
+
+.sticky {
+  position: sticky !important;
+}
+
+// Visibility
+.visible {
+  visibility: visible !important;
+}
+
+.invisible {
+  visibility: hidden !important;
+}
+
+.opacity-0 {
+  opacity: 0 !important;
+}
+
+.opacity-50 {
+  opacity: 0.5 !important;
+}
+
+.opacity-100 {
+  opacity: 1 !important;
+}
+
+// Interacción
+.select-none {
+  user-select: none !important;
+}
+
+.pointer-events-none {
+  pointer-events: none !important;
+}
+
+.pointer-events-auto {
+  pointer-events: auto !important;
+}
+
+// Responsive
+.mobile-only {
+  @include mobile-only;
+}
+
+.desktop-only {
+  @include desktop-only;
+}
+

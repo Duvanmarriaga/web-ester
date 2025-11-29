@@ -1,0 +1,72 @@
+# ==================================================
+# Docker Compose - Ester (Producción)
+# ==================================================
+# Configuración para producción con Nginx
+# ==================================================
+
+version: '3.9'
+
+services:
+  # Aplicación Angular servida por Nginx
+  ester-prod:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: production
+      args:
+        - NODE_ENV=production
+    container_name: ester-prod
+    ports:
+      - "80:80"
+      - "443:443"
+    environment:
+      - NODE_ENV=production
+    networks:
+      - ester-network
+    restart: always
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost/health"]
+      interval: 30s
+      timeout: 3s
+      retries: 3
+      start_period: 10s
+    # Límites de recursos
+    deploy:
+      resources:
+        limits:
+          cpus: '1'
+          memory: 512M
+        reservations:
+          cpus: '0.5'
+          memory: 256M
+    # Logging
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+networks:
+  ester-network:
+    driver: bridge
+    name: ester-prod-network
+
+# ==================================================
+# Configuración adicional para producción con SSL
+# ==================================================
+# Para habilitar HTTPS:
+# 1. Descomentar el servicio certbot
+# 2. Actualizar nginx.conf con configuración SSL
+# 3. Montar certificados en el contenedor
+# ==================================================
+
+  # certbot:
+  #   image: certbot/certbot:latest
+  #   container_name: ester-certbot
+  #   volumes:
+  #     - ./certbot/conf:/etc/letsencrypt
+  #     - ./certbot/www:/var/www/certbot
+  #   command: certonly --webroot --webroot-path=/var/www/certbot --email admin@example.com --agree-tos --no-eff-email -d example.com -d www.example.com
+  #   networks:
+  #     - ester-network
+

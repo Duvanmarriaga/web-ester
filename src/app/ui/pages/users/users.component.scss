@@ -1,0 +1,136 @@
+@use 'sass:map';
+@use "../../../../styles/variables" as *;
+@use "../../../../styles/mixins" as *;
+
+// Page title
+.page-title {
+  font-size: map.get($font-sizes, lg);
+  font-weight: map.get($font-weights, bold);
+  color: $ester-text-primary;
+  margin: 0;
+}
+
+// Table styles
+.table-header {
+  text-transform: uppercase;
+  font-weight: map.get($font-weights, semibold);
+  font-size: map.get($font-sizes, xs);
+  color: $ester-text-tertiary;
+}
+
+.table-cell {
+  font-size: map.get($font-sizes, sm);
+  color: $ester-text-secondary;
+
+  &.fw-medium {
+    font-weight: map.get($font-weights, medium);
+    color: $ester-text-primary;
+  }
+}
+
+// Badge
+.badge-role {
+  display: inline-flex;
+  padding: 2px 8px;
+  border-radius: $border-radius-full;
+  font-size: map.get($font-sizes, xs);
+  font-weight: map.get($font-weights, medium);
+  text-transform: capitalize;
+  
+  // Admin - Verde
+  &--admin {
+    background-color: $ester-success-light;
+    color: $ester-success-dark;
+  }
+  
+  // Client - Amarillo
+  &--client {
+    background-color: $ester-warning-light;
+    color: $ester-warning-dark;
+  }
+}
+// Status
+.status-active,
+.status-inactive {
+  @include flex(row, center, flex-start, map.get($spacing-scale, 1));
+  font-size: map.get($font-sizes, xs);
+  font-weight: map.get($font-weights, medium);
+}
+
+.status-active {
+  color: $ester-success;
+
+  lucide-icon {
+    color: $ester-success;
+  }
+}
+
+.status-inactive {
+  color: $ester-danger;
+
+  lucide-icon {
+    color: $ester-danger;
+  }
+}
+
+// Card
+.card {
+  border-radius: $border-radius-lg;
+  @include transition(all, $transition-fast);
+}
+
+// Table
+.table {
+  --bs-table-bg: transparent;
+  --bs-table-hover-bg: var(--ester-bg-light);
+
+  th,
+  td {
+    padding: map.get($spacing-scale, 2) map.get($spacing-scale, 3);
+    border-bottom: 1px solid $ester-border-primary;
+    vertical-align: middle;
+  }
+
+  th {
+    background-color: $ester-bg-secondary;
+    border-bottom: 2px solid $ester-border-secondary;
+  }
+
+  tbody tr {
+    @include transition(all, $transition-fast);
+
+    &:hover {
+      background-color: $ester-bg-tertiary;
+    }
+
+    &:last-child td {
+      border-bottom: none;
+    }
+  }
+
+  // Alineación de botones de acción
+  td.text-end {
+    white-space: nowrap;
+
+    .btn {
+      vertical-align: middle;
+    }
+  }
+}
+
+// Spinner
+.spinner-border {
+  color: $ester-primary;
+}
+
+// Responsive
+@media (max-width: 768px) {
+  .table {
+    font-size: map.get($font-sizes, xs);
+
+    th,
+    td {
+      padding: map.get($spacing-scale, 1) map.get($spacing-scale, 2);
+    }
+  }
+}

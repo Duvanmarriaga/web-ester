@@ -1,0 +1,264 @@
+@use 'sass:map';
+@use 'sass:color';
+@use '../../../../styles/variables' as *;
+@use '../../../../styles/mixins' as *;
+
+.sidebar {
+  @include fixed(0, auto, 0, 0, $z-index-sidebar);
+  @include flex(column, stretch, flex-start);
+  width: $sidebar-width;
+  height: 100vh;
+  background-color: $ester-bg-primary;
+  border-right: 1px solid $ester-border-primary;
+  @include transition(all, $transition-normal);
+  @include custom-scrollbar;
+  box-shadow: 2px 0 8px rgba(0, 0, 0, 0.04);
+  
+  // Desktop: COLAPSA (70px con solo iconos)
+  &--closed {
+    
+    @include media-md {
+      width: $sidebar-collapsed-width;
+      min-width: $sidebar-collapsed-width;
+
+      .sidebar__brand-text,
+      .sidebar__menu-label,
+      .sidebar__menu-badge,
+      .sidebar__footer-text {
+        opacity: 0;
+        width: 0;
+        overflow: hidden;
+        display: none;
+      }
+      .sidebar__brand{
+      justify-content: center;
+      }
+      
+      .sidebar__toggle {
+        lucide-icon {
+          transform: rotate(180deg);
+        }
+      }
+    }
+  }
+
+  // Mobile styles (overlay completo)
+  @media (max-width: 767px) {
+    transform: translateX(-100%);
+
+    &--mobile-open {
+      transform: translateX(0);
+      box-shadow: 8px 0 32px rgba(0, 0, 0, 0.12);
+    }
+
+    &--closed {
+      transform: translateX(-100%);
+    }
+  }
+  
+  // Header
+  &__header {
+    @include flex(row, center, space-between);
+    min-height: $toolbar-height;
+    padding: map.get($spacing-scale, 2) map.get($spacing-scale, 3);
+    border-bottom: 1px solid $ester-border-primary;
+    background-color: $ester-bg-primary;
+  }
+  
+  &__brand {
+    @include flex(row, center, flex-start, map.get($spacing-scale, 2));
+    overflow: hidden;
+    flex: 1;
+  }
+  
+  &__brand-icon {
+    @include flex-center;
+    @include size(28px);
+    background: linear-gradient(135deg, $ester-primary 0%, color.scale($ester-primary, $lightness: -10%) 100%);
+    color: $ester-text-inverse;
+    font-size: map.get($font-sizes, sm);
+    font-weight: map.get($font-weights, bold);
+    border-radius: $border-radius-md;
+    flex-shrink: 0;
+    box-shadow: 0 2px 4px rgba($ester-primary, 0.2);
+  }
+  
+  &__brand-text {
+    @include flex(column, flex-start, center);
+    @include transition(all, $transition-normal);
+    white-space: nowrap;
+    overflow: hidden;
+  }
+  
+  &__brand-name {
+    margin: 0;
+    font-size: map.get($font-sizes, md);
+    font-weight: map.get($font-weights, bold);
+    color: $ester-text-primary;
+    line-height: 1;
+  }
+  
+  &__brand-subtitle {
+    font-size: map.get($font-sizes, xs);
+    color: $ester-text-tertiary;
+    margin-top: 2px;
+  }
+  
+  &__toggle {
+    @include button-reset;
+    @include flex-center;
+    @include size(32px);
+    color: $ester-text-secondary;
+    background-color: transparent;
+    border: 1px solid $ester-border-primary;
+    border-radius: $border-radius-sm;
+    flex-shrink: 0;
+    @include transition(all, $transition-fast);
+    right: -18px;
+    background: white;
+    position: absolute;
+    lucide-icon {
+      @include transition(transform, $transition-normal);
+    }
+    
+    &:hover {
+      background-color: $ester-primary-lightest;
+      border-color: $ester-primary;
+      color: $ester-primary;
+      transform: scale(1.05);
+    }
+    
+    &:active {
+      transform: scale(0.95);
+    }
+  }
+  
+  // Navigation
+  &__nav {
+    flex-grow: 1;
+    overflow-y: auto;
+    overflow-x: hidden;
+    padding: map.get($spacing-scale, 2) 0;
+    @include custom-scrollbar(4px);
+  }
+  
+  &__menu {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+  
+  &__menu-item {
+    padding: 0 map.get($spacing-scale, 2);
+    margin-bottom: 2px;
+  }
+  
+  &__menu-link {
+    @include flex(row, center, flex-start, map.get($spacing-scale, 2));
+    padding: map.get($spacing-scale, 2) map.get($spacing-scale, 3);
+    color: $ester-text-secondary;
+    font-size: map.get($font-sizes, sm);
+    font-weight: map.get($font-weights, medium);
+    text-decoration: none;
+    border-radius: $border-radius-md;
+    @include transition(all, $transition-fast);
+    position: relative;
+    
+    &:hover {
+      background-color: $ester-bg-tertiary;
+      color: $ester-primary;
+      transform: translateX(2px);
+      
+      .sidebar__menu-icon {
+        transform: scale(1.15);
+      }
+    }
+    
+    &--active {
+      background-color: $ester-primary-light;
+      color: $ester-primary;
+      font-weight: map.get($font-weights, semibold);
+      box-shadow: 0 1px 3px rgba($ester-primary, 0.1);
+      
+      &::before {
+        content: '';
+        @include absolute(50%, auto, auto, 0);
+        transform: translateY(-50%);
+        width: 3px;
+        height: 70%;
+        background: linear-gradient(180deg, $ester-primary 0%, color.scale($ester-primary, $lightness: -10%) 100%);
+        border-radius: 0 $border-radius-sm $border-radius-sm 0;
+        box-shadow: 0 0 8px rgba($ester-primary, 0.3);
+      }
+      
+      .sidebar__menu-icon {
+        color: $ester-primary;
+      }
+    }
+    
+    &:active {
+      transform: translateX(0) scale(0.98);
+    }
+  }
+  
+  &__menu-icon {
+    @include flex-center;
+    flex-shrink: 0;
+    @include transition(all, $transition-fast);
+  }
+  
+  &__menu-label {
+    @include transition(all, $transition-normal);
+    white-space: nowrap;
+    overflow: hidden;
+    font-size: map.get($font-sizes, sm);
+  }
+  
+  &__menu-badge {
+    @include badge($ester-primary, $ester-text-inverse);
+    margin-left: auto;
+    @include transition(all, $transition-normal);
+    font-size: 9px;
+    padding: 2px 6px;
+    font-weight: map.get($font-weights, semibold);
+  }
+  
+  // Footer
+  &__footer {
+    border-top: 1px solid $ester-border-primary;
+    padding: map.get($spacing-scale, 2) map.get($spacing-scale, 3);
+    min-height: 40px;
+    background-color: $ester-bg-secondary;
+  }
+  
+  &__footer-content {
+    @include flex(row, center, flex-start, map.get($spacing-scale, 2));
+  }
+  
+  &__footer-icon {
+    color: $ester-text-tertiary;
+    flex-shrink: 0;
+  }
+  
+  &__footer-text {
+    font-size: map.get($font-sizes, xs);
+    color: $ester-text-tertiary;
+    white-space: nowrap;
+    @include transition(all, $transition-normal);
+  }
+  
+  // Overlay
+  &__overlay {
+    @include overlay(rgba(0, 0, 0, 0.5), $z-index-sidebar - 1);
+    animation: fadeIn $transition-normal ease-in-out;
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}

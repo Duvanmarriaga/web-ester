@@ -1,0 +1,82 @@
+# ==================================================
+# .dockerignore - Ester
+# ==================================================
+# Archivos y carpetas a excluir del contexto de Docker
+# ==================================================
+
+# Node
+node_modules
+npm-debug.log
+yarn-error.log
+package-lock.json
+
+# Angular
+dist
+.angular
+.angular/cache
+*.ngfactory.ts
+*.ngstyle.ts
+*.ngsummary.json
+*.metadata.json
+
+# IDEs
+.idea
+.vscode
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Git
+.git
+.gitignore
+.gitattributes
+
+# Tests
+coverage
+.nyc_output
+*.spec.ts
+karma.conf.js
+*.log
+
+# Documentación
+*.md
+!README.md
+ESTADO_FINAL.md
+TESTING_GUIDE.md
+COMPLETAR_COMPONENTES.md
+RESUMEN_FINAL.md
+BOOTSTRAP_IMPLEMENTATION.md
+GUIA_VISUAL_LAYOUT.md
+BOOTSTRAP_RESUMEN_EJECUTIVO.md
+INICIO_RAPIDO.md
+MEJORAS_FINALES_ESTER.md
+CAMBIOS_COMPLETOS_ESTER.md
+CONFIGURACION_API.md
+RESUMEN_ENVIRONMENTS.md
+LOGOUT_IMPLEMENTADO.md
+DEBUG_DROPDOWN.md
+LOGOUT_NGRX_EFFECTS.md
+REFACTOR_SCSS_COMPLETO.md
+
+# Archivos temporales
+tmp
+temp
+.tmp
+.cache
+
+# Docker
+Dockerfile*
+docker-compose*.yml
+.dockerignore
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# Otros
+*.zip
+*.tar.gz
+*.tgz
+

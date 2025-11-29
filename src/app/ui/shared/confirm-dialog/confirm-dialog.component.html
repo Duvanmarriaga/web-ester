@@ -1,0 +1,41 @@
+@if (isVisible()) {
+  <div class="confirm-dialog-overlay" (click)="onBackdropClick()">
+    <div class="confirm-dialog" (click)="$event.stopPropagation()">
+      <!-- Icon -->
+      <div class="confirm-dialog__icon" [class]="'confirm-dialog__icon--' + variant()">
+        <lucide-icon [img]="icons.AlertTriangle" [size]="32"></lucide-icon>
+      </div>
+      
+      <!-- Close button -->
+      <button type="button" class="confirm-dialog__close" (click)="onCancel()">
+        <lucide-icon [img]="icons.X" [size]="18"></lucide-icon>
+      </button>
+      
+      <!-- Content -->
+      <div class="confirm-dialog__content">
+        <h3 class="confirm-dialog__title">{{ title() }}</h3>
+        <p class="confirm-dialog__message">{{ message() }}</p>
+      </div>
+      
+      <!-- Actions -->
+      <div class="confirm-dialog__actions">
+        <button 
+          type="button" 
+          class="btn btn-outline-secondary"
+          (click)="onCancel()"
+        >
+          {{ cancelText() }}
+        </button>
+        <button 
+          type="button" 
+          class="btn"
+          [class.btn-danger]="variant() === 'danger'"
+          [class.btn-primary]="variant() === 'warning' || variant() === 'info'"
+          (click)="onConfirm()"
+        >
+          {{ confirmText() }}
+        </button>
+      </div>
+    </div>
+  </div>
+}

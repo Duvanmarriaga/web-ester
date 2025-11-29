@@ -1,0 +1,147 @@
+// ==================================================
+// ESTER - Variables del Sistema de Diseño
+// ==================================================
+
+// Paleta de colores Ester
+$ester-primary: #6366f1;
+$ester-primary-dark: #4f46e5;
+$ester-primary-light: #e0e7ff;
+$ester-primary-lightest: #f5f7ff;
+
+$ester-secondary: #8b5cf6;
+$ester-secondary-dark: #7c3aed;
+$ester-secondary-light: #ede9fe;
+
+$ester-success: #10b981;
+$ester-success-dark: #059669;
+$ester-success-light: #d1fae5;
+
+$ester-warning: #f59e0b;
+$ester-warning-dark: #d97706;
+$ester-warning-light: #fef3c7;
+
+$ester-danger: #ef4444;
+$ester-danger-dark: #dc2626;
+$ester-danger-light: #fee2e2;
+
+$ester-info: #3b82f6;
+$ester-info-dark: #2563eb;
+$ester-info-light: #dbeafe;
+
+// Colores de texto
+$ester-text-primary: #1e293b;
+$ester-text-secondary: #64748b;
+$ester-text-tertiary: #94a3b8;
+$ester-text-inverse: #ffffff;
+
+// Colores de fondo
+$ester-bg-primary: #ffffff;
+$ester-bg-secondary: #f8fafc;
+$ester-bg-tertiary: #f1f5f9;
+$ester-bg-dark: #0f172a;
+
+// Colores de borde
+$ester-border-primary: #e7e7e7; // Gris más visible para bordes principales
+$ester-border-secondary: #e5e7eb; // Gris claro para bordes secundarios
+$ester-border-tertiary: #9ca3af; // Gris medio para bordes terciarios
+
+// Sombras
+$ester-shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+$ester-shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+$ester-shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+$ester-shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+
+// Espaciado
+$spacing-unit: 0.25rem; // 4px
+$spacing-scale: (
+  0: 0,
+  1: $spacing-unit * 1,      // 4px
+  2: $spacing-unit * 2,      // 8px
+  3: $spacing-unit * 3,      // 12px
+  4: $spacing-unit * 4,      // 16px
+  5: $spacing-unit * 5,      // 20px
+  6: $spacing-unit * 6,      // 24px
+  8: $spacing-unit * 8,      // 32px
+  10: $spacing-unit * 10,    // 40px
+  12: $spacing-unit * 12,    // 48px
+  16: $spacing-unit * 16,    // 64px
+);
+
+// Tipografía
+$font-family-base: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+$font-family-heading: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+$font-family-mono: 'Monaco', 'Courier New', monospace;
+
+$font-size-base: 14px;
+$font-sizes: (
+  xs: 10px,
+  sm: 11px,
+  base: 13px,
+  md: 14px,
+  lg: 16px,
+  xl: 18px,
+  2xl: 20px,
+  3xl: 24px,
+  4xl: 32px,
+);
+
+$font-weights: (
+  regular: 400,
+  medium: 500,
+  semibold: 600,
+  bold: 700,
+);
+
+$line-heights: (
+  tight: 1.2,
+  normal: 1.5,
+  relaxed: 1.75,
+);
+
+// Radios de borde
+$border-radius-sm: 4px;
+$border-radius-md: 6px;
+$border-radius-lg: 8px;
+$border-radius-xl: 12px;
+$border-radius-full: 9999px;
+
+// Transiciones
+$transition-fast: 150ms;
+$transition-normal: 250ms;
+$transition-slow: 350ms;
+
+// Z-index
+$z-index-dropdown: 1000;
+$z-index-sticky: 1020;
+$z-index-toolbar: 1030;
+$z-index-sidebar: 1040;
+$z-index-modal-backdrop: 1050;
+$z-index-modal: 1060;
+$z-index-popover: 1070;
+$z-index-tooltip: 1080;
+
+// Breakpoints
+$breakpoint-sm: 576px;
+$breakpoint-md: 768px;
+$breakpoint-lg: 992px;
+$breakpoint-xl: 1200px;
+$breakpoint-xxl: 1400px;
+
+// Layout
+$sidebar-width: 240px;
+$sidebar-collapsed-width: 70px;
+$toolbar-height: 56px;
+
+// Componentes
+$input-height: 36px;
+$input-height-sm: 32px;
+$input-height-lg: 40px;
+
+$button-height: 36px;
+$button-height-sm: 28px;
+$button-height-lg: 40px;
+
+$card-padding: 1rem;
+$card-padding-sm: 0.75rem;
+$card-padding-lg: 1.5rem;
+

@@ -1,0 +1,45 @@
+@use 'sass:map';
+@use '../../../../styles/variables' as *;
+@use '../../../../styles/mixins' as *;
+
+.main-layout {
+  @include flex(row, stretch, flex-start);
+  min-height: 100vh;
+  background: $ester-bg-secondary;
+}
+
+.content-wrapper {
+  flex: 1;
+  @include flex(column, stretch, flex-start);
+  @include transition(margin-left, $transition-normal);
+
+  // Desktop: ajusta según sidebar
+  @include media-md {
+    margin-left: $sidebar-collapsed-width; // Default: collapsed (solo iconos)
+    
+    &.sidebar-open {
+      margin-left: $sidebar-width; // Expanded (completo)
+    }
+  }
+
+  // Mobile - no margin (sidebar es overlay)
+  @media (max-width: 767px) {
+    margin-left: 0 !important;
+  }
+}
+
+.main-content {
+  flex: 1;
+  padding: map.get($spacing-scale, 3);
+  margin-top: $toolbar-height;
+  overflow-y: auto;
+  max-width: 100%;
+
+  @include media-lg {
+    padding: map.get($spacing-scale, 4);
+  }
+
+  @media (max-width: 575px) {
+    padding: map.get($spacing-scale, 2);
+  }
+}

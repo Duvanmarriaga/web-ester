@@ -1,0 +1,50 @@
+# ==================================================
+# Docker Compose - Ester (Desarrollo)
+# ==================================================
+# Configuración para desarrollo local con hot-reload
+# ==================================================
+
+version: '3.9'
+
+services:
+  # Aplicación Angular en modo desarrollo
+  ester-dev:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: development
+    container_name: ester-dev
+    ports:
+      - "4200:4200"
+    volumes:
+      # Montar el código fuente para hot-reload
+      - ./src:/app/src:cached
+      - ./angular.json:/app/angular.json:cached
+      - ./tsconfig.json:/app/tsconfig.json:cached
+      - ./tsconfig.app.json:/app/tsconfig.app.json:cached
+      - ./tsconfig.spec.json:/app/tsconfig.spec.json:cached
+      # Excluir node_modules (usar los del contenedor)
+      - /app/node_modules
+    environment:
+      - NODE_ENV=development
+      - CHOKIDAR_USEPOLLING=true
+    networks:
+      - ester-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:4200"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+networks:
+  ester-network:
+    driver: bridge
+    name: ester-network
+
+# Volúmenes nombrados (opcional, para mejorar performance)
+volumes:
+  node_modules:
+    name: ester-node-modules
+

@@ -1,0 +1,85 @@
+<header class="toolbar">
+  <!-- Left section -->
+  <div class="toolbar__left">
+    <!-- Mobile menu button -->
+    <button
+      class="toolbar__menu-btn toolbar__menu-btn--mobile"
+      (click)="toggleMobileMenu()"
+      type="button"
+      aria-label="Toggle mobile menu"
+    >
+      <span [innerHTML]="getIconSvg('menu')"></span>
+        </button>
+      </div>
+
+  <!-- Center section -->
+  <div class="toolbar__center"></div>
+
+  <!-- Right section -->
+  <div class="toolbar__right">
+    <!-- User menu -->
+    <div class="toolbar__user-menu">
+      <button
+        class="toolbar__user-button"
+        type="button"
+        (click)="toggleUserMenu()"
+      >
+        <div class="toolbar__user-avatar">
+          {{ userInitials() }}
+        </div>
+        <div class="toolbar__user-info">
+          <div class="toolbar__user-name">
+            {{ userFullName() }}
+          </div>
+          <small class="toolbar__user-role">Administrador</small>
+        </div>
+        <span [innerHTML]="getIconSvg('chevron-down')" class="toolbar__chevron"></span>
+          </button>
+
+      <!-- Dropdown menu -->
+      <div
+        class="toolbar__dropdown"
+        [class.toolbar__dropdown--show]="isUserMenuOpen()"
+      >
+        <div class="toolbar__dropdown-header">
+          <div class="toolbar__dropdown-name">
+            {{ userFullName() }}
+              </div>
+          <small class="toolbar__dropdown-subtitle">Cuenta principal</small>
+        </div>
+
+        <!-- <button
+          class="toolbar__dropdown-item"
+          type="button"
+        >
+          <span [innerHTML]="getIconSvg('user')"></span>
+          <span>Mi Perfil</span>
+        </button>
+
+        <button
+          class="toolbar__dropdown-item"
+          type="button"
+        >
+          <span [innerHTML]="getIconSvg('settings')"></span>
+          <span>Configuración</span>
+        </button> -->
+
+        <hr class="toolbar__dropdown-divider" />
+
+        <button
+          class="toolbar__dropdown-item toolbar__dropdown-item--danger"
+          type="button"
+          (click)="onLogout()"
+        >
+          <span [innerHTML]="getIconSvg('log-out')"></span>
+                <span>Cerrar Sesión</span>
+        </button>
+            </div>
+        </div>
+      </div>
+    </header>
+
+<!-- Backdrop for dropdown -->
+@if (isUserMenuOpen()) {
+<div class="toolbar__backdrop" (click)="toggleUserMenu()"></div>
+}

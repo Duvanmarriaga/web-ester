@@ -1,0 +1,213 @@
+// Dashboard Component Styles - Ester
+
+.dashboard {
+  max-width: 1600px;
+  margin: 0 auto;
+}
+
+// Stat Cards (KPIs)
+.stat-card {
+  background: white;
+  border: 1px solid var(--ester-border-light);
+  border-radius: 0.75rem;
+  padding: 1.25rem;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  transition: all 0.2s ease;
+  
+  &:hover {
+    border-color: var(--ester-primary-light);
+    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.1);
+    transform: translateY(-2px);
+  }
+}
+
+.stat-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 0.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  
+  lucide-icon {
+    display: flex;
+  }
+  
+  &.bg-primary-light {
+    background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);
+    
+    lucide-icon {
+      color: var(--ester-primary);
+    }
+  }
+  
+  &.bg-success-light {
+    background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%);
+    
+    lucide-icon {
+      color: var(--ester-success);
+    }
+  }
+  
+  &.bg-warning-light {
+    background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+    
+    lucide-icon {
+      color: var(--ester-warning);
+    }
+  }
+  
+  &.bg-info-light {
+    background: linear-gradient(135deg, #cffafe 0%, #a5f3fc 100%);
+    
+    lucide-icon {
+      color: var(--ester-info);
+    }
+  }
+}
+
+.stat-content {
+  flex: 1;
+}
+
+.stat-value {
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--ester-text-primary);
+  margin: 0;
+  line-height: 1.2;
+}
+
+.stat-label {
+  font-size: 12px;
+  color: var(--ester-text-secondary);
+  margin: 0.25rem 0 0 0;
+  font-weight: 500;
+}
+
+// Chart Cards
+.chart-card {
+  background: white;
+  border: 1px solid var(--ester-border-light);
+  border-radius: 0.75rem;
+  overflow: hidden;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  transition: all 0.2s ease;
+  
+  &:hover {
+    border-color: var(--ester-border-dark);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  }
+}
+
+.chart-header {
+  padding: 1rem 1.25rem;
+  border-bottom: 1px solid var(--ester-border-light);
+  background: linear-gradient(to bottom, #ffffff 0%, #fafbfc 100%);
+}
+
+.chart-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--ester-text-primary);
+  margin: 0;
+  display: flex;
+  align-items: center;
+  
+  lucide-icon {
+    color: var(--ester-primary);
+    flex-shrink: 0;
+  }
+}
+
+.chart-body {
+  padding: 1rem;
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  
+  // ApexCharts overrides
+  :ng-deep {
+    .apexcharts-canvas {
+      margin: 0 auto;
+    }
+    
+    .apexcharts-legend {
+      padding: 0 !important;
+      font-family: 'Inter', sans-serif !important;
+    }
+    
+    .apexcharts-legend-text {
+      font-size: 11px !important;
+      color: var(--ester-text-secondary) !important;
+    }
+    
+    .apexcharts-tooltip {
+      border: 1px solid var(--ester-border-dark) !important;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1) !important;
+      font-family: 'Inter', sans-serif !important;
+      font-size: 12px !important;
+    }
+    
+    .apexcharts-xaxistooltip,
+    .apexcharts-yaxistooltip {
+      border: 1px solid var(--ester-border-dark) !important;
+      font-family: 'Inter', sans-serif !important;
+      font-size: 11px !important;
+    }
+    
+    .apexcharts-xaxis-label,
+    .apexcharts-yaxis-label {
+      fill: var(--ester-text-secondary) !important;
+      font-family: 'Inter', sans-serif !important;
+      font-size: 11px !important;
+    }
+    
+    .apexcharts-gridline {
+      stroke: var(--ester-border-light) !important;
+    }
+  }
+}
+
+// Responsive
+@media (max-width: 768px) {
+  .stat-card {
+    padding: 1rem;
+  }
+  
+  .stat-icon {
+    width: 40px;
+    height: 40px;
+    
+    lucide-icon {
+      width: 18px;
+      height: 18px;
+    }
+  }
+  
+  .stat-value {
+    font-size: 20px;
+  }
+  
+  .stat-label {
+    font-size: 11px;
+  }
+  
+  .chart-header {
+    padding: 0.875rem 1rem;
+  }
+  
+  .chart-title {
+    font-size: 13px;
+  }
+  
+  .chart-body {
+    padding: 0.75rem;
+  }
+}
