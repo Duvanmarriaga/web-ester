@@ -8,11 +8,11 @@
   @include flex(column, stretch, flex-start);
   width: $sidebar-width;
   height: 100vh;
-  background-color: $ester-bg-primary;
-  border-right: 1px solid $ester-border-primary;
+  background-color: $ester-primary;
+  border-right: 1px solid rgba(255, 255, 255, 0.1);
   @include transition(all, $transition-normal);
   @include custom-scrollbar;
-  box-shadow: 2px 0 8px rgba(0, 0, 0, 0.04);
+  box-shadow: 4px 0 16px rgba(0, 0, 0, 0.2);
   
   // Desktop: COLAPSA (70px con solo iconos)
   &--closed {
@@ -61,8 +61,8 @@
     @include flex(row, center, space-between);
     min-height: $toolbar-height;
     padding: map.get($spacing-scale, 2) map.get($spacing-scale, 3);
-    border-bottom: 1px solid $ester-border-primary;
-    background-color: $ester-bg-primary;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    background: $ester-primary;
   }
   
   &__brand {
@@ -71,16 +71,23 @@
     flex: 1;
   }
   
-  &__brand-icon {
+  &__brand-logo {
     @include flex-center;
-    @include size(28px);
-    background: linear-gradient(135deg, $ester-primary 0%, color.scale($ester-primary, $lightness: -10%) 100%);
-    color: $ester-text-inverse;
-    font-size: map.get($font-sizes, sm);
-    font-weight: map.get($font-weights, bold);
-    border-radius: $border-radius-md;
+    @include size(40px);
     flex-shrink: 0;
-    box-shadow: 0 2px 4px rgba($ester-primary, 0.2);
+    border-radius: $border-radius-md;
+    overflow: hidden;
+    background: $ester-bg-primary;
+    padding: 4px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+  }
+
+  &__logo-img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    display: block;
+    border-radius: $border-radius-sm;
   }
   
   &__brand-text {
@@ -94,13 +101,13 @@
     margin: 0;
     font-size: map.get($font-sizes, md);
     font-weight: map.get($font-weights, bold);
-    color: $ester-text-primary;
+    color: $ester-text-inverse;
     line-height: 1;
   }
   
   &__brand-subtitle {
     font-size: map.get($font-sizes, xs);
-    color: $ester-text-tertiary;
+    color: rgba(255, 255, 255, 0.7);
     margin-top: 2px;
   }
   
@@ -108,23 +115,23 @@
     @include button-reset;
     @include flex-center;
     @include size(32px);
-    color: $ester-text-secondary;
-    background-color: transparent;
-    border: 1px solid $ester-border-primary;
+    color: $ester-text-inverse;
+    background-color: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
     border-radius: $border-radius-sm;
     flex-shrink: 0;
     @include transition(all, $transition-fast);
     right: -18px;
-    background: white;
     position: absolute;
+    backdrop-filter: blur(10px);
     lucide-icon {
       @include transition(transform, $transition-normal);
+      color: $ester-text-inverse;
     }
     
     &:hover {
-      background-color: $ester-primary-lightest;
-      border-color: $ester-primary;
-      color: $ester-primary;
+      background-color: rgba(255, 255, 255, 0.2);
+      border-color: rgba(255, 255, 255, 0.3);
       transform: scale(1.05);
     }
     
@@ -139,7 +146,25 @@
     overflow-y: auto;
     overflow-x: hidden;
     padding: map.get($spacing-scale, 2) 0;
-    @include custom-scrollbar(4px);
+    
+    // Scrollbar personalizado para tema oscuro
+    &::-webkit-scrollbar {
+      width: 4px;
+      height: 4px;
+    }
+    
+    &::-webkit-scrollbar-track {
+      background: transparent;
+    }
+    
+    &::-webkit-scrollbar-thumb {
+      background: rgba(255, 255, 255, 0.2);
+      border-radius: $border-radius-full;
+      
+      &:hover {
+        background: rgba(255, 255, 255, 0.3);
+      }
+    }
   }
   
   &__menu {
@@ -156,7 +181,7 @@
   &__menu-link {
     @include flex(row, center, flex-start, map.get($spacing-scale, 2));
     padding: map.get($spacing-scale, 2) map.get($spacing-scale, 3);
-    color: $ester-text-secondary;
+    color: rgba(255, 255, 255, 0.8);
     font-size: map.get($font-sizes, sm);
     font-weight: map.get($font-weights, medium);
     text-decoration: none;
@@ -165,20 +190,21 @@
     position: relative;
     
     &:hover {
-      background-color: $ester-bg-tertiary;
-      color: $ester-primary;
+      background-color: rgba(255, 255, 255, 0.1);
+      color: $ester-text-inverse;
       transform: translateX(2px);
       
       .sidebar__menu-icon {
         transform: scale(1.15);
+        color: $ester-text-inverse;
       }
     }
     
     &--active {
-      background-color: $ester-primary-light;
-      color: $ester-primary;
+      background-color: rgba(255, 255, 255, 0.15);
+      color: $ester-text-inverse;
       font-weight: map.get($font-weights, semibold);
-      box-shadow: 0 1px 3px rgba($ester-primary, 0.1);
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
       
       &::before {
         content: '';
@@ -186,13 +212,13 @@
         transform: translateY(-50%);
         width: 3px;
         height: 70%;
-        background: linear-gradient(180deg, $ester-primary 0%, color.scale($ester-primary, $lightness: -10%) 100%);
+        background: $ester-secondary;
         border-radius: 0 $border-radius-sm $border-radius-sm 0;
-        box-shadow: 0 0 8px rgba($ester-primary, 0.3);
+        box-shadow: 0 0 8px rgba(174, 173, 179, 0.5);
       }
       
       .sidebar__menu-icon {
-        color: $ester-primary;
+        color: $ester-text-inverse;
       }
     }
     
@@ -225,10 +251,10 @@
   
   // Footer
   &__footer {
-    border-top: 1px solid $ester-border-primary;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
     padding: map.get($spacing-scale, 2) map.get($spacing-scale, 3);
     min-height: 40px;
-    background-color: $ester-bg-secondary;
+    background: rgba(0, 0, 0, 0.2);
   }
   
   &__footer-content {
@@ -236,13 +262,13 @@
   }
   
   &__footer-icon {
-    color: $ester-text-tertiary;
+    color: rgba(255, 255, 255, 0.6);
     flex-shrink: 0;
   }
   
   &__footer-text {
     font-size: map.get($font-sizes, xs);
-    color: $ester-text-tertiary;
+    color: rgba(255, 255, 255, 0.6);
     white-space: nowrap;
     @include transition(all, $transition-normal);
   }

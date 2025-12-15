@@ -2,7 +2,7 @@
 @use "../../../../styles/variables" as *;
 @use "../../../../styles/mixins" as *;
 
-// Companies Component Styles - Diseño Compacto y Moderno
+// Companies Component Styles - Tabla Moderna y Profesional
 
 // Page title
 .page-title {
@@ -20,184 +20,231 @@
   color: $ester-danger;
 }
 
-.company-card {
-  background: white;
-  border: 1px solid var(--ester-border-light);
-  border-radius: 0.5rem;
-  padding: 0.75rem;
-  transition: all 0.2s ease;
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
+// Table styles (matching users table)
+.table-header {
+  text-transform: uppercase;
+  font-weight: map.get($font-weights, semibold);
+  font-size: map.get($font-sizes, xs);
+  color: $ester-text-inverse;
+}
 
-  &:hover {
-    border-color: var(--ester-primary-light);
-    box-shadow: 0 2px 8px rgba(59, 130, 246, 0.08);
-    transform: translateY(-1px);
+.table-cell {
+  font-size: map.get($font-sizes, sm);
+  color: $ester-text-secondary;
+
+  &.fw-medium {
+    font-weight: map.get($font-weights, medium);
+    color: $ester-text-primary;
   }
 }
 
-// Header compacto
-.company-header {
+// Card
+.card {
+  border-radius: $border-radius-lg;
+  @include transition(all, $transition-fast);
+}
+
+// Table
+.table {
+  --bs-table-bg: transparent;
+  --bs-table-hover-bg: var(--ester-bg-light);
+
+  th,
+  td {
+    padding: map.get($spacing-scale, 2) map.get($spacing-scale, 3);
+    border-bottom: 1px solid $ester-border-primary;
+    vertical-align: middle;
+  }
+
+  th {
+    background-color: $ester-primary;
+    color: $ester-text-inverse;
+    border-bottom: 2px solid $ester-primary-dark;
+    
+    &:first-child {
+      border-top-left-radius: 4px;
+    }
+    
+    &:last-child {
+      border-top-right-radius: 4px;
+    }
+  }
+
+  tbody tr {
+    @include transition(all, $transition-fast);
+    cursor: pointer;
+
+    &:hover {
+      background-color: $ester-bg-tertiary;
+    }
+
+    &:last-child td {
+      border-bottom: none;
+    }
+  }
+
+  // Alineación de botones de acción
+  td.text-end {
+    white-space: nowrap;
+
+    .btn {
+      vertical-align: middle;
+    }
+  }
+}
+
+// Companies Table specific styles
+.companies-table {
+  th {
+    &.col-company {
+      width: 25%;
+      min-width: 250px;
+    }
+
+    &.col-email {
+      width: 20%;
+      min-width: 200px;
+    }
+
+    &.col-phone {
+      width: 15%;
+      min-width: 150px;
+    }
+
+    &.col-address {
+      width: 25%;
+      min-width: 200px;
+    }
+
+    &.col-actions {
+      width: 15%;
+      min-width: 150px;
+    }
+  }
+
+  td.empty-state {
+    padding: 4rem 2rem;
+    text-align: center;
+  }
+}
+
+// Company Cell
+.company-cell {
   display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 0.5rem;
-  padding-bottom: 0.5rem;
-  border-bottom: 1px solid var(--ester-border-light);
+  align-items: center;
+  gap: map.get($spacing-scale, 2);
 }
 
 .company-avatar {
   width: 32px;
   height: 32px;
-  border-radius: 0.375rem;
+  border-radius: $border-radius-md;
   background: linear-gradient(
     135deg,
-    var(--ester-primary-light) 0%,
-    var(--ester-primary) 100%
+    $ester-primary-light 0%,
+    $ester-primary 100%
   );
   display: flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
+  box-shadow: 0 1px 3px rgba(59, 130, 246, 0.15);
 
   lucide-icon {
-    color: var(--ester-primary);
+    color: white;
+    width: 14px;
+    height: 14px;
   }
 }
 
 .company-info {
   display: flex;
   flex-direction: column;
-  gap: 0.125rem;
-  overflow: hidden;
+  gap: 2px;
+  min-width: 0;
+  flex: 1;
 }
 
 .company-name {
-  font-size: 13px;
-  font-weight: 600;
-  color: var(--ester-text-primary);
+  font-size: map.get($font-sizes, sm);
+  font-weight: map.get($font-weights, medium);
+  color: $ester-text-primary;
   line-height: 1.3;
-  white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .company-nit {
-  font-size: 10px;
-  color: var(--ester-text-secondary);
-  line-height: 1.2;
-}
-
-.company-status {
-  flex-shrink: 0;
-}
-
-.status-badge {
-  width: 20px;
-  height: 20px;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-
-  &.active {
-    background-color: var(--ester-success-light);
-
-    lucide-icon {
-      color: var(--ester-success);
-    }
-  }
-
-  &.inactive {
-    background-color: var(--ester-danger-light);
-
-    lucide-icon {
-      color: var(--ester-danger);
-    }
-  }
-}
-
-// Body compacto
-.company-body {
-  display: flex;
-  flex-direction: column;
-  gap: 0.375rem;
-}
-
-.info-row {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  font-size: 11px;
-  color: var(--ester-text-secondary);
+  font-size: map.get($font-sizes, xs);
+  color: $ester-text-secondary;
   line-height: 1.3;
-  min-height: 18px;
-
-  &:last-child {
-    margin-bottom: 0;
-  }
+  font-weight: map.get($font-weights, regular);
 }
 
-.info-icon {
-  flex-shrink: 0;
-  color: var(--ester-text-muted);
-  width: 12px;
-}
-
-.info-text {
-  flex: 1;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  font-size: 11px;
-}
-
-// Actions compactas
-.company-actions {
-  display: flex;
-  gap: 0.375rem;
-  padding-top: 0.5rem;
-  border-top: 1px solid var(--ester-border-light);
-}
-
-.action-btn {
-  flex: 1;
-  height: 28px;
-  border: none;
-  border-radius: 0.375rem;
+// Email, Phone, Address Cells
+.email-cell,
+.phone-cell,
+.address-cell {
   display: flex;
   align-items: center;
-  justify-content: center;
-  font-size: 11px;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.2s ease;
+  gap: map.get($spacing-scale, 2);
+  color: $ester-text-secondary;
+  font-size: map.get($font-sizes, sm);
+}
 
-  &:focus {
-    outline: none;
-    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
+.cell-icon {
+  color: $ester-text-tertiary;
+  flex-shrink: 0;
+  width: 12px;
+  height: 12px;
+}
+
+.address-cell {
+  span {
+    max-width: 300px;
   }
+}
 
+// Action buttons (matching users table style)
+.action-btn {
+  &.view-btn,
   &.edit-btn {
-    background-color: var(--ester-primary-light);
-    color: var(--ester-primary);
+    color: $ester-primary;
 
     &:hover {
-      background-color: var(--ester-primary);
-      color: white;
+      color: $ester-primary-dark;
     }
   }
 
   &.delete-btn {
-    background-color: var(--ester-danger-light);
-    color: var(--ester-danger);
+    color: $ester-danger;
 
     &:hover {
-      background-color: var(--ester-danger);
-      color: white;
+      color: $ester-danger-dark;
     }
   }
+}
+
+// Empty State
+.empty-state-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+  color: var(--ester-text-secondary);
+}
+
+.empty-icon {
+  color: var(--ester-border-dark);
+  margin-bottom: 1rem;
+  opacity: 0.5;
+}
+
+.empty-state-content p {
+  font-size: 14px;
+  margin: 0;
 }
 
 // Modal
@@ -242,23 +289,45 @@
 
 // Responsive
 @media (max-width: 768px) {
-  .company-card {
-    padding: 0.625rem;
+  .table-container {
+    overflow-x: auto;
+  }
+
+  .companies-table {
+    min-width: 800px;
+    font-size: map.get($font-sizes, xs);
+
+    th,
+    td {
+      padding: map.get($spacing-scale, 1) map.get($spacing-scale, 2);
+    }
+  }
+
+  .company-avatar {
+    width: 28px;
+    height: 28px;
+
+    lucide-icon {
+      width: 12px;
+      height: 12px;
+    }
   }
 
   .company-name {
-    font-size: 12px;
+    font-size: map.get($font-sizes, xs);
   }
 
-  .info-text {
+  .company-nit {
     font-size: 10px;
   }
-}
 
-// Grid ajustado para más compacto
-@media (min-width: 1400px) {
-  .col-xxl-3 {
-    flex: 0 0 auto;
-    width: 25%;
+  .action-btn {
+    width: 24px;
+    height: 24px;
+
+    lucide-icon {
+      width: 12px;
+      height: 12px;
+    }
   }
 }

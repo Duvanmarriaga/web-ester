@@ -21,8 +21,11 @@ import {
   Mail,
   Phone,
   MapPin,
+  ArrowRight,
 } from 'lucide-angular';
+import { Router } from '@angular/router';
 import { ConfirmDialogComponent } from '../../shared/confirm-dialog/confirm-dialog.component';
+import { CompanyService } from '../../../infrastructure/services/company.service';
 
 @Component({
   selector: 'app-companies',
@@ -38,7 +41,8 @@ import { ConfirmDialogComponent } from '../../shared/confirm-dialog/confirm-dial
 export class CompaniesComponent implements OnInit {
   private store = inject(Store);
   private fb = inject(FormBuilder);
-
+  private companyService = inject(CompanyService);
+  private router = inject(Router);
   companies = signal<Company[]>([]);
   isLoading = signal(false);
   showModal = signal(false);
@@ -48,9 +52,18 @@ export class CompaniesComponent implements OnInit {
   companyForm!: FormGroup;
 
   // Lucide icons
-  readonly icons = { Building2, Pencil, Trash2, Mail, Phone, MapPin };
+  readonly icons = { Building2, Pencil, Trash2, Mail, Phone, MapPin, ArrowRight };
 
   ngOnInit() {
+    // this.companyService.downloadTemplate().subscribe((template) => {
+    //   console.log(template);
+    //   const url = window.URL.createObjectURL(new Blob([template]));
+    //   const a = document.createElement('a');
+    //   a.href = url;
+    //   a.download = 'template.csv';
+    //   a.click();
+    //   window.URL.revokeObjectURL(url);
+    // });
     this.initForm();
     this.store
       .select(selectAllCompanies)
@@ -134,5 +147,9 @@ export class CompaniesComponent implements OnInit {
     return company
       ? `¿Estás seguro de que deseas eliminar la compañía ${company.name}? Esta acción no se puede deshacer.`
       : '';
+  }
+
+  navigateToDetail(companyId: number) {
+    this.router.navigate(['/companies', companyId]);
   }
 }

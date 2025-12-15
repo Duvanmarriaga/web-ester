@@ -25,6 +25,7 @@ export class AuthEffects {
             // Guardar el token
             localStorage.setItem('token', response.access_token);
             this.toastr.success('Inicio de sesión exitoso', 'Éxito');
+            this.router.navigate(['/dashboard']);
             return AuthActions.loginSuccess({ response });
           }),
           catchError((error) => {
@@ -42,15 +43,6 @@ export class AuthEffects {
         )
       )
     )
-  );
-
-  loginSuccess$ = createEffect(
-    () =>
-      this.actions$.pipe(
-        ofType(AuthActions.loginSuccess),
-        tap(() => this.router.navigate(['/dashboard']))
-      ),
-    { dispatch: false }
   );
 
   logout$ = createEffect(() =>
@@ -224,11 +216,9 @@ export class AuthEffects {
       ofType(AuthActions.loadAuthFromStorage),
       map(() => {
         const token = localStorage.getItem('token');
-
         if (token) {
           // Validar que el token sea decodificable
           const payload = this.authService.decodeToken(token);
-
           if (payload && payload.user) {
             return AuthActions.loginSuccess({
               response: { access_token: token, expires_in: 0, token_type: '' },

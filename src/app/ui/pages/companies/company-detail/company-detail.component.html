@@ -1,0 +1,90 @@
+<div class="company-detail-container">
+  <!-- Loading State -->
+  @if (isLoading()) {
+  <div class="loading-container">
+    <div class="spinner-border text-primary" role="status">
+      <span class="visually-hidden">Cargando...</span>
+    </div>
+  </div>
+  } @else if (company()) {
+  <!-- Compact Header -->
+  <div class="detail-header">
+    <div class="company-header-compact">
+      <button class="back-button" (click)="goBack()">
+        <lucide-icon [img]="icons.ArrowLeft" [size]="18"></lucide-icon>
+      </button>
+      <div class="company-avatar-small">
+        <lucide-icon [img]="icons.Building2" [size]="18"></lucide-icon>
+      </div>
+      <div class="company-details-compact">
+        <div class="company-name-row">
+          <h2 class="company-title-compact">{{ company()!.name }}</h2>
+          <span class="company-nit-compact">NIT: {{ company()!.identification_number }}</span>
+        </div>
+        <div class="company-info-row">
+          <div class="info-item-inline">
+            <lucide-icon [img]="icons.Mail" [size]="12" class="info-icon-small"></lucide-icon>
+            <span class="info-text-small">{{ company()!.email }}</span>
+          </div>
+          <div class="info-item-inline">
+            <lucide-icon [img]="icons.MapPin" [size]="12" class="info-icon-small"></lucide-icon>
+            <span class="info-text-small text-truncate">{{ company()!.address }}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tabs Section -->
+  <div class="tabs-container">
+    <div class="tabs-header">
+      <a
+        [routerLink]="getTabRoute('financial')"
+        routerLinkActive="active"
+        [routerLinkActiveOptions]="{ exact: false }"
+        class="tab-button"
+      >
+        <lucide-icon [img]="icons.FileText" [size]="14"></lucide-icon>
+        <span>Reportes Financieros</span>
+      </a>
+      <a
+        [routerLink]="getTabRoute('operations')"
+        routerLinkActive="active"
+        [routerLinkActiveOptions]="{ exact: false }"
+        class="tab-button"
+      >
+        <lucide-icon [img]="icons.TrendingUp" [size]="14"></lucide-icon>
+        <span>Reportes de Operaciones</span>
+      </a>
+      <a
+        [routerLink]="getTabRoute('budgets')"
+        routerLinkActive="active"
+        [routerLinkActiveOptions]="{ exact: false }"
+        class="tab-button"
+      >
+        <lucide-icon [img]="icons.DollarSign" [size]="14"></lucide-icon>
+        <span>Presupuestos Financieros</span>
+      </a>
+      <a
+        [routerLink]="getTabRoute('legal')"
+        routerLinkActive="active"
+        [routerLinkActiveOptions]="{ exact: false }"
+        class="tab-button"
+      >
+        <lucide-icon [img]="icons.Scale" [size]="14"></lucide-icon>
+        <span>Procesos Jurídicos</span>
+      </a>
+    </div>
+
+    <div class="tabs-content">
+      <router-outlet></router-outlet>
+    </div>
+  </div>
+  } @else {
+  <!-- Error State -->
+  <div class="error-container">
+    <p>No se pudo cargar la información de la compañía</p>
+    <button class="btn btn-sm btn-primary" (click)="goBack()">Volver</button>
+  </div>
+  }
+</div>

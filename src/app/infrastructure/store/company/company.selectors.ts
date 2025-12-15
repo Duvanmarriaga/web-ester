@@ -19,7 +19,12 @@ export const selectSelectedCompanyId = createSelector(
 export const selectSelectedCompany = createSelector(
   selectCompanyEntities,
   selectSelectedCompanyId,
-  (entities, selectedId) => (selectedId ? entities[selectedId] : null)
+  (entities, selectedId) => {
+    if (!selectedId) return null;
+    // Convert to number since Company.id is number
+    const numericId = Number(selectedId);
+    return entities[numericId] || null;
+  }
 );
 
 export const selectCompanyIsLoading = createSelector(

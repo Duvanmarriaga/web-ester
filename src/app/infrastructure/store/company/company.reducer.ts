@@ -9,7 +9,9 @@ export interface CompanyState extends EntityState<Company> {
   error: string | null;
 }
 
-export const companyAdapter: EntityAdapter<Company> = createEntityAdapter<Company>();
+export const companyAdapter: EntityAdapter<Company> = createEntityAdapter<Company>({
+  selectId: (company: Company) => company.id
+});
 
 export const initialState: CompanyState = companyAdapter.getInitialState({
   selectedCompanyId: null,

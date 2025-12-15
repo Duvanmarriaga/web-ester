@@ -2,16 +2,20 @@
 // ESTER - Variables del Sistema de Diseño
 // ==================================================
 
-// Paleta de colores Ester
-$ester-primary: #6366f1;
-$ester-primary-dark: #4f46e5;
-$ester-primary-light: #e0e7ff;
-$ester-primary-lightest: #f5f7ff;
+// Paleta de colores Ester - Nueva paleta
+// Color principal oscuro
+$ester-primary: #343434;
+$ester-primary-dark: #2a2a2a;
+$ester-primary-light: #4a4a4a;
+$ester-primary-lightest: #5a5a5a;
 
-$ester-secondary: #8b5cf6;
-$ester-secondary-dark: #7c3aed;
-$ester-secondary-light: #ede9fe;
+// Color secundario gris
+$ester-secondary: #AEADB3;
+$ester-secondary-dark: #8d8c92;
+$ester-secondary-light: #c9c8cd;
+$ester-secondary-lightest: #e4e4e7;
 
+// Colores de estado (mantener para funcionalidad)
 $ester-success: #10b981;
 $ester-success-dark: #059669;
 $ester-success-light: #d1fae5;
@@ -28,22 +32,25 @@ $ester-info: #3b82f6;
 $ester-info-dark: #2563eb;
 $ester-info-light: #dbeafe;
 
-// Colores de texto
-$ester-text-primary: #1e293b;
-$ester-text-secondary: #64748b;
-$ester-text-tertiary: #94a3b8;
+// Colores de texto - Escala de grises basada en la paleta
+$ester-text-primary: #211915;
+$ester-text-secondary: #5a5049;
+$ester-text-tertiary: #AEADB3;
 $ester-text-inverse: #ffffff;
+$ester-text-muted: #c9c8cd;
 
-// Colores de fondo
+// Colores de fondo - Escala de grises basada en la paleta
 $ester-bg-primary: #ffffff;
-$ester-bg-secondary: #f8fafc;
-$ester-bg-tertiary: #f1f5f9;
-$ester-bg-dark: #0f172a;
+$ester-bg-secondary: #f8f8f9;
+$ester-bg-tertiary: #f0f0f1;
+$ester-bg-dark: #211915;
+$ester-bg-light: #fafafa;
 
-// Colores de borde
-$ester-border-primary: #e7e7e7; // Gris más visible para bordes principales
-$ester-border-secondary: #e5e7eb; // Gris claro para bordes secundarios
-$ester-border-tertiary: #9ca3af; // Gris medio para bordes terciarios
+// Colores de borde - Escala de grises basada en la paleta
+$ester-border-primary: #e4e4e7; // Gris claro para bordes principales
+$ester-border-secondary: #c9c8cd; // Gris medio para bordes secundarios
+$ester-border-tertiary: #AEADB3; // Gris más oscuro para bordes terciarios
+$ester-border-dark: #5a5049; // Borde oscuro
 
 // Sombras
 $ester-shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);

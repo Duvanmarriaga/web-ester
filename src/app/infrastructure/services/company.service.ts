@@ -38,6 +38,13 @@ export class CompanyService {
     );
   }
 
+  downloadTemplate(): Observable<any> {
+    return this.http.get(
+      `${this.apiUrl}/admin/reports/budgets/template/download`,
+      { responseType: 'arraybuffer' as const }
+    );
+  }
+
   delete(id: number): Observable<void> {
     return this.http.delete<void>(`${this.apiUrl}/admin/companies/${id}`);
   }

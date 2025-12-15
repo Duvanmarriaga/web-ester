@@ -13,6 +13,7 @@ export const authGuard: CanActivateFn = (route, state) => {
   
   // // Check if token exists in localStorage
   const token = localStorage.getItem('token');
+  console.log(token);
   if (!token) {
     router.navigate(['/auth/login']);
     return false;

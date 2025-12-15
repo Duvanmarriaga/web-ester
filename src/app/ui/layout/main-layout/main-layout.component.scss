@@ -1,11 +1,11 @@
-@use 'sass:map';
-@use '../../../../styles/variables' as *;
-@use '../../../../styles/mixins' as *;
+@use "sass:map";
+@use "../../../../styles/variables" as *;
+@use "../../../../styles/mixins" as *;
 
 .main-layout {
   @include flex(row, stretch, flex-start);
-  min-height: 100vh;
-  background: $ester-bg-secondary;
+  min-height: 100dvh;
+  background: #ffffff;
 }
 
 .content-wrapper {
@@ -16,7 +16,7 @@
   // Desktop: ajusta según sidebar
   @include media-md {
     margin-left: $sidebar-collapsed-width; // Default: collapsed (solo iconos)
-    
+
     &.sidebar-open {
       margin-left: $sidebar-width; // Expanded (completo)
     }

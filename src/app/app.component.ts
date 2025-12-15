@@ -14,7 +14,6 @@ export class AppComponent implements OnInit {
   private store = inject(Store);
 
   ngOnInit() {
-    // Load auth state from localStorage on app init
     this.store.dispatch(AuthActions.loadAuthFromStorage());
   }
 }

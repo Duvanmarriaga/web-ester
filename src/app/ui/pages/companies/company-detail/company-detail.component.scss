@@ -1,0 +1,374 @@
+@use "sass:map";
+@use "../../../../../styles/variables" as *;
+@use "../../../../../styles/mixins" as *;
+
+.company-detail-container {
+  padding: 1rem;
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+// Loading State
+.loading-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 400px;
+}
+
+// Error State
+.error-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 400px;
+  text-align: center;
+  color: $ester-text-secondary;
+}
+
+// Compact Header
+.detail-header {
+  margin-bottom: map.get($spacing-scale, 4);
+}
+
+.back-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: map.get($spacing-scale, 1);
+  background: transparent;
+  border: none;
+  color: $ester-text-secondary;
+  cursor: pointer;
+  transition: all $transition-fast;
+  flex-shrink: 0;
+
+  lucide-icon {
+    transition: transform $transition-fast;
+    color: $ester-text-secondary;
+  }
+
+  &:hover {
+    lucide-icon {
+      color: $ester-primary;
+      transform: translateX(-2px);
+    }
+  }
+
+  &:active {
+    transform: scale(0.95);
+  }
+}
+
+.company-header-compact {
+  display: flex;
+  align-items: center;
+  gap: map.get($spacing-scale, 3);
+  padding: map.get($spacing-scale, 3);
+  background: $ester-bg-primary;
+  border: 1px solid $ester-border-primary;
+  border-radius: $border-radius-md;
+  box-shadow: $ester-shadow-sm;
+}
+
+.company-avatar-small {
+  width: 40px;
+  height: 40px;
+  border-radius: $border-radius-md;
+  background: linear-gradient(
+    135deg,
+    $ester-primary 0%,
+    $ester-primary-dark 100%
+  );
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+
+  lucide-icon {
+    color: $ester-text-inverse;
+  }
+}
+
+.company-details-compact {
+  display: flex;
+  flex-direction: column;
+  gap: map.get($spacing-scale, 2);
+  flex: 1;
+  min-width: 0;
+}
+
+.company-name-row {
+  display: flex;
+  align-items: center;
+  gap: map.get($spacing-scale, 2);
+  flex-wrap: wrap;
+}
+
+.company-title-compact {
+  font-size: map.get($font-sizes, xl);
+  font-weight: map.get($font-weights, semibold);
+  color: $ester-text-primary;
+  margin: 0;
+  line-height: 1.2;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.company-nit-compact {
+  font-size: map.get($font-sizes, xs);
+  color: $ester-text-tertiary;
+  font-weight: map.get($font-weights, regular);
+  white-space: nowrap;
+  letter-spacing: 0.3px;
+}
+
+.company-info-row {
+  display: flex;
+  align-items: center;
+  gap: map.get($spacing-scale, 4);
+  flex-wrap: wrap;
+}
+
+.info-item-inline {
+  display: flex;
+  align-items: center;
+  gap: map.get($spacing-scale, 1);
+  color: $ester-text-secondary;
+  font-size: map.get($font-sizes, xs);
+}
+
+// Compact Info Bar
+.info-bar {
+  display: flex;
+  align-items: center;
+  gap: map.get($spacing-scale, 4);
+  padding: map.get($spacing-scale, 2) map.get($spacing-scale, 3);
+  background: $ester-bg-primary;
+  border: 1px solid $ester-border-primary;
+  border-radius: $border-radius-md;
+  margin-bottom: 1.5rem;
+  flex-wrap: wrap;
+}
+
+.info-item-compact {
+  display: flex;
+  align-items: center;
+  gap: map.get($spacing-scale, 1);
+  color: $ester-text-secondary;
+  font-size: map.get($font-sizes, xs);
+}
+
+.info-icon-small {
+  color: $ester-text-tertiary;
+  flex-shrink: 0;
+}
+
+.info-text-small {
+  color: $ester-text-secondary;
+  font-size: map.get($font-sizes, xs);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 200px;
+}
+
+// Tabs
+.tabs-container {
+  background: $ester-bg-primary;
+  border: 1px solid $ester-border-primary;
+  border-radius: $border-radius-lg;
+  overflow: hidden;
+  box-shadow: $ester-shadow-sm;
+}
+
+.tabs-header {
+  display: flex;
+  border-bottom: 1px solid $ester-border-primary;
+  background: $ester-primary;
+  overflow-x: auto;
+
+  &::-webkit-scrollbar {
+    height: 4px;
+  }
+
+  &::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.3);
+    border-radius: 2px;
+  }
+}
+
+.tab-button {
+  display: flex;
+  align-items: center;
+  gap: map.get($spacing-scale, 2);
+  padding: map.get($spacing-scale, 3) map.get($spacing-scale, 4);
+  background: transparent;
+  border: none;
+  border-bottom: 3px solid transparent;
+  color: rgba(255, 255, 255, 0.7);
+  font-size: map.get($font-sizes, sm);
+  font-weight: map.get($font-weights, medium);
+  cursor: pointer;
+  transition: all $transition-fast;
+  white-space: nowrap;
+  position: relative;
+  text-decoration: none;
+
+  lucide-icon {
+    transition: color $transition-fast;
+    color: rgba(255, 255, 255, 0.7);
+  }
+
+  &:hover {
+    background: rgba(255, 255, 255, 0.1);
+    color: $ester-text-inverse;
+    text-decoration: none;
+
+    lucide-icon {
+      color: $ester-text-inverse;
+    }
+  }
+
+  &.active {
+    color: $ester-text-inverse;
+    border-bottom-color: #ffe138;
+    background: rgba(255, 255, 255, 0.1);
+    font-weight: map.get($font-weights, semibold);
+
+    lucide-icon {
+      color: $ester-text-inverse;
+    }
+  }
+}
+
+.tabs-content {
+  padding: map.get($spacing-scale, 4);
+  min-height: calc(100dvh - 254px);
+  background: $ester-bg-primary;
+}
+
+.tab-panel {
+  animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.tab-panel-title {
+  font-size: map.get($font-sizes, xl);
+  font-weight: map.get($font-weights, semibold);
+  color: $ester-text-primary;
+  margin: 0 0 map.get($spacing-scale, 2) 0;
+}
+
+.tab-panel-description {
+  font-size: map.get($font-sizes, sm);
+  color: $ester-text-secondary;
+  margin: 0 0 map.get($spacing-scale, 4) 0;
+}
+
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: map.get($spacing-scale, 16) map.get($spacing-scale, 8);
+  text-align: center;
+  color: $ester-text-secondary;
+}
+
+.empty-icon {
+  color: $ester-border-tertiary;
+  margin-bottom: map.get($spacing-scale, 4);
+  opacity: 0.5;
+}
+
+.empty-state p {
+  font-size: map.get($font-sizes, sm);
+  margin: 0;
+}
+
+// Responsive
+@media (max-width: 768px) {
+  .company-detail-container {
+    padding: map.get($spacing-scale, 2);
+  }
+
+  .detail-header {
+    margin-bottom: map.get($spacing-scale, 3);
+  }
+
+  .company-header-compact {
+    padding: map.get($spacing-scale, 2);
+    gap: map.get($spacing-scale, 2);
+    flex-wrap: wrap;
+  }
+
+  .back-button {
+    order: -1;
+    margin-bottom: map.get($spacing-scale, 2);
+  }
+
+  .company-avatar-small {
+    width: 36px;
+    height: 36px;
+
+    lucide-icon {
+      width: 16px;
+      height: 16px;
+    }
+  }
+
+  .company-name-row {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: map.get($spacing-scale, 1);
+  }
+
+  .company-title-compact {
+    font-size: map.get($font-sizes, lg);
+  }
+
+  .company-nit-compact {
+    font-size: map.get($font-sizes, 2xs);
+  }
+
+  .company-info-row {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: map.get($spacing-scale, 2);
+  }
+
+  .info-text-small {
+    max-width: 100%;
+  }
+
+  .tabs-header {
+    flex-wrap: nowrap;
+  }
+
+  .tab-button {
+    padding: map.get($spacing-scale, 2) map.get($spacing-scale, 3);
+    font-size: map.get($font-sizes, xs);
+  }
+
+  .tabs-content {
+    padding: map.get($spacing-scale, 3);
+  }
+}

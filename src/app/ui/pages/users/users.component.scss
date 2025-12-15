@@ -15,7 +15,7 @@
   text-transform: uppercase;
   font-weight: map.get($font-weights, semibold);
   font-size: map.get($font-sizes, xs);
-  color: $ester-text-tertiary;
+  color: $ester-text-inverse;
 }
 
 .table-cell {
@@ -92,8 +92,17 @@
   }
 
   th {
-    background-color: $ester-bg-secondary;
-    border-bottom: 2px solid $ester-border-secondary;
+    background-color: $ester-primary;
+    color: $ester-text-inverse;
+    border-bottom: 2px solid $ester-primary-dark;
+    
+    &:first-child {
+      border-top-left-radius: 4px;
+    }
+    
+    &:last-child {
+      border-top-right-radius: 4px;
+    }
   }
 
   tbody tr {

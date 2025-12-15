@@ -8,9 +8,10 @@
   @include fixed(0, 0, auto, 0, $z-index-toolbar);
   height: $toolbar-height;
   padding: 0 map.get($spacing-scale, 3);
-  background-color: $ester-bg-primary;
-  border-bottom: 1px solid $ester-border-primary;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+  background-color: $ester-primary;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  backdrop-filter: blur(10px);
   
   &__left,
   &__right {
@@ -26,14 +27,14 @@
     @include button-reset;
     @include flex-center;
     @include size(36px);
-    color: $ester-text-primary;
+    color: $ester-text-inverse;
     border-radius: $border-radius-md;
     border: 1px solid transparent;
     @include transition(all, $transition-fast);
     
     &:hover {
-      background-color: $ester-bg-tertiary;
-      border-color: $ester-border-primary;
+      background-color: rgba(255, 255, 255, 0.1);
+      border-color: rgba(255, 255, 255, 0.2);
       transform: scale(1.05);
     }
 
@@ -74,10 +75,10 @@
     @include transition(all, $transition-fast);
     
     &:hover {
-      background-color: $ester-bg-tertiary;
-      border-color: $ester-border-primary;
+      background-color: rgba(255, 255, 255, 0.1);
+      border-color: rgba(255, 255, 255, 0.2);
       transform: translateY(-1px);
-      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
     }
     
     &:active {
@@ -88,14 +89,14 @@
   &__user-avatar {
     @include flex-center;
     @include size(32px);
-    background: linear-gradient(135deg, $ester-primary 0%, color.scale($ester-primary, $lightness: -10%) 100%);
+    background: linear-gradient(135deg, $ester-secondary 0%, $ester-secondary-dark 100%);
     color: $ester-text-inverse;
     font-size: map.get($font-sizes, xs);
     font-weight: map.get($font-weights, bold);
     border-radius: $border-radius-full;
     pointer-events: none;
-    box-shadow: 0 2px 4px rgba($ester-primary, 0.2);
-    border: 2px solid $ester-bg-primary;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+    border: 2px solid rgba(255, 255, 255, 0.2);
   }
   
   &__user-info {
@@ -111,13 +112,13 @@
   &__user-name {
     font-size: map.get($font-sizes, sm);
     font-weight: map.get($font-weights, semibold);
-    color: $ester-text-primary;
+    color: $ester-text-inverse;
     line-height: 1.2;
   }
   
   &__user-role {
     font-size: map.get($font-sizes, xs);
-    color: $ester-text-tertiary;
+    color: rgba(255, 255, 255, 0.7);
     line-height: 1.2;
     margin-top: 1px;
   }
@@ -125,7 +126,7 @@
   &__chevron {
     @include flex-center;
     margin-left: map.get($spacing-scale, 1);
-    color: $ester-text-tertiary;
+    color: rgba(255, 255, 255, 0.7);
     pointer-events: none;
     @include transition(transform, $transition-fast);
     
@@ -141,8 +142,8 @@
     background-color: $ester-bg-primary;
     border: 1px solid $ester-border-primary;
     border-radius: $border-radius-lg;
-    @include shadow(lg);
-        opacity: 0;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+    opacity: 0;
     visibility: hidden;
     transform: translateY(-10px) scale(0.95);
     @include transition(all, $transition-fast);

@@ -17,10 +17,15 @@
    ================================================== */
 
 :root {
-  /* Colores Primarios Ester */
+  /* Colores Primarios Ester - Nueva Paleta */
   --ester-primary: #{$ester-primary};
   --ester-primary-dark: #{$ester-primary-dark};
   --ester-primary-light: #{$ester-primary-light};
+  --ester-primary-lightest: #{$ester-primary-lightest};
+  --ester-secondary: #{$ester-secondary};
+  --ester-secondary-dark: #{$ester-secondary-dark};
+  --ester-secondary-light: #{$ester-secondary-light};
+  --ester-secondary-lightest: #{$ester-secondary-lightest};
 
   /* Colores de Estado */
   --ester-success: #{$ester-success};
@@ -36,10 +41,12 @@
   --ester-text-primary: #{$ester-text-primary};
   --ester-text-secondary: #{$ester-text-secondary};
   --ester-text-tertiary: #{$ester-text-tertiary};
+  --ester-text-muted: #{$ester-text-muted};
 
   /* Fondo */
   --ester-background: #{$ester-bg-secondary};
   --ester-surface: #{$ester-bg-primary};
+  --ester-bg-light: #{$ester-bg-light};
 
   /* Bordes */
   --ester-border-color: #{$ester-border-primary};
@@ -47,7 +54,7 @@
   --ester-border-secondary: #{$ester-border-secondary};
   --ester-border-tertiary: #{$ester-border-tertiary};
   --ester-border-light: #{$ester-border-secondary};
-  --ester-border-dark: #{$ester-border-primary};
+  --ester-border-dark: #{$ester-border-dark};
 }
 
 /* Reset y Base */
@@ -113,10 +120,13 @@ body {
   &--primary,
   &.btn-primary {
     @include button-variant($ester-primary);
+    background: $ester-primary;
+    color: $ester-text-inverse;
     box-shadow: 0 1px 2px rgba($ester-primary, 0.2);
 
     &:hover:not(:disabled) {
-      box-shadow: 0 4px 8px rgba($ester-primary, 0.3);
+      background: $ester-primary-dark;
+      box-shadow: 0 4px 8px rgba($ester-primary, 0.4);
     }
   }
 
