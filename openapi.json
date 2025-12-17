@@ -1,0 +1,551 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "API ESTER",
+    "description": "Documentación de la API ESTER generada con Swagger (OpenAPI).",
+    "contact": {
+      "email": "soporte@ester.local"
+    },
+    "version": "1.0.0"
+  },
+  "servers": [
+    {
+      "url": "http://3.146.226.16",
+      "description": "Servidor local"
+    },
+    {
+      "url": "/api"
+    }
+  ],
+  "paths": {
+    "/api/admin/companies": {
+      "get": {
+        "tags": ["Admin - Compañías"],
+        "summary": "Listar compañías",
+        "operationId": "6eb131456470ddd530c688dd49e91b14",
+        "parameters": [
+          {
+            "name": "page",
+            "in": "query",
+            "description": "Número de página",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "default": 1
+            }
+          },
+          {
+            "name": "per_page",
+            "in": "query",
+            "description": "Elementos por página",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "default": 15
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Lista de compañías obtenida correctamente",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PaginatedResponse"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": ["Admin - Compañías"],
+        "summary": "Crear una nueva compañía",
+        "operationId": "29ab61bf0c5124bf214844ef45d1dbad",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "properties": {
+                  "name": {
+                    "type": "string",
+                    "example": "Tech Solutions"
+                  },
+                  "email": {
+                    "type": "string",
+                    "format": "email",
+                    "example": "contact@techsolutions.com"
+                  },
+                  "phone": {
+                    "type": "string",
+                    "example": "+1234567890"
+                  },
+                  "address": {
+                    "type": "string",
+                    "example": "123 Tech Street, Silicon Valley"
+                  },
+                  "identification_number": {
+                    "type": "string",
+                    "example": "987654321"
+                  }
+                },
+                "type": "object"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Compañía creada correctamente"
+          },
+          "400": {
+            "description": "Solicitud inválida"
+          }
+        }
+      }
+    },
+    "/api/admin/companies/{id}": {
+      "get": {
+        "tags": ["Admin - Compañías"],
+        "summary": "Obtener detalles de una compañía",
+        "operationId": "ace12a879c2d3d91da060126a95e7e31",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "ID de la compañía",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Detalles de la compañía obtenidos correctamente"
+          },
+          "404": {
+            "description": "Compañía no encontrada"
+          }
+        }
+      },
+      "put": {
+        "tags": ["Admin - Compañías"],
+        "summary": "Actualizar una compañía",
+        "operationId": "eb11a220f8054a7414ea44d88948d114",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "ID de la compañía",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "properties": {
+                  "name": {
+                    "type": "string",
+                    "example": "Tech Solutions Updated"
+                  },
+                  "email": {
+                    "type": "string",
+                    "format": "email",
+                    "example": "updated@techsolutions.com"
+                  },
+                  "phone": {
+                    "type": "string",
+                    "example": "+1987654321"
+                  },
+                  "address": {
+                    "type": "string",
+                    "example": "456 New Tech Street, Silicon Valley"
+                  },
+                  "identification_number": {
+                    "type": "string",
+                    "example": "123456789"
+                  }
+                },
+                "type": "object"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Compañía actualizada correctamente"
+          },
+          "400": {
+            "description": "Solicitud inválida"
+          },
+          "404": {
+            "description": "Compañía no encontrada"
+          }
+        }
+      }
+    },
+    "/api/admin/reports/financial-reports": {
+      "get": {
+        "tags": ["Admin - Reportes Financieros"],
+        "summary": "Listar reportes financieros",
+        "operationId": "4a88e384c7bff23837107b1345a95fdf",
+        "parameters": [
+          {
+            "name": "page",
+            "in": "query",
+            "description": "Número de página",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "default": 1
+            }
+          },
+          {
+            "name": "per_page",
+            "in": "query",
+            "description": "Elementos por página",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "default": 15
+            }
+          },
+          {
+            "name": "company_id",
+            "in": "query",
+            "description": "Filtrar por ID de compañía",
+            "required": false,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Lista de reportes financieros obtenida correctamente",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PaginatedResponse"
+                }
+              }
+            }
+          }
+        },
+        "security": [{"bearerAuth": []}]
+      },
+      "post": {
+        "tags": ["Admin - Reportes Financieros"],
+        "summary": "Crear un nuevo reporte financiero",
+        "operationId": "44bd1b49deafa753a10d4d8d2e4c602a",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "required": ["company_id", "report_date", "income", "expenses", "profit", "user_id"],
+                "properties": {
+                  "company_id": {"type": "integer"},
+                  "report_date": {"type": "string", "format": "date"},
+                  "income": {"type": "number"},
+                  "expenses": {"type": "number"},
+                  "profit": {"type": "number"},
+                  "user_id": {"type": "integer"},
+                  "document_origin": {"type": "string", "nullable": true}
+                },
+                "type": "object"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {"description": "Reporte financiero creado correctamente"}
+        },
+        "security": [{"bearerAuth": []}]
+      }
+    },
+    "/api/admin/reports/financial-reports/multiple": {
+      "post": {
+        "tags": ["Admin - Reportes Financieros"],
+        "summary": "Crear múltiples reportes financieros",
+        "operationId": "5ee343b91cd3f551a475b3de560cca4d",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "required": ["reports"],
+                "properties": {
+                  "reports": {
+                    "type": "array",
+                    "items": {
+                      "required": ["company_id", "report_date", "income", "expenses", "profit", "user_id"],
+                      "properties": {
+                        "company_id": {"type": "integer"},
+                        "report_date": {"type": "string", "format": "date"},
+                        "income": {"type": "number"},
+                        "expenses": {"type": "number"},
+                        "profit": {"type": "number"},
+                        "user_id": {"type": "integer"}
+                      },
+                      "type": "object"
+                    }
+                  }
+                },
+                "type": "object"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {"description": "Múltiples reportes financieros creados correctamente"}
+        },
+        "security": [{"bearerAuth": []}]
+      }
+    },
+    "/api/admin/reports/operations": {
+      "get": {
+        "tags": ["Admin - Operaciones"],
+        "summary": "Listar operaciones",
+        "operationId": "c852f5d530e2bdb386199f97db262232",
+        "parameters": [
+          {
+            "name": "page",
+            "in": "query",
+            "description": "Número de página",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "default": 1
+            }
+          },
+          {
+            "name": "per_page",
+            "in": "query",
+            "description": "Elementos por página",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "default": 15
+            }
+          },
+          {
+            "name": "company_id",
+            "in": "query",
+            "description": "Filtrar por ID de compañía",
+            "required": false,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Lista de operaciones obtenida correctamente",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PaginatedResponse"
+                }
+              }
+            }
+          }
+        },
+        "security": [{"bearerAuth": []}]
+      }
+    },
+    "/api/admin/reports/budgets": {
+      "get": {
+        "tags": ["Admin - Presupuestos"],
+        "summary": "Listar presupuestos",
+        "operationId": "dbde033264e20261c56677579211dec5",
+        "parameters": [
+          {
+            "name": "page",
+            "in": "query",
+            "description": "Número de página",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "default": 1
+            }
+          },
+          {
+            "name": "per_page",
+            "in": "query",
+            "description": "Elementos por página",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "default": 15
+            }
+          },
+          {
+            "name": "company_id",
+            "in": "query",
+            "description": "Filtrar por ID de compañía",
+            "required": false,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Lista de presupuestos obtenida correctamente",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PaginatedResponse"
+                }
+              }
+            }
+          }
+        },
+        "security": [{"bearerAuth": []}]
+      }
+    },
+    "/api/admin/reports/budgets/multiple": {
+      "post": {
+        "tags": ["Admin - Presupuestos"],
+        "summary": "Crear múltiples presupuestos",
+        "operationId": "be562f94784eb89c1fadc774a86ec99f",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "properties": {
+                  "budgets": {
+                    "type": "array",
+                    "items": {
+                      "required": ["budget_category_id", "company_id", "budget_date", "budget_amount", "executed_amount", "difference_amount", "percentage"],
+                      "properties": {
+                        "budget_category_id": {"type": "integer"},
+                        "company_id": {"type": "integer"},
+                        "budget_date": {"type": "string", "format": "date"},
+                        "budget_amount": {"type": "number"},
+                        "executed_amount": {"type": "number"},
+                        "difference_amount": {"type": "number"},
+                        "percentage": {"type": "number"}
+                      },
+                      "type": "object"
+                    }
+                  }
+                },
+                "type": "object"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {"description": "Múltiples presupuestos creados correctamente"}
+        },
+        "security": [{"bearerAuth": []}]
+      }
+    },
+    "/api/admin/reports/processes": {
+      "get": {
+        "tags": ["Admin - Procesos"],
+        "summary": "Listar procesos",
+        "operationId": "21388e688434bb8f31cf715849d07e7d",
+        "parameters": [
+          {
+            "name": "page",
+            "in": "query",
+            "description": "Número de página",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "default": 1
+            }
+          },
+          {
+            "name": "per_page",
+            "in": "query",
+            "description": "Elementos por página",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "default": 15
+            }
+          },
+          {
+            "name": "company_id",
+            "in": "query",
+            "description": "Filtrar por ID de compañía",
+            "required": false,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Lista de procesos obtenida correctamente",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PaginatedResponse"
+                }
+              }
+            }
+          }
+        },
+        "security": [{"bearerAuth": []}]
+      }
+    }
+  },
+  "components": {
+    "securitySchemes": {
+      "bearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "Token",
+        "description": "Ingresa el token Bearer obtenido en /api/auth/login",
+        "name": "Authorization",
+        "in": "header"
+      }
+    },
+    "schemas": {
+      "PaginatedResponse": {
+        "type": "object",
+        "properties": {
+          "current_page": {"type": "integer"},
+          "data": {"type": "array", "items": {}},
+          "first_page_url": {"type": "string"},
+          "from": {"type": ["integer", "null"]},
+          "last_page": {"type": "integer"},
+          "last_page_url": {"type": "string"},
+          "links": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "url": {"type": ["string", "null"]},
+                "label": {"type": "string"},
+                "page": {"type": ["integer", "null"]},
+                "active": {"type": "boolean"}
+              }
+            }
+          },
+          "next_page_url": {"type": ["string", "null"]},
+          "path": {"type": "string"},
+          "per_page": {"type": "integer"},
+          "prev_page_url": {"type": ["string", "null"]},
+          "to": {"type": ["integer", "null"]},
+          "total": {"type": "integer"}
+        }
+      }
+    }
+  },
+  "security": [{"bearerAuth": []}]
+}
+

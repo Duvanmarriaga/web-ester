@@ -1,11 +1,117 @@
 <div class="tab-panel">
-  <h4 class="tab-panel-title">Reportes de Operaciones</h4>
-  <p class="tab-panel-description">
-    Aquí se mostrarán los reportes de operaciones de la compañía.
-  </p>
+  <div class="tab-panel-header">
+    <div>
+      <h4 class="tab-panel-title">Reportes de Operaciones</h4>
+    </div>
+    <div class="tab-panel-actions">
+      <button
+        type="button"
+        class="btn btn-sm btn-outline-primary"
+        (click)="downloadTemplate()"
+        title="Descargar plantilla CSV"
+      >
+        <lucide-icon [img]="icons.Download" [size]="16"></lucide-icon>
+        <span>Descargar CSV</span>
+      </button>
+      <button
+        type="button"
+        class="btn btn-sm btn-outline-primary"
+        (click)="triggerFileInput()"
+        [disabled]="isImporting()"
+        title="Importar desde CSV"
+      >
+        @if (isImporting()) {
+        <span
+          class="spinner-border spinner-border-sm me-1"
+          role="status"
+        ></span>
+        } @else {
+        <lucide-icon [img]="icons.Upload" [size]="16"></lucide-icon>
+        }
+        <span>Importar CSV</span>
+      </button>
+      <button
+        type="button"
+        class="btn btn-sm btn-primary"
+        title="Crear nuevo reporte"
+      >
+        <lucide-icon [img]="icons.Plus" [size]="16"></lucide-icon>
+        <span>Crear Reporte</span>
+      </button>
+    </div>
+  </div>
+  @if (isLoading()) {
+  <div class="text-center py-5">
+    <div class="spinner-border text-primary" role="status">
+      <span class="visually-hidden">Cargando...</span>
+    </div>
+  </div>
+  } @else if (reports().length === 0) {
   <div class="empty-state">
-    <lucide-icon [img]="icons.TrendingUp" [size]="48" class="empty-icon"></lucide-icon>
+    <lucide-icon
+      [img]="icons.TrendingUp"
+      [size]="48"
+      class="empty-icon"
+    ></lucide-icon>
     <p>No hay reportes de operaciones disponibles</p>
   </div>
+  } @else {
+  <div class="card border-0 shadow-sm">
+    <div class="card-body p-0">
+      <div class="table-responsive">
+        <table class="table table-hover mb-0">
+          <thead class="table-light">
+            <tr>
+              <th class="table-header">Fecha</th>
+              <th class="table-header">Descripción</th>
+              <th class="table-header">Costo Mensual</th>
+              <th class="table-header">Costo Anual</th>
+              <th class="table-header">Origen Documento</th>
+              <th class="table-header text-end">Acciones</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (report of reports(); track report.id) {
+            <tr>
+              <td class="table-cell">
+                {{ report.operation_date | date : "dd/MM/yyyy" }}
+              </td>
+              <td class="table-cell fw-medium">{{ report.description }}</td>
+              <td class="table-cell">
+                ${{ report.monthly_cost | number : "1.2-2" }}
+              </td>
+              <td class="table-cell fw-medium">
+                ${{ report.annual_cost | number : "1.2-2" }}
+              </td>
+              <td class="table-cell">{{ report.document_origin || "-" }}</td>
+              <td class="text-end">
+                <div class="d-flex gap-2 justify-content-end">
+                  <button
+                    class="btn btn-sm btn-link text-primary p-1"
+                    title="Editar"
+                  >
+                    <lucide-icon [img]="icons.Pencil" [size]="14"></lucide-icon>
+                  </button>
+                  <button
+                    class="btn btn-sm btn-link text-danger p-1"
+                    title="Eliminar"
+                  >
+                    <lucide-icon [img]="icons.Trash2" [size]="14"></lucide-icon>
+                  </button>
+                </div>
+              </td>
+            </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    </div>
+    @if (pagination()) {
+    <app-pagination
+      [pagination]="pagination()!"
+      (pageChange)="onPageChange($event)"
+    ></app-pagination>
+    }
+  </div>
+  }
 </div>
-

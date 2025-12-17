@@ -1,0 +1,124 @@
+@use "sass:map";
+@use "../../../../styles/variables" as *;
+
+.pagination-container {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: map.get($spacing-scale, 3) map.get($spacing-scale, 4);
+  border-top: 1px solid $ester-border-primary;
+  background-color: $ester-bg-primary;
+  flex-wrap: wrap;
+  gap: map.get($spacing-scale, 2);
+}
+
+.pagination-info {
+  display: flex;
+  align-items: center;
+}
+
+.pagination-text {
+  font-size: map.get($font-sizes, sm);
+  color: $ester-text-secondary;
+}
+
+.pagination-controls {
+  display: flex;
+  align-items: center;
+  gap: map.get($spacing-scale, 1);
+}
+
+.pagination-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  background-color: $ester-bg-primary;
+  border: 1px solid $ester-border-primary;
+  border-radius: $border-radius-sm;
+  color: $ester-text-secondary;
+  cursor: pointer;
+  transition: all $transition-fast;
+
+  &:hover:not(:disabled) {
+    background-color: $ester-bg-secondary;
+    border-color: $ester-primary;
+    color: $ester-primary;
+  }
+
+  &:disabled,
+  &.disabled {
+    opacity: 0.5;
+    cursor: default;
+  }
+
+  lucide-icon {
+    flex-shrink: 0;
+  }
+}
+
+.pagination-pages {
+  display: flex;
+  align-items: center;
+  gap: map.get($spacing-scale, 1);
+}
+
+.pagination-page-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 32px;
+  height: 32px;
+  padding: 0 map.get($spacing-scale, 2);
+  background-color: $ester-bg-primary;
+  border: 1px solid $ester-border-primary;
+  border-radius: $border-radius-sm;
+  color: $ester-text-secondary;
+  font-size: map.get($font-sizes, sm);
+  font-weight: map.get($font-weights, medium);
+  cursor: default;
+  transition: all $transition-fast;
+
+  &:hover:not(.active) {
+    background-color: $ester-bg-secondary;
+    border-color: $ester-primary;
+    color: $ester-primary;
+  }
+
+  &.active {
+    background-color: $ester-primary;
+    border-color: $ester-primary;
+    color: $ester-text-inverse;
+    font-weight: map.get($font-weights, semibold);
+  }
+}
+
+.pagination-ellipsis {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 32px;
+  height: 32px;
+  color: $ester-text-tertiary;
+  font-size: map.get($font-sizes, sm);
+}
+
+// Responsive
+@media (max-width: 768px) {
+  .pagination-container {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .pagination-info {
+    justify-content: center;
+    margin-bottom: map.get($spacing-scale, 2);
+  }
+
+  .pagination-controls {
+    justify-content: center;
+  }
+}
+

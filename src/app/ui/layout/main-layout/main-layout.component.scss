@@ -4,7 +4,6 @@
 
 .main-layout {
   @include flex(row, stretch, flex-start);
-  min-height: 100dvh;
   background: #ffffff;
 }
 
@@ -32,6 +31,7 @@
   flex: 1;
   padding: map.get($spacing-scale, 3);
   margin-top: $toolbar-height;
+  min-height: calc(100svh - 77px);
   overflow-y: auto;
   max-width: 100%;
 
