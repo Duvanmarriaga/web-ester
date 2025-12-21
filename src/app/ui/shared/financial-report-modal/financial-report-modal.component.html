@@ -34,7 +34,11 @@
               />
               @if (reportForm.get('report_date')?.invalid &&
               reportForm.get('report_date')?.touched) {
-              <small class="form-error">Mes y año requeridos</small>
+                @if (dateExistsError()) {
+                  <small class="form-error">{{ dateExistsError() }}</small>
+                } @else {
+                  <small class="form-error">Mes y año requeridos</small>
+                }
               }
             </div>
             <div class="col-12">
@@ -104,7 +108,7 @@
             <button
               type="submit"
               class="btn btn-sm btn-primary"
-              [disabled]="reportForm.invalid || isSubmitting()"
+              [disabled]="reportForm.invalid || isSubmitting() || dateExistsError() !== null"
             >
               @if (isSubmitting()) {
               <span

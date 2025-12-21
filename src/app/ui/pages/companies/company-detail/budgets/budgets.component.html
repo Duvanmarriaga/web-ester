@@ -33,6 +33,7 @@
       <button
         type="button"
         class="btn btn-sm btn-primary"
+        (click)="openCreateModal()"
         title="Crear nuevo presupuesto"
       >
         <lucide-icon [img]="icons.Plus" [size]="16"></lucide-icon>
@@ -67,7 +68,6 @@
               <th class="table-header">Ejecutado</th>
               <th class="table-header">Diferencia</th>
               <th class="table-header">Porcentaje</th>
-              <th class="table-header">Origen Documento</th>
               <th class="table-header text-end">Acciones</th>
             </tr>
           </thead>
@@ -75,7 +75,7 @@
             @for (budget of budgets(); track budget.id) {
             <tr>
               <td class="table-cell">
-                {{ budget.budget_date | date : "dd/MM/yyyy" }}
+                {{ budget.budget_date | date : "MM/yyyy" }}
               </td>
               <td class="table-cell fw-medium">
                 ${{ budget.budget_amount | number : "1.2-2" }}
@@ -93,18 +93,19 @@
               <td class="table-cell">
                 {{ budget.percentage | number : "1.2-2" }}%
               </td>
-              <td class="table-cell">{{ budget.document_origin || "-" }}</td>
               <td class="text-end">
                 <div class="d-flex gap-2 justify-content-end">
                   <button
                     class="btn btn-sm btn-link text-primary p-1"
                     title="Editar"
+                    (click)="editBudget(budget)"
                   >
                     <lucide-icon [img]="icons.Pencil" [size]="14"></lucide-icon>
                   </button>
                   <button
                     class="btn btn-sm btn-link text-danger p-1"
                     title="Eliminar"
+                    (click)="deleteBudget(budget)"
                   >
                     <lucide-icon [img]="icons.Trash2" [size]="14"></lucide-icon>
                   </button>
@@ -116,12 +117,35 @@
         </table>
       </div>
     </div>
-    @if (pagination()) {
-    <app-pagination
-      [pagination]="pagination()!"
-      (pageChange)="onPageChange($event)"
-    ></app-pagination>
-    }
   </div>
+  @if (pagination()) {
+  <app-pagination
+    [pagination]="pagination()!"
+    (pageChange)="onPageChange($event)"
+  ></app-pagination>
+  }
   }
 </div>
+
+@if (companyId() && userId()) {
+<app-budget-modal
+  [isVisible]="showModal()"
+  [companyId]="companyId()!"
+  [userId]="userId()!"
+  [budget]="selectedBudget()"
+  (close)="closeModal()"
+  (save)="onSaveBudget($event)"
+  (update)="onUpdateBudget($event)"
+></app-budget-modal>
+}
+
+<app-confirm-dialog
+  [isVisible]="showConfirmDialog()"
+  title="Eliminar Presupuesto"
+  [message]="getDeleteMessage()"
+  confirmText="Eliminar"
+  cancelText="Cancelar"
+  variant="danger"
+  (confirmed)="onConfirmDelete()"
+  (cancelled)="onCancelDelete()"
+></app-confirm-dialog>

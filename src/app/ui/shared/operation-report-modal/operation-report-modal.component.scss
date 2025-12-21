@@ -1,0 +1,38 @@
+@use "sass:map";
+@use "../../../../styles/variables" as *;
+@use "../../../../styles/mixins" as *;
+
+.form-error {
+  display: block;
+  color: $ester-danger;
+  font-size: map.get($font-sizes, xs);
+  margin-top: map.get($spacing-scale, 1);
+}
+
+.form-text {
+  font-size: map.get($font-sizes, xs);
+  margin-top: map.get($spacing-scale, 1);
+}
+
+.input-group {
+  display: flex;
+  align-items: stretch;
+
+  .input-group-text {
+    display: flex;
+    align-items: center;
+    padding: 4px 10px;
+    font-size: map.get($font-sizes, sm);
+    font-weight: map.get($font-weights, medium);
+    color: $ester-text-secondary;
+    background-color: $ester-bg-secondary;
+    border: 1px solid $ester-border-primary;
+    border-right: none;
+    border-radius: $border-radius-md 0 0 $border-radius-md;
+  }
+
+  .form-control {
+    border-radius: 0 $border-radius-md $border-radius-md 0;
+  }
+}
+

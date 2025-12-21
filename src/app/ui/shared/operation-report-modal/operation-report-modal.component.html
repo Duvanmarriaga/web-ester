@@ -1,0 +1,155 @@
+@if (isVisible()) {
+<div class="modal show d-block" (click)="onBackdropClick($event)">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">
+          {{
+            isEditMode()
+              ? "Editar Reporte de Operación"
+              : "Nuevo Reporte de Operación"
+          }}
+        </h5>
+        <button
+          type="button"
+          class="btn-close"
+          (click)="onClose()"
+          aria-label="Close"
+        >
+          <lucide-icon [img]="icons.X" [size]="16"></lucide-icon>
+        </button>
+      </div>
+      <div class="modal-body">
+        <form [formGroup]="reportForm" (ngSubmit)="onSubmit()">
+          <div class="row g-3">
+            <div class="col-12">
+              <label for="operation_category_id" class="form-label"
+                >Categoría</label
+              >
+              <ng-select
+                id="operation_category_id"
+                [items]="categoriesList()"
+                bindLabel="name"
+                bindValue="id"
+                placeholder="Buscar o crear categoría..."
+                formControlName="operation_category_id"
+                [searchable]="true"
+                [clearable]="true"
+                [loading]="isLoadingCategories()"
+                [typeahead]="categoryInput$"
+                [addTag]="true"
+                [addTagText]="'Crear categoría: '"
+                (add)="onCreateCategory($event)"
+                appendTo="body"
+              >
+              </ng-select>
+              @if (reportForm.get('operation_category_id')?.invalid &&
+              reportForm.get('operation_category_id')?.touched) {
+              <small class="form-error">Categoría requerida</small>
+              }
+            </div>
+            <div class="col-12">
+              <label for="operation_date" class="form-label"
+                >Mes y Año</label
+              >
+              <input
+                type="month"
+                class="form-control"
+                id="operation_date"
+                formControlName="operation_date"
+              />
+              @if (reportForm.get('operation_date')?.invalid &&
+              reportForm.get('operation_date')?.touched) {
+                @if (dateExistsError()) {
+                  <small class="form-error">{{ dateExistsError() }}</small>
+                } @else {
+                  <small class="form-error">Mes y año requeridos</small>
+                }
+              }
+            </div>
+            <div class="col-12">
+              <label for="description" class="form-label">Descripción</label>
+              <textarea
+                class="form-control"
+                id="description"
+                formControlName="description"
+                rows="3"
+                placeholder="Descripción de la operación"
+              ></textarea>
+              @if (reportForm.get('description')?.invalid &&
+              reportForm.get('description')?.touched) {
+              <small class="form-error">Descripción requerida</small>
+              }
+            </div>
+            <div class="col-12">
+              <label for="monthly_cost" class="form-label">Costo Mensual</label>
+              <div class="input-group">
+                <span class="input-group-text">$</span>
+                <input
+                  type="text"
+                  class="form-control"
+                  id="monthly_cost"
+                  formControlName="monthly_cost"
+                  placeholder="000"
+                  (input)="formatCurrency($event, 'monthly_cost')"
+                  (blur)="formatCurrencyOnBlur('monthly_cost')"
+                />
+              </div>
+              @if (reportForm.get('monthly_cost')?.invalid &&
+              reportForm.get('monthly_cost')?.touched) {
+              <small class="form-error">Costo mensual requerido (mínimo 0)</small>
+              }
+            </div>
+            <div class="col-12">
+              <label for="annual_cost" class="form-label">Costo Anual</label>
+              <div class="input-group">
+                <span class="input-group-text">$</span>
+                <input
+                  type="text"
+                  class="form-control"
+                  id="annual_cost"
+                  formControlName="annual_cost"
+                  placeholder="000"
+                  (input)="formatCurrency($event, 'annual_cost')"
+                  (blur)="formatCurrencyOnBlur('annual_cost')"
+                />
+              </div>
+              <small class="form-text text-muted"
+                >Se calcula automáticamente (Costo Mensual × 12)</small
+              >
+              @if (reportForm.get('annual_cost')?.invalid &&
+              reportForm.get('annual_cost')?.touched) {
+              <small class="form-error">Costo anual requerido (mínimo 0)</small>
+              }
+            </div>
+          </div>
+          <div class="d-flex gap-2 justify-content-end mt-4">
+            <button
+              type="button"
+              class="btn btn-sm btn-outline-secondary"
+              (click)="onClose()"
+              [disabled]="isSubmitting()"
+            >
+              Cancelar
+            </button>
+            <button
+              type="submit"
+              class="btn btn-sm btn-primary"
+              [disabled]="reportForm.invalid || isSubmitting() || dateExistsError() !== null"
+            >
+              @if (isSubmitting()) {
+              <span
+                class="spinner-border spinner-border-sm me-2"
+                role="status"
+              ></span>
+              }
+              {{ isEditMode() ? "Actualizar" : "Crear" }}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+}
+

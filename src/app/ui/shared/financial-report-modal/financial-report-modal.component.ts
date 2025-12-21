@@ -13,6 +13,8 @@ import {
   FormGroup,
   ReactiveFormsModule,
   Validators,
+  AbstractControl,
+  ValidationErrors,
 } from '@angular/forms';
 import {
   FinancialReportService,
@@ -20,6 +22,8 @@ import {
   FinancialReport,
 } from '../../../infrastructure/services/financial-report.service';
 import { LucideAngularModule, X } from 'lucide-angular';
+import { Observable, of } from 'rxjs';
+import { map, catchError, debounceTime, switchMap } from 'rxjs/operators';
 
 @Component({
   selector: 'app-financial-report-modal',
@@ -45,6 +49,7 @@ export class FinancialReportModalComponent implements OnInit {
   reportForm!: FormGroup;
   readonly icons = { X };
   isSubmitting = signal(false);
+  dateExistsError = signal<string | null>(null);
 
   isEditMode = signal(false);
 
@@ -80,7 +85,11 @@ export class FinancialReportModalComponent implements OnInit {
 
   ngOnInit() {
     this.reportForm = this.fb.group({
-      report_date: ['', [Validators.required]],
+      report_date: [
+        '',
+        [Validators.required],
+        [this.dateExistsValidator.bind(this)],
+      ],
       income: ['0', [Validators.required, this.currencyValidator]],
       expenses: ['0', [Validators.required, this.currencyValidator]],
       profit: [0, [Validators.required]],
@@ -95,11 +104,51 @@ export class FinancialReportModalComponent implements OnInit {
       this.calculateProfit();
     });
 
+    // Watch for date validation errors
+    this.reportForm.get('report_date')?.statusChanges.subscribe(() => {
+      const control = this.reportForm.get('report_date');
+      if (control?.hasError('dateExists')) {
+        this.dateExistsError.set('Ya existe un reporte financiero para esta fecha');
+      } else {
+        this.dateExistsError.set(null);
+      }
+    });
+
     // Initialize form if report is already set
     if (this.report() && this.isVisible()) {
       this.isEditMode.set(true);
       this.populateForm(this.report()!);
     }
+  }
+
+  dateExistsValidator(control: AbstractControl): Observable<ValidationErrors | null> {
+    if (!control.value) {
+      return of(null);
+    }
+
+    const dateValue = control.value;
+    // Convert YYYY-MM to YYYY-MM-01
+    const reportDate = `${dateValue}-01`;
+
+    return of(null).pipe(
+      debounceTime(500),
+      switchMap(() => {
+        const excludeId = this.isEditMode() && this.report()?.id ? this.report()!.id : undefined;
+        return this.financialReportService.checkDateExists(
+          this.companyId(),
+          reportDate,
+          excludeId
+        ).pipe(
+          map((exists) => {
+            if (exists) {
+              return { dateExists: true };
+            }
+            return null;
+          }),
+          catchError(() => of(null))
+        );
+      })
+    );
   }
 
   currencyValidator(control: any) {

@@ -1,6 +1,7 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { map } from 'rxjs/operators';
 import { environment } from '../../../environments/environment';
 import { PaginatedResponse } from '../../entities/interfaces/pagination.interface';
 
@@ -86,6 +87,29 @@ export class FinancialReportService {
     return this.http.post<FinancialReport[]>(
       `${this.apiUrl}/admin/reports/financial-reports/multiple`,
       { reports }
+    );
+  }
+
+  checkDateExists(companyId: number, reportDate: string, excludeId?: number): Observable<boolean> {
+    // Convert YYYY-MM-DD to date range (same day for date_from and date_to)
+    let params = new HttpParams()
+      .set('company_id', companyId.toString())
+      .set('date_from', reportDate)
+      .set('date_to', reportDate)
+      .set('per_page', '100'); // Get enough to check for duplicates
+    
+    return this.http.get<PaginatedResponse<FinancialReport>>(
+      `${this.apiUrl}/admin/reports/financial-reports`,
+      { params }
+    ).pipe(
+      map((response) => {
+        if (excludeId) {
+          // In edit mode, check if there's any report with this date that is NOT the current one
+          return response.data.some(report => report.id !== excludeId && report.report_date.startsWith(reportDate.substring(0, 7)));
+        }
+        // In create mode, check if any report exists with this date
+        return response.data.some(report => report.report_date.startsWith(reportDate.substring(0, 7)));
+      })
     );
   }
 }

@@ -1,6 +1,7 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { map } from 'rxjs/operators';
 import { environment } from '../../../environments/environment';
 import { PaginatedResponse } from '../../entities/interfaces/pagination.interface';
 
@@ -82,6 +83,26 @@ export class OperationReportService {
     const formData = new FormData();
     formData.append('file', file);
     return this.http.post<{ message?: string }>(`${this.apiUrl}/admin/reports/operations/import`, formData);
+  }
+
+  checkDateExists(companyId: number, operationDate: string, excludeId?: number): Observable<boolean> {
+    let params = new HttpParams()
+      .set('company_id', companyId.toString())
+      .set('date_from', operationDate)
+      .set('date_to', operationDate)
+      .set('per_page', '100');
+    
+    return this.http.get<PaginatedResponse<OperationReport>>(
+      `${this.apiUrl}/admin/reports/operations`,
+      { params }
+    ).pipe(
+      map((response) => {
+        if (excludeId) {
+          return response.data.some(report => report.id !== excludeId && report.operation_date.startsWith(operationDate.substring(0, 7)));
+        }
+        return response.data.some(report => report.operation_date.startsWith(operationDate.substring(0, 7)));
+      })
+    );
   }
 }
 

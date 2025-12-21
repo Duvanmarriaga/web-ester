@@ -1,0 +1,11 @@
+@use "sass:map";
+@use "../../../../styles/variables" as *;
+@use "../../../../styles/mixins" as *;
+
+.form-error {
+  display: block;
+  color: $ester-danger;
+  font-size: map.get($font-sizes, xs);
+  margin-top: map.get($spacing-scale, 1);
+}
+

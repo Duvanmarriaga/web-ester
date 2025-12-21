@@ -33,6 +33,7 @@
       <button
         type="button"
         class="btn btn-sm btn-primary"
+        (click)="openCreateModal()"
         title="Crear nuevo reporte"
       >
         <lucide-icon [img]="icons.Plus" [size]="16"></lucide-icon>
@@ -89,12 +90,14 @@
                   <button
                     class="btn btn-sm btn-link text-primary p-1"
                     title="Editar"
+                    (click)="editReport(report)"
                   >
                     <lucide-icon [img]="icons.Pencil" [size]="14"></lucide-icon>
                   </button>
                   <button
                     class="btn btn-sm btn-link text-danger p-1"
                     title="Eliminar"
+                    (click)="deleteReport(report)"
                   >
                     <lucide-icon [img]="icons.Trash2" [size]="14"></lucide-icon>
                   </button>
@@ -106,12 +109,35 @@
         </table>
       </div>
     </div>
-    @if (pagination()) {
-    <app-pagination
-      [pagination]="pagination()!"
-      (pageChange)="onPageChange($event)"
-    ></app-pagination>
-    }
   </div>
+  @if (pagination()) {
+  <app-pagination
+    [pagination]="pagination()!"
+    (pageChange)="onPageChange($event)"
+  ></app-pagination>
+  }
   }
 </div>
+
+@if (companyId() && userId()) {
+<app-operation-report-modal
+  [isVisible]="showModal()"
+  [companyId]="companyId()!"
+  [userId]="userId()!"
+  [report]="selectedReport()"
+  (close)="closeModal()"
+  (save)="onSaveReport($event)"
+  (update)="onUpdateReport($event)"
+></app-operation-report-modal>
+}
+
+<app-confirm-dialog
+  [isVisible]="showConfirmDialog()"
+  title="Eliminar Reporte de Operación"
+  [message]="getDeleteMessage()"
+  confirmText="Eliminar"
+  cancelText="Cancelar"
+  variant="danger"
+  (confirmed)="onConfirmDelete()"
+  (cancelled)="onCancelDelete()"
+></app-confirm-dialog>

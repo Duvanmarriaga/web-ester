@@ -1,6 +1,7 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { map } from 'rxjs/operators';
 import { environment } from '../../../environments/environment';
 import { PaginatedResponse } from '../../entities/interfaces/pagination.interface';
 
@@ -90,6 +91,26 @@ export class BudgetService {
     return this.http.post<Budget[]>(
       `${this.apiUrl}/admin/reports/budgets/multiple`,
       { budgets }
+    );
+  }
+
+  checkDateExists(companyId: number, budgetDate: string, excludeId?: number): Observable<boolean> {
+    let params = new HttpParams()
+      .set('company_id', companyId.toString())
+      .set('date_from', budgetDate)
+      .set('date_to', budgetDate)
+      .set('per_page', '100');
+    
+    return this.http.get<PaginatedResponse<Budget>>(
+      `${this.apiUrl}/admin/reports/budgets`,
+      { params }
+    ).pipe(
+      map((response) => {
+        if (excludeId) {
+          return response.data.some(budget => budget.id !== excludeId && budget.budget_date.startsWith(budgetDate.substring(0, 7)));
+        }
+        return response.data.some(budget => budget.budget_date.startsWith(budgetDate.substring(0, 7)));
+      })
     );
   }
 }

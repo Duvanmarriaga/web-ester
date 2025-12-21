@@ -18,7 +18,7 @@
         class="btn btn-sm btn-outline-primary"
         (click)="triggerFileInput()"
         [disabled]="isImporting()"
-        title="Importar desde CSV"
+        title="Importar desde Excel (.xls)"
       >
         @if (isImporting()) {
         <span
@@ -28,7 +28,7 @@
         } @else {
         <lucide-icon [img]="icons.Upload" [size]="16"></lucide-icon>
         }
-        <span>Importar CSV</span>
+        <span>Importar XLS</span>
       </button>
       <button
         type="button"
@@ -141,3 +141,14 @@
   (confirmed)="onConfirmDelete()"
   (cancelled)="onCancelDelete()"
 ></app-confirm-dialog>
+
+@if (companyId() && userId()) {
+<app-financial-report-import-modal
+  [isVisible]="showImportModal()"
+  [companyId]="companyId()!"
+  [userId]="userId()!"
+  [importedData]="importedReports()"
+  (close)="onCloseImportModal()"
+  (save)="onSaveImportedReports($event)"
+></app-financial-report-import-modal>
+}

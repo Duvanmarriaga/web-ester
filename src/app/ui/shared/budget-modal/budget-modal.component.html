@@ -1,0 +1,159 @@
+@if (isVisible()) {
+<div class="modal show d-block" (click)="onBackdropClick($event)">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">
+          {{
+            isEditMode()
+              ? "Editar Presupuesto"
+              : "Nuevo Presupuesto"
+          }}
+        </h5>
+        <button
+          type="button"
+          class="btn-close"
+          (click)="onClose()"
+          aria-label="Close"
+        >
+          <lucide-icon [img]="icons.X" [size]="16"></lucide-icon>
+        </button>
+      </div>
+      <div class="modal-body">
+        <form [formGroup]="budgetForm" (ngSubmit)="onSubmit()">
+          <div class="row g-3">
+            <div class="col-12">
+              <label for="budget_category_id" class="form-label"
+                >Categoría</label
+              >
+              <select
+                class="form-select"
+                id="budget_category_id"
+                formControlName="budget_category_id"
+              >
+                <option value="">Seleccione una categoría</option>
+                @for (category of categoriesList(); track category.id) {
+                <option [value]="category.id">{{ category.name }}</option>
+                }
+              </select>
+              @if (budgetForm.get('budget_category_id')?.invalid &&
+              budgetForm.get('budget_category_id')?.touched) {
+              <small class="form-error">Categoría requerida</small>
+              }
+            </div>
+            <div class="col-12">
+              <label for="budget_date" class="form-label"
+                >Mes y Año</label
+              >
+              <input
+                type="month"
+                class="form-control"
+                id="budget_date"
+                formControlName="budget_date"
+              />
+              @if (budgetForm.get('budget_date')?.invalid &&
+              budgetForm.get('budget_date')?.touched) {
+                @if (dateExistsError()) {
+                  <small class="form-error">{{ dateExistsError() }}</small>
+                } @else {
+                  <small class="form-error">Mes y año requeridos</small>
+                }
+              }
+            </div>
+            <div class="col-12">
+              <label for="budget_amount" class="form-label">Presupuesto</label>
+              <div class="input-group">
+                <span class="input-group-text">$</span>
+                <input
+                  type="text"
+                  class="form-control"
+                  id="budget_amount"
+                  formControlName="budget_amount"
+                  placeholder="000"
+                  (input)="formatCurrency($event, 'budget_amount')"
+                  (blur)="formatCurrencyOnBlur('budget_amount')"
+                />
+              </div>
+              @if (budgetForm.get('budget_amount')?.invalid &&
+              budgetForm.get('budget_amount')?.touched) {
+              <small class="form-error">Presupuesto requerido (mínimo 0)</small>
+              }
+            </div>
+            <div class="col-12">
+              <label for="executed_amount" class="form-label">Ejecutado</label>
+              <div class="input-group">
+                <span class="input-group-text">$</span>
+                <input
+                  type="text"
+                  class="form-control"
+                  id="executed_amount"
+                  formControlName="executed_amount"
+                  placeholder="000"
+                  (input)="formatCurrency($event, 'executed_amount')"
+                  (blur)="formatCurrencyOnBlur('executed_amount')"
+                />
+              </div>
+              @if (budgetForm.get('executed_amount')?.invalid &&
+              budgetForm.get('executed_amount')?.touched) {
+              <small class="form-error">Ejecutado requerido (mínimo 0)</small>
+              }
+            </div>
+            <div class="col-12">
+              <label class="form-label">Diferencia</label>
+              <div
+                class="profit-display"
+                [class.profit-positive]="budgetForm.get('difference_amount')?.value > 0"
+                [class.profit-negative]="budgetForm.get('difference_amount')?.value < 0"
+              >
+                <span class="profit-label">Diferencia calculada:</span>
+                <span class="profit-value">
+                  ${{ budgetForm.get("difference_amount")?.value | number }}
+                </span>
+              </div>
+              <small class="form-text text-muted"
+                >Se calcula automáticamente (Ejecutado - Presupuesto)</small
+              >
+            </div>
+            <div class="col-12">
+              <label class="form-label">Porcentaje</label>
+              <div class="profit-display">
+                <span class="profit-label">Porcentaje calculado:</span>
+                <span class="profit-value">
+                  {{ budgetForm.get("percentage")?.value | number : "1.2-2" }}%
+                </span>
+              </div>
+              <small class="form-text text-muted"
+                >Se calcula automáticamente (Ejecutado / Presupuesto × 100)</small
+              >
+            </div>
+          </div>
+          <div class="d-flex gap-2 justify-content-end mt-4">
+            <button
+              type="button"
+              class="btn btn-sm btn-outline-secondary"
+              (click)="onClose()"
+              [disabled]="isSubmitting()"
+            >
+              Cancelar
+            </button>
+            <button
+              type="submit"
+              class="btn btn-sm btn-primary"
+              [disabled]="budgetForm.invalid || isSubmitting() || dateExistsError() !== null"
+            >
+              @if (isSubmitting()) {
+              <span
+                class="spinner-border spinner-border-sm me-2"
+                role="status"
+              ></span>
+              }
+              {{ isEditMode() ? "Actualizar" : "Crear" }}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+}
+

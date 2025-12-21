@@ -1,0 +1,164 @@
+@if (isVisible()) {
+<div class="modal show d-block" (click)="onBackdropClick($event)">
+  <div class="modal-dialog modal-dialog-centered" style="max-width: 95%; width: 760px;">
+    <div class="modal-content" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h5 class="modal-title">Verificar Datos Importados</h5>
+        <button
+          type="button"
+          class="btn-close"
+          (click)="onClose()"
+          [disabled]="isSubmitting()"
+          aria-label="Close"
+        >
+          <lucide-icon [img]="icons.X" [size]="16"></lucide-icon>
+        </button>
+      </div>
+
+    <form [formGroup]="reportForm" (ngSubmit)="onSubmit()">
+      <div class="modal-body">
+        <div class="table-responsive">
+          <table class="table table-sm">
+            <thead>
+              <tr>
+                <th>Fecha</th>
+                <th>Ingresos</th>
+                <th>Egresos</th>
+                <th>Ganancia</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody formArrayName="reports">
+              @for (report of reportsArray.controls; track $index) {
+              <tr [formGroupName]="$index">
+                <td>
+                  <input
+                    type="month"
+                    class="form-control form-control-sm"
+                    formControlName="report_date"
+                    [class.is-invalid]="
+                      report.get('report_date')?.invalid &&
+                      report.get('report_date')?.touched
+                    "
+                  />
+                  @if (
+                  report.get('report_date')?.invalid &&
+                  report.get('report_date')?.touched
+                  ) {
+                    @if (dateErrors().has($index)) {
+                      <small class="text-danger d-block">{{ dateErrors().get($index) }}</small>
+                    } @else {
+                      <small class="text-danger d-block">Fecha requerida</small>
+                    }
+                  }
+                </td>
+                <td class="align-middle">
+                  <div class="input-group input-group-sm">
+                    <span class="input-group-text">$</span>
+                    <input
+                      type="text"
+                      class="form-control"
+                      formControlName="income"
+                      (input)="formatCurrency($event, $index, 'income')"
+                      (blur)="formatCurrencyOnBlur($index, 'income')"
+                      [class.is-invalid]="
+                        report.get('income')?.invalid &&
+                        report.get('income')?.touched
+                      "
+                    />
+                  </div>
+                  @if (
+                  report.get('income')?.invalid &&
+                  report.get('income')?.touched
+                  ) {
+                  <small class="text-danger d-block">Ingresos requeridos</small>
+                  }
+                </td>
+                <td class="align-middle">
+                  <div class="input-group input-group-sm">
+                    <span class="input-group-text">$</span>
+                    <input
+                      type="text"
+                      class="form-control"
+                      formControlName="expenses"
+                      (input)="formatCurrency($event, $index, 'expenses')"
+                      (blur)="formatCurrencyOnBlur($index, 'expenses')"
+                      [class.is-invalid]="
+                        report.get('expenses')?.invalid &&
+                        report.get('expenses')?.touched
+                      "
+                    />
+                  </div>
+                  @if (
+                  report.get('expenses')?.invalid &&
+                  report.get('expenses')?.touched
+                  ) {
+                  <small class="text-danger d-block">Egresos requeridos</small>
+                  }
+                </td>
+                <td class="align-middle text-center">
+                  <span
+                    class="fw-medium"
+                    [class.text-success]="(report.get('profit')?.value || 0) > 0"
+                    [class.text-danger]="(report.get('profit')?.value || 0) < 0"
+                  >
+                    {{ (report.get('profit')?.value || 0) | number : '1.2-2' }}
+                  </span>
+                </td>
+                <td class="align-middle text-center">
+                  <button
+                    type="button"
+                    class="btn btn-sm btn-link text-danger p-0"
+                    (click)="removeReport($index)"
+                    title="Eliminar fila"
+                  >
+                    <lucide-icon [img]="icons.Trash2" [size]="16"></lucide-icon>
+                  </button>
+                </td>
+              </tr>
+              }
+            </tbody>
+            <tfoot>
+              <tr class="fw-bold">
+                <td>Total</td>
+                <td>{{ getTotalIncome() | number : "1.2-2" }}</td>
+                <td>{{ getTotalExpenses() | number : "1.2-2" }}</td>
+                <td
+                  [class.text-success]="getTotalProfit() > 0"
+                  [class.text-danger]="getTotalProfit() < 0"
+                >
+                  {{ getTotalProfit() | number : "1.2-2" }}
+                </td>
+                <td></td>
+              </tr>
+            </tfoot>
+          </table>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button
+          type="button"
+          class="btn btn-sm btn-outline-secondary"
+          (click)="onClose()"
+          [disabled]="isSubmitting()"
+        >
+          Cancelar
+        </button>
+        <button
+          type="submit"
+          class="btn btn-sm btn-primary"
+          [disabled]="reportForm.invalid || isSubmitting() || reportsArray.length === 0 || dateErrors().size > 0"
+        >
+          @if (isSubmitting()) {
+          <span class="spinner-border spinner-border-sm me-2" role="status"></span>
+          }
+          Guardar
+        </button>
+      </div>
+    </form>
+    </div>
+  </div>
+</div>
+}
+
