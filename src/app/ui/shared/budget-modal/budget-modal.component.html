@@ -26,16 +26,23 @@
               <label for="budget_category_id" class="form-label"
                 >Categoría</label
               >
-              <select
-                class="form-select"
+              <ng-select
                 id="budget_category_id"
+                [items]="categoriesList()"
+                bindLabel="name"
+                [compareWith]="compareCategories"
+                placeholder="Escribe para buscar o presiona Enter para crear..."
                 formControlName="budget_category_id"
+                [searchable]="true"
+                [clearable]="true"
+                [loading]="isLoadingCategories()"
+                [typeahead]="categoryInput$"
+                [addTag]="true"
+                [addTagText]="'Crear: '"
+                (onAddTag)="onCreateCategoryFromTag($event)"
+                appendTo="body"
               >
-                <option value="">Seleccione una categoría</option>
-                @for (category of categoriesList(); track category.id) {
-                <option [value]="category.id">{{ category.name }}</option>
-                }
-              </select>
+              </ng-select>
               @if (budgetForm.get('budget_category_id')?.invalid &&
               budgetForm.get('budget_category_id')?.touched) {
               <small class="form-error">Categoría requerida</small>

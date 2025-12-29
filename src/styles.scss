@@ -73,6 +73,9 @@ body {
   font-size: 14px;
   line-height: 1.5;
   font-feature-settings: "cv02", "cv03", "cv04", "cv11"; // Inter font features
+  .ng-dropdown-panel {
+    z-index: 1000000 !important;
+  }
 }
 
 /* ==================================================
@@ -440,11 +443,14 @@ html {
   .ng-clear-wrapper {
     @include flex-center;
     margin-right: 8px;
+    z-index: 1000000 !important;
   }
 
   .ng-placeholder {
     color: $ester-text-tertiary;
     font-size: map.get($font-sizes, sm);
+    padding-left: 16px !important;
+    padding-top: 4px !important;
   }
 
   .ng-value-container {
@@ -453,36 +459,43 @@ html {
     gap: 4px;
 
     .ng-value {
-      background-color: $ester-primary-light;
-      color: $ester-primary;
-      border-radius: $border-radius-sm;
-      font-size: map.get($font-sizes, xs);
-      padding: 2px 6px;
+      background: none !important;
+      border: none !important;
+      border-radius: 0 !important;
+      padding: 0 !important;
+      padding-left: 9px !important;
+      margin: 0 !important;
+      font-size: 14px !important;
       @include flex-center;
 
       .ng-value-label {
-        color: $ester-primary;
+        color: $ester-text-primary;
+        background: none !important;
+        border: none !important;
+        padding: 0 !important;
       }
 
-      .ng-value-icon {
-        color: $ester-primary;
-        @include flex-center;
-        @include size(24px, 11px);
-        font-size: 14px;
-        margin: 0;
-        padding: 0;
-        display: flex !important;
-        align-items: center;
-        &:hover {
-          background-color: rgba($ester-primary, 0.1);
-        }
-      }
+      // .ng-value-icon {
+      //   color: $ester-primary;
+      //   @include flex-center;
+      //   @include size(24px, 11px);
+      //   font-size: 14px;
+      //   margin: 0;
+      //   padding: 0;
+      //   display: flex !important;
+      //   align-items: center;
+      //   &:hover {
+      //     background-color: rgba($ester-primary, 0.1);
+      //   }
+      // }
     }
 
     .ng-input {
       input {
         font-size: map.get($font-sizes, sm);
         color: $ester-text-primary;
+        padding-left: 16px !important;
+        padding-top: 4px !important;
       }
     }
   }
@@ -509,6 +522,7 @@ html {
     overflow-x: hidden;
     margin-top: 4px;
     padding: map.get($spacing-scale, 1) 0;
+    z-index: 10000 !important;
 
     // Scrollbar personalizado
     @include custom-scrollbar(6px, $ester-border-secondary, $ester-bg-tertiary);
@@ -540,7 +554,6 @@ html {
         }
 
         &.ng-option-selected {
-          background-color: $ester-primary-light;
           color: $ester-primary;
           font-weight: map.get($font-weights, medium);
           border-left-color: $ester-primary;
@@ -594,5 +607,89 @@ html {
   .main-content {
     margin: 0 !important;
     padding: 0 !important;
+  }
+}
+::ng-deep {
+  body {
+    .ng-dropdown-panel {
+      background-color: red;
+    }
+  }
+  .ng-dropdown-panel {
+    border: 1px solid $ester-border-primary;
+    border-radius: $border-radius-lg;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15), 0 2px 4px rgba(0, 0, 0, 0.1);
+    max-height: 280px;
+    overflow-y: auto;
+    overflow-x: hidden;
+    margin-top: 4px;
+    padding: map.get($spacing-scale, 1) 0;
+    z-index: 1000000 !important;
+
+    // Scrollbar personalizado
+    @include custom-scrollbar(6px, $ester-border-secondary, $ester-bg-tertiary);
+
+    .ng-dropdown-panel-items {
+      .ng-option {
+        background-color: $ester-bg-primary;
+        color: $ester-text-primary;
+        font-size: map.get($font-sizes, sm);
+        padding: map.get($spacing-scale, 2) map.get($spacing-scale, 3);
+        line-height: 1.5;
+        cursor: pointer;
+        @include transition(all, $transition-fast);
+        border-left: 3px solid transparent;
+        margin: 0 map.get($spacing-scale, 1);
+
+        &:first-child {
+          margin-top: map.get($spacing-scale, 1);
+        }
+
+        &:last-child {
+          margin-bottom: map.get($spacing-scale, 1);
+        }
+
+        &:hover {
+          background-color: $ester-bg-tertiary;
+          border-left-color: $ester-primary;
+          padding-left: calc(#{map.get($spacing-scale, 3)} - 3px);
+        }
+
+        &.ng-option-selected {
+          color: $ester-primary;
+          font-weight: map.get($font-weights, medium);
+          border-left-color: $ester-primary;
+          padding-left: calc(#{map.get($spacing-scale, 3)} - 3px);
+        }
+
+        &.ng-option-marked {
+          background-color: $ester-bg-tertiary;
+          border-left-color: $ester-primary;
+          padding-left: calc(#{map.get($spacing-scale, 3)} - 3px);
+        }
+
+        &.ng-option-disabled {
+          opacity: 0.5;
+          cursor: not-allowed;
+
+          &:hover {
+            background-color: transparent;
+            border-left-color: transparent;
+            padding-left: map.get($spacing-scale, 3);
+          }
+        }
+      }
+
+      .ng-optgroup {
+        padding: map.get($spacing-scale, 2) map.get($spacing-scale, 3);
+        font-size: map.get($font-sizes, xs);
+        font-weight: map.get($font-weights, semibold);
+        color: $ester-text-secondary;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        border-bottom: 1px solid $ester-border-primary;
+        margin-bottom: map.get($spacing-scale, 1);
+      }
+    }
   }
 }

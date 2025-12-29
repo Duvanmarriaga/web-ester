@@ -12,6 +12,8 @@ export interface Process {
   start_date: string;
   end_date?: string | null;
   description?: string | null;
+  process_status_id?: number | null;
+  process_status_date?: string | null;
 }
 
 export interface ProcessCreate {
@@ -21,6 +23,8 @@ export interface ProcessCreate {
   start_date: string;
   end_date?: string | null;
   description?: string | null;
+  process_status_id?: number | null;
+  process_status_date?: string | null;
 }
 
 @Injectable({

@@ -30,16 +30,16 @@
                 id="operation_category_id"
                 [items]="categoriesList()"
                 bindLabel="name"
-                bindValue="id"
-                placeholder="Buscar o crear categoría..."
+                [compareWith]="compareCategories"
+                placeholder="Escribe para buscar o presiona Enter para crear..."
                 formControlName="operation_category_id"
                 [searchable]="true"
                 [clearable]="true"
                 [loading]="isLoadingCategories()"
                 [typeahead]="categoryInput$"
                 [addTag]="true"
-                [addTagText]="'Crear categoría: '"
-                (add)="onCreateCategory($event)"
+                [addTagText]="'Crear: '"
+                (onAddTag)="onCreateCategoryFromTag($event)"
                 appendTo="body"
               >
               </ng-select>
@@ -49,9 +49,7 @@
               }
             </div>
             <div class="col-12">
-              <label for="operation_date" class="form-label"
-                >Mes y Año</label
-              >
+              <label for="operation_date" class="form-label">Mes y Año</label>
               <input
                 type="month"
                 class="form-control"
@@ -59,13 +57,12 @@
                 formControlName="operation_date"
               />
               @if (reportForm.get('operation_date')?.invalid &&
-              reportForm.get('operation_date')?.touched) {
-                @if (dateExistsError()) {
-                  <small class="form-error">{{ dateExistsError() }}</small>
-                } @else {
-                  <small class="form-error">Mes y año requeridos</small>
-                }
-              }
+              reportForm.get('operation_date')?.touched) { @if
+              (dateExistsError()) {
+              <small class="form-error">{{ dateExistsError() }}</small>
+              } @else {
+              <small class="form-error">Mes y año requeridos</small>
+              } }
             </div>
             <div class="col-12">
               <label for="description" class="form-label">Descripción</label>
@@ -97,7 +94,9 @@
               </div>
               @if (reportForm.get('monthly_cost')?.invalid &&
               reportForm.get('monthly_cost')?.touched) {
-              <small class="form-error">Costo mensual requerido (mínimo 0)</small>
+              <small class="form-error"
+                >Costo mensual requerido (mínimo 0)</small
+              >
               }
             </div>
             <div class="col-12">
@@ -135,7 +134,11 @@
             <button
               type="submit"
               class="btn btn-sm btn-primary"
-              [disabled]="reportForm.invalid || isSubmitting() || dateExistsError() !== null"
+              [disabled]="
+                reportForm.invalid ||
+                isSubmitting() ||
+                dateExistsError() !== null
+              "
             >
               @if (isSubmitting()) {
               <span
@@ -152,4 +155,3 @@
   </div>
 </div>
 }
-

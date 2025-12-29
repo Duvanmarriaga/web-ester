@@ -1,5 +1,5 @@
 import { Injectable, inject } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable, of, throwError } from 'rxjs';
 import { delay, catchError } from 'rxjs/operators';
 import {
@@ -47,5 +47,36 @@ export class CompanyService {
 
   delete(id: number): Observable<void> {
     return this.http.delete<void>(`${this.apiUrl}/admin/companies/${id}`);
+  }
+
+  search(query: string): Observable<Company[]> {
+    const params = new HttpParams().set('q', query);
+    return this.http.get<Company[]>(`${this.apiUrl}/admin/companies/search`, { params });
+  }
+
+  getCompanyUsers(companyId: number): Observable<any[]> {
+    return this.http.get<any[]>(`${this.apiUrl}/admin/companies/${companyId}/users`);
+  }
+
+  syncCompanyUsers(companyId: number, userIds: number[]): Observable<any> {
+    return this.http.put<any>(
+      `${this.apiUrl}/admin/companies/${companyId}/users`,
+      { user_ids: userIds }
+    );
+  }
+
+  assignCompanyUsers(companyId: number, userIds: number[]): Observable<any> {
+    return this.http.post<any>(
+      `${this.apiUrl}/admin/companies/${companyId}/users`,
+      { user_ids: userIds }
+    );
+  }
+
+  removeCompanyUsers(companyId: number, userIds: number[]): Observable<any> {
+    return this.http.request<any>(
+      'DELETE',
+      `${this.apiUrl}/admin/companies/${companyId}/users`,
+      { body: { user_ids: userIds } }
+    );
   }
 }

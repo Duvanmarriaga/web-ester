@@ -154,51 +154,40 @@
           align-items: center;
 
           .ng-value {
-            background: linear-gradient(
-              135deg,
-              $ester-primary-light 0%,
-              rgba($ester-primary, 0.1) 100%
-            );
-            color: $ester-primary;
-            border: 1px solid rgba($ester-primary, 0.2);
-            border-radius: $border-radius-full;
-            font-size: map.get($font-sizes, xs);
-            font-weight: map.get($font-weights, medium);
-            padding: 3px 8px;
-
-            display: inline-flex;
-            align-items: center;
-            gap: 4px;
-            line-height: 1.2;
-            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+            background: none;
+            color: $ester-text-primary;
+            border: none;
+            border-radius: 0;
+            font-size: map.get($font-sizes, sm);
+            font-weight: map.get($font-weights, normal);
+            padding: 0;
+            margin: 0;
+            display: inline-block;
+            line-height: 1.5;
+            box-shadow: none;
 
             .ng-value-label {
-              color: $ester-primary;
+              color: $ester-text-primary;
               padding: 0;
             }
 
             .ng-value-icon {
-              color: $ester-primary;
+              color: $ester-text-tertiary;
               opacity: 0.7;
               cursor: pointer;
               @include transition(all, $transition-fast);
               padding: 0;
-              margin-left: 4px;
+              margin-left: 6px;
               display: inline-flex;
               align-items: center;
               justify-content: center;
-              width: 16px;
-              height: 16px;
-              border-radius: 50%;
-              background-color: rgba($ester-primary, 0.1);
-              margin: 0;
-              padding: 0;
-              display: flex !important;
-              align-items: center;
+              width: 14px;
+              height: 14px;
+              border-radius: 0;
+              background-color: transparent;
               &:hover {
                 opacity: 1;
-                background-color: rgba($ester-primary, 0.2);
-                transform: scale(1.1);
+                color: $ester-text-primary;
               }
             }
           }
@@ -243,7 +232,7 @@
 // Estilos globales para el dropdown (se renderiza fuera del componente con appendTo="body")
 ::ng-deep .ng-dropdown-panel {
   position: fixed !important;
-  z-index: 1070 !important; // Mayor que z-index-modal (1060)
+  z-index: 10000 !important; // Mayor que z-index-modal (1060)
   background-color: $ester-bg-primary !important;
   border: 1px solid $ester-border-primary !important;
   border-radius: $border-radius-lg !important;
@@ -285,7 +274,6 @@
       }
 
       &.ng-option-selected {
-        background-color: $ester-primary-light !important;
         color: $ester-primary !important;
         font-weight: map.get($font-weights, medium) !important;
         border-left-color: $ester-primary !important;

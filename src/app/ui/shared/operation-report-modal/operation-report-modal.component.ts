@@ -22,16 +22,31 @@ import {
   OperationReportCreate,
   OperationReport,
 } from '../../../infrastructure/services/operation-report.service';
-import { OperationCategoryService, OperationCategory, OperationCategoryCreate } from '../../../infrastructure/services/operation-category.service';
+import {
+  OperationCategoryService,
+  OperationCategory,
+  OperationCategoryCreate,
+} from '../../../infrastructure/services/operation-category.service';
 import { LucideAngularModule, X } from 'lucide-angular';
 import { NgSelectModule } from '@ng-select/ng-select';
-import { Observable, of, Subject } from 'rxjs';
-import { map, catchError, debounceTime, switchMap, distinctUntilChanged } from 'rxjs/operators';
+import { firstValueFrom, Observable, of, Subject } from 'rxjs';
+import {
+  map,
+  catchError,
+  debounceTime,
+  switchMap,
+  distinctUntilChanged,
+} from 'rxjs/operators';
 import { ToastrService } from 'ngx-toastr';
 
 @Component({
   selector: 'app-operation-report-modal',
-  imports: [CommonModule, ReactiveFormsModule, LucideAngularModule, NgSelectModule],
+  imports: [
+    CommonModule,
+    ReactiveFormsModule,
+    LucideAngularModule,
+    NgSelectModule,
+  ],
   templateUrl: './operation-report-modal.component.html',
   styleUrl: './operation-report-modal.component.scss',
 })
@@ -60,7 +75,9 @@ export class OperationReportModalComponent implements OnInit {
   categories = signal<OperationCategory[]>([]);
   categoryInput$ = new Subject<string>();
   isLoadingCategories = signal(false);
-  
+  currentSearchTerm = signal<string>('');
+  isCreatingCategory = signal(false);
+
   // Computed signal to ensure it's always an array
   categoriesList = computed(() => {
     const cats = this.categories();
@@ -98,7 +115,7 @@ export class OperationReportModalComponent implements OnInit {
 
   ngOnInit() {
     this.setupTypeahead();
-    
+
     this.reportForm = this.fb.group({
       operation_category_id: ['', [Validators.required]],
       operation_date: [
@@ -120,7 +137,9 @@ export class OperationReportModalComponent implements OnInit {
     this.reportForm.get('operation_date')?.statusChanges.subscribe(() => {
       const control = this.reportForm.get('operation_date');
       if (control?.hasError('dateExists')) {
-        this.dateExistsError.set('Ya existe un reporte de operación para esta fecha');
+        this.dateExistsError.set(
+          'Ya existe un reporte de operación para esta fecha'
+        );
       } else {
         this.dateExistsError.set(null);
       }
@@ -136,37 +155,40 @@ export class OperationReportModalComponent implements OnInit {
   }
 
   setupTypeahead(): void {
-    this.categoryInput$.pipe(
-      debounceTime(300),
-      distinctUntilChanged(),
-      switchMap((term: string) => {
-        this.isLoadingCategories.set(true);
-        const companyId = this.companyId();
-        if (!companyId) {
-          this.isLoadingCategories.set(false);
-          return of([]);
-        }
-        // If term is empty, load all categories
-        if (!term || term.trim().length === 0) {
-          return this.operationCategoryService.getByCompany(companyId).pipe(
+    this.categoryInput$
+      .pipe(
+        debounceTime(300),
+        distinctUntilChanged(),
+        switchMap((term: string) => {
+          this.isLoadingCategories.set(true);
+          this.currentSearchTerm.set(term || '');
+          const companyId = this.companyId();
+          if (!companyId) {
+            this.isLoadingCategories.set(false);
+            return of([]);
+          }
+          // If term is empty, load all categories
+          if (!term || term.trim().length === 0) {
+            return this.operationCategoryService.getByCompany(companyId).pipe(
+              catchError(() => {
+                this.isLoadingCategories.set(false);
+                return of([]);
+              })
+            );
+          }
+          // Otherwise search
+          return this.operationCategoryService.search(companyId, term).pipe(
             catchError(() => {
               this.isLoadingCategories.set(false);
               return of([]);
             })
           );
-        }
-        // Otherwise search
-        return this.operationCategoryService.search(companyId, term).pipe(
-          catchError(() => {
-            this.isLoadingCategories.set(false);
-            return of([]);
-          })
-        );
-      })
-    ).subscribe((categories) => {
-      this.categories.set(Array.isArray(categories) ? categories : []);
-      this.isLoadingCategories.set(false);
-    });
+        })
+      )
+      .subscribe((categories) => {
+        this.categories.set(Array.isArray(categories) ? categories : []);
+        this.isLoadingCategories.set(false);
+      });
   }
 
   loadCategories(): void {
@@ -175,7 +197,7 @@ export class OperationReportModalComponent implements OnInit {
       this.categories.set([]);
       return;
     }
-    
+
     this.isLoadingCategories.set(true);
     this.operationCategoryService.getByCompany(companyId).subscribe({
       next: (categories) => {
@@ -191,28 +213,99 @@ export class OperationReportModalComponent implements OnInit {
     });
   }
 
-  onCreateCategory(event: any): void {
-    const companyId = this.companyId();
-    
-    // ng-select can emit either a string or an object when addTag is true
-    // Handle both cases
-    let term: string;
-    if (typeof event === 'string') {
-      term = event;
-    } else if (event && typeof event === 'object' && event.name) {
-      term = event.name;
-    } else if (event && typeof event === 'object' && typeof event.value === 'string') {
-      term = event.value;
+  onCategoryKeyDown(event: Event): void {
+    const keyboardEvent = event as KeyboardEvent;
+    // Allow ng-select to handle Enter normally, but we'll use addTag for creation
+    // This is just to prevent form submission when Enter is pressed in the select
+    if (keyboardEvent.key === 'Enter') {
+      const searchTerm = this.currentSearchTerm();
+      const selectedId = this.reportForm.get('operation_category_id')?.value;
+
+      // If there's a search term but no selection, prevent default to allow addTag to work
+      if (searchTerm && searchTerm.trim().length > 0 && !selectedId) {
+        // Don't prevent default - let ng-select handle it with addTag
+        return;
+      }
+    }
+  }
+
+  onCreateCategoryFromTag(term: string | any): void {
+    console.log(term);
+    // This is called when user clicks on the "addTag" option or presses Enter with no matches
+    // ng-select can emit the term as a string or as an object, handle both cases
+    let categoryName: string;
+
+    if (typeof term === 'string') {
+      categoryName = term;
+    } else if (term && typeof term === 'object' && term.name) {
+      categoryName = term.name;
+    } else if (term && typeof term === 'object' && term.value) {
+      categoryName = term.value;
     } else {
+      // Try to get the current search term as fallback
+      categoryName = this.currentSearchTerm();
+    }
+
+    if (!categoryName || categoryName.trim().length === 0) {
       return;
     }
-    
-    if (!companyId || !term || term.trim().length === 0) {
+
+    // Check if category already exists
+    const existingCategory = this.categoriesList().find(
+      (cat) => cat.name.toLowerCase() === categoryName.trim().toLowerCase()
+    );
+
+    if (existingCategory) {
+      // If exists, select it instead of creating
+      this.reportForm.patchValue({
+        operation_category_id: existingCategory.id,
+      });
+      return;
+    }
+
+    // Create the category
+    this.createCategory(categoryName.trim());
+  }
+
+  onCategoryBlur(): void {
+    // When blur, check if we need to create a category
+    const searchTerm = this.currentSearchTerm();
+    const selectedId = this.reportForm.get('operation_category_id')?.value;
+
+    // If there's a search term but no selected category, and we're not already creating
+    if (
+      searchTerm &&
+      searchTerm.trim().length > 0 &&
+      !selectedId &&
+      !this.isCreatingCategory()
+    ) {
+      const existingCategory = this.categoriesList().find(
+        (cat) => cat.name.toLowerCase() === searchTerm.trim().toLowerCase()
+      );
+
+      if (!existingCategory) {
+        // Don't auto-create on blur, let user explicitly create with Enter
+        // Just clear the search term
+        this.currentSearchTerm.set('');
+      }
+    }
+  }
+
+  createCategory(term: string): void {
+    const companyId = this.companyId();
+
+    if (
+      !companyId ||
+      !term ||
+      term.trim().length === 0 ||
+      this.isCreatingCategory()
+    ) {
       return;
     }
 
     // Generate code from name (uppercase, replace spaces with underscores, limit to 20 chars)
-    const code = term.trim()
+    const code = term
+      .trim()
       .toUpperCase()
       .replace(/\s+/g, '_')
       .replace(/[^A-Z0-9_]/g, '')
@@ -224,7 +317,9 @@ export class OperationReportModalComponent implements OnInit {
       company_id: companyId,
     };
 
+    this.isCreatingCategory.set(true);
     this.isLoadingCategories.set(true);
+
     this.operationCategoryService.create(categoryData).subscribe({
       next: (newCategory) => {
         // Add the new category to the list
@@ -234,17 +329,23 @@ export class OperationReportModalComponent implements OnInit {
         this.reportForm.patchValue({ operation_category_id: newCategory.id });
         this.toastr.success('Categoría creada exitosamente', 'Éxito');
         this.isLoadingCategories.set(false);
+        this.isCreatingCategory.set(false);
+        // Clear the search term
+        this.currentSearchTerm.set('');
       },
       error: (error) => {
         this.toastr.error('Error al crear la categoría', 'Error');
         this.isLoadingCategories.set(false);
+        this.isCreatingCategory.set(false);
         // Reset the form control if creation failed
         this.reportForm.patchValue({ operation_category_id: '' });
-      }
+      },
     });
   }
 
-  dateExistsValidator(control: AbstractControl): Observable<ValidationErrors | null> {
+  dateExistsValidator(
+    control: AbstractControl
+  ): Observable<ValidationErrors | null> {
     if (!control.value) {
       return of(null);
     }
@@ -256,20 +357,21 @@ export class OperationReportModalComponent implements OnInit {
     return of(null).pipe(
       debounceTime(500),
       switchMap(() => {
-        const excludeId = this.isEditMode() && this.report()?.id ? this.report()!.id : undefined;
-        return this.operationReportService.checkDateExists(
-          this.companyId(),
-          operationDate,
-          excludeId
-        ).pipe(
-          map((exists) => {
-            if (exists) {
-              return { dateExists: true };
-            }
-            return null;
-          }),
-          catchError(() => of(null))
-        );
+        const excludeId =
+          this.isEditMode() && this.report()?.id
+            ? this.report()!.id
+            : undefined;
+        return this.operationReportService
+          .checkDateExists(this.companyId(), operationDate, excludeId)
+          .pipe(
+            map((exists) => {
+              if (exists) {
+                return { dateExists: true };
+              }
+              return null;
+            }),
+            catchError(() => of(null))
+          );
       })
     );
   }
@@ -283,7 +385,10 @@ export class OperationReportModalComponent implements OnInit {
     return null;
   }
 
-  formatCurrency(event: Event, fieldName: 'monthly_cost' | 'annual_cost'): void {
+  formatCurrency(
+    event: Event,
+    fieldName: 'monthly_cost' | 'annual_cost'
+  ): void {
     const input = event.target as HTMLInputElement;
     let value = input.value.replace(/[^0-9.]/g, '');
 
@@ -348,7 +453,10 @@ export class OperationReportModalComponent implements OnInit {
         .replace(/[^0-9.]/g, '') || '0';
     const monthly = parseFloat(monthlyValue) || 0;
     const annual = monthly * 12;
-    this.reportForm.patchValue({ annual_cost: this.formatNumberWithCommas(annual) }, { emitEvent: false });
+    this.reportForm.patchValue(
+      { annual_cost: this.formatNumberWithCommas(annual) },
+      { emitEvent: false }
+    );
   }
 
   populateForm(report: OperationReport): void {
@@ -365,19 +473,49 @@ export class OperationReportModalComponent implements OnInit {
         ? report.annual_cost
         : parseFloat(report.annual_cost) || 0;
 
-    this.reportForm.patchValue(
-      {
-        operation_category_id: report.operation_category_id.toString(),
-        operation_date: operationDate,
-        description: report.description,
-        monthly_cost: this.formatNumberWithCommas(monthlyCost),
-        annual_cost: this.formatNumberWithCommas(annualCost),
+    // Buscar la categoría por ID para obtener el nombre
+    const categoryId = report.operation_category_id;
+    this.operationCategoryService.getById(categoryId).subscribe({
+      next: (category) => {
+        // Agregar la categoría a la lista si no está presente
+        const currentCategories = this.categories();
+        const categoryExists = currentCategories.some(
+          (cat) => cat.id === category.id
+        );
+        if (!categoryExists) {
+          this.categories.set([...currentCategories, category]);
+        }
+
+        // Establecer el valor del formulario como objeto con name (formato solicitado)
+        // Usamos solo {name: ...} para que ng-select pueda mostrarlo correctamente
+        this.reportForm.patchValue(
+          {
+            operation_category_id: { name: category.name },
+            operation_date: operationDate,
+            description: report.description,
+            monthly_cost: this.formatNumberWithCommas(monthlyCost),
+            annual_cost: this.formatNumberWithCommas(annualCost),
+          },
+          { emitEvent: false }
+        );
       },
-      { emitEvent: false }
-    );
+      error: () => {
+        // Si falla la búsqueda, establecer solo con el ID como fallback
+        this.reportForm.patchValue(
+          {
+            operation_category_id: report.operation_category_id.toString(),
+            operation_date: operationDate,
+            description: report.description,
+            monthly_cost: this.formatNumberWithCommas(monthlyCost),
+            annual_cost: this.formatNumberWithCommas(annualCost),
+          },
+          { emitEvent: false }
+        );
+      },
+    });
   }
 
-  onSubmit() {
+  async onSubmit() {
     if (this.reportForm.invalid) {
       this.reportForm.markAllAsTouched();
       return;
@@ -385,8 +523,54 @@ export class OperationReportModalComponent implements OnInit {
 
     this.isSubmitting.set(true);
 
-    const formValue = this.reportForm.value;
+    let formValue = { ...this.reportForm.value };
+    console.log(formValue);
+    
+    // Si operation_category_id es un objeto con name pero sin id, buscar la categoría en la lista
+    if (
+      formValue.operation_category_id &&
+      typeof formValue.operation_category_id === 'object' &&
+      formValue.operation_category_id.name &&
+      !formValue.operation_category_id.id
+    ) {
+      const categoryName = formValue.operation_category_id.name;
+      const foundCategory = this.categoriesList().find(
+        (cat) => cat.name === categoryName
+      );
 
+      if (foundCategory) {
+        // Si encontramos la categoría, usar su ID
+        formValue.operation_category_id = {
+          id: foundCategory.id,
+          name: foundCategory.name,
+        };
+      } else {
+        // Si no encontramos la categoría, crear una nueva
+        const code = categoryName
+          .trim()
+          .toUpperCase()
+          .replace(/\s+/g, '_')
+          .replace(/[^A-Z0-9_]/g, '')
+          .substring(0, 20);
+
+        const categoryData: OperationCategoryCreate = {
+          code: code || 'CAT_' + Date.now(),
+          name: categoryName.trim(),
+          company_id: this.companyId(),
+        };
+
+        this.isCreatingCategory.set(true);
+        this.isLoadingCategories.set(true);
+
+        const newCategory = await firstValueFrom(
+          this.operationCategoryService.create(categoryData)
+        );
+        formValue.operation_category_id = {
+          id: newCategory.id,
+          name: newCategory.name,
+        };
+      }
+    }
     const operationDate = formValue.operation_date
       ? `${formValue.operation_date}-01`
       : '';
@@ -397,7 +581,7 @@ export class OperationReportModalComponent implements OnInit {
       formValue.annual_cost?.toString().replace(/[^0-9.]/g, '') || '0';
 
     const reportData: OperationReportCreate = {
-      operation_category_id: parseInt(formValue.operation_category_id, 10),
+      operation_category_id: parseInt(formValue.operation_category_id.id, 10),
       company_id: this.companyId(),
       operation_date: operationDate,
       description: formValue.description,
@@ -431,5 +615,13 @@ export class OperationReportModalComponent implements OnInit {
       this.onClose();
     }
   }
-}
 
+  compareCategories(category1: any, category2: any): boolean {
+    // Comparar por nombre para que funcione con {name: ...}
+    if (!category1 || !category2) return false;
+    if (typeof category1 === 'object' && typeof category2 === 'object') {
+      return category1.name === category2.name;
+    }
+    return category1 === category2;
+  }
+}

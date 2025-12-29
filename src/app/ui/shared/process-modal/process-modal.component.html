@@ -5,9 +5,7 @@
       <div class="modal-header">
         <h5 class="modal-title">
           {{
-            isEditMode()
-              ? "Editar Proceso Jurídico"
-              : "Nuevo Proceso Jurídico"
+            isEditMode() ? "Editar Proceso Jurídico" : "Nuevo Proceso Jurídico"
           }}
         </h5>
         <button
@@ -23,9 +21,7 @@
         <form [formGroup]="processForm" (ngSubmit)="onSubmit()">
           <div class="row g-3">
             <div class="col-12">
-              <label for="docket_number" class="form-label"
-                >Radicado</label
-              >
+              <label for="docket_number" class="form-label">Radicado</label>
               <input
                 type="text"
                 class="form-control"
@@ -40,11 +36,7 @@
             </div>
             <div class="col-12">
               <label for="type" class="form-label">Tipo</label>
-              <select
-                class="form-select"
-                id="type"
-                formControlName="type"
-              >
+              <select class="form-select" id="type" formControlName="type">
                 @for (type of processTypes; track type.value) {
                 <option [value]="type.value">{{ type.label }}</option>
                 }
@@ -55,9 +47,27 @@
               }
             </div>
             <div class="col-12">
-              <label for="start_date" class="form-label"
-                >Fecha de Inicio</label
+              <label for="process_status_id" class="form-label">Estado</label>
+              {{ processForm.get("process_status_id")?.value | json }}
+              <ng-select
+                id="process_status_id"
+                [items]="filteredStatuses()"
+                bindLabel="name"
+                [compareWith]="compareStatuses"
+                placeholder="Seleccionar estado..."
+                formControlName="process_status_id"
+                [searchable]="false"
+                [clearable]="false"
+                appendTo="body"
               >
+              </ng-select>
+              @if (processForm.get('process_status_id')?.invalid &&
+              processForm.get('process_status_id')?.touched) {
+              <small class="form-error">Estado requerido</small>
+              }
+            </div>
+            <div class="col-12">
+              <label for="start_date" class="form-label">Fecha de Inicio</label>
               <input
                 type="date"
                 class="form-control"
@@ -81,7 +91,9 @@
               />
             </div>
             <div class="col-12">
-              <label for="description" class="form-label">Descripción (Opcional)</label>
+              <label for="description" class="form-label"
+                >Descripción (Opcional)</label
+              >
               <textarea
                 class="form-control"
                 id="description"
@@ -120,4 +132,3 @@
   </div>
 </div>
 }
-

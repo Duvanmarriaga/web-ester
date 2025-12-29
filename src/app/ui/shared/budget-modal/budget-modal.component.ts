@@ -22,14 +22,31 @@ import {
   BudgetCreate,
   Budget,
 } from '../../../infrastructure/services/budget.service';
-import { BudgetCategoryService, BudgetCategory } from '../../../infrastructure/services/budget-category.service';
+import {
+  BudgetCategoryService,
+  BudgetCategory,
+  BudgetCategoryCreate,
+} from '../../../infrastructure/services/budget-category.service';
 import { LucideAngularModule, X } from 'lucide-angular';
-import { Observable, of } from 'rxjs';
-import { map, catchError, debounceTime, switchMap } from 'rxjs/operators';
+import { NgSelectModule } from '@ng-select/ng-select';
+import { firstValueFrom, Observable, of, Subject } from 'rxjs';
+import {
+  map,
+  catchError,
+  debounceTime,
+  switchMap,
+  distinctUntilChanged,
+} from 'rxjs/operators';
+import { ToastrService } from 'ngx-toastr';
 
 @Component({
   selector: 'app-budget-modal',
-  imports: [CommonModule, ReactiveFormsModule, LucideAngularModule],
+  imports: [
+    CommonModule,
+    ReactiveFormsModule,
+    LucideAngularModule,
+    NgSelectModule,
+  ],
   templateUrl: './budget-modal.component.html',
   styleUrl: './budget-modal.component.scss',
 })
@@ -37,6 +54,7 @@ export class BudgetModalComponent implements OnInit {
   private fb = inject(FormBuilder);
   private budgetService = inject(BudgetService);
   private budgetCategoryService = inject(BudgetCategoryService);
+  private toastr = inject(ToastrService);
 
   // Inputs
   isVisible = input.required<boolean>();
@@ -55,7 +73,11 @@ export class BudgetModalComponent implements OnInit {
   dateExistsError = signal<string | null>(null);
   isEditMode = signal(false);
   categories = signal<BudgetCategory[]>([]);
-  
+  categoryInput$ = new Subject<string>();
+  isLoadingCategories = signal(false);
+  currentSearchTerm = signal<string>('');
+  isCreatingCategory = signal(false);
+
   // Computed signal to ensure it's always an array
   categoriesList = computed(() => {
     const cats = this.categories();
@@ -93,12 +115,8 @@ export class BudgetModalComponent implements OnInit {
   }
 
   ngOnInit() {
-    if (!Array.isArray(this.categories())) {
-      this.categories.set([]);
-    }
-    
-    this.loadCategories();
-    
+    this.setupTypeahead();
+
     this.budgetForm = this.fb.group({
       budget_category_id: ['', [Validators.required]],
       budget_date: [
@@ -131,10 +149,50 @@ export class BudgetModalComponent implements OnInit {
       }
     });
 
+    // Load initial categories
+    this.loadCategories();
+
     if (this.budget() && this.isVisible()) {
       this.isEditMode.set(true);
       this.populateForm(this.budget()!);
     }
+  }
+
+  setupTypeahead(): void {
+    this.categoryInput$
+      .pipe(
+        debounceTime(300),
+        distinctUntilChanged(),
+        switchMap((term: string) => {
+          this.isLoadingCategories.set(true);
+          this.currentSearchTerm.set(term || '');
+          const companyId = this.companyId();
+          if (!companyId) {
+            this.isLoadingCategories.set(false);
+            return of([]);
+          }
+          // If term is empty, load all categories
+          if (!term || term.trim().length === 0) {
+            return this.budgetCategoryService.getByCompany(companyId).pipe(
+              catchError(() => {
+                this.isLoadingCategories.set(false);
+                return of([]);
+              })
+            );
+          }
+          // Otherwise search
+          return this.budgetCategoryService.search(companyId, term).pipe(
+            catchError(() => {
+              this.isLoadingCategories.set(false);
+              return of([]);
+            })
+          );
+        })
+      )
+      .subscribe((categories) => {
+        this.categories.set(Array.isArray(categories) ? categories : []);
+        this.isLoadingCategories.set(false);
+      });
   }
 
   loadCategories(): void {
@@ -143,13 +201,131 @@ export class BudgetModalComponent implements OnInit {
       this.categories.set([]);
       return;
     }
-    
+
+    this.isLoadingCategories.set(true);
     this.budgetCategoryService.getByCompany(companyId).subscribe({
       next: (categories) => {
         this.categories.set(Array.isArray(categories) ? categories : []);
+        this.isLoadingCategories.set(false);
+        // Trigger typeahead with empty term to show initial categories
+        this.categoryInput$.next('');
       },
       error: () => {
         this.categories.set([]);
+        this.isLoadingCategories.set(false);
+      },
+    });
+  }
+
+  onCreateCategoryFromTag(term: string | any): void {
+    // This is called when user clicks on the "addTag" option or presses Enter with no matches
+    // ng-select can emit the term as a string or as an object, handle both cases
+    let categoryName: string;
+
+    if (typeof term === 'string') {
+      categoryName = term;
+    } else if (term && typeof term === 'object' && term.name) {
+      categoryName = term.name;
+    } else if (term && typeof term === 'object' && term.value) {
+      categoryName = term.value;
+    } else {
+      // Try to get the current search term as fallback
+      categoryName = this.currentSearchTerm();
+    }
+
+    if (!categoryName || categoryName.trim().length === 0) {
+      return;
+    }
+
+    // Check if category already exists
+    const existingCategory = this.categoriesList().find(
+      (cat) => cat.name.toLowerCase() === categoryName.trim().toLowerCase()
+    );
+
+    if (existingCategory) {
+      // If exists, select it instead of creating
+      this.budgetForm.patchValue({
+        budget_category_id: existingCategory.id,
+      });
+      return;
+    }
+
+    // Create the category
+    this.createCategory(categoryName.trim());
+  }
+
+  onCategoryBlur(): void {
+    // When blur, check if we need to create a category
+    const searchTerm = this.currentSearchTerm();
+    const selectedId = this.budgetForm.get('budget_category_id')?.value;
+
+    // If there's a search term but no selected category, and we're not already creating
+    if (
+      searchTerm &&
+      searchTerm.trim().length > 0 &&
+      !selectedId &&
+      !this.isCreatingCategory()
+    ) {
+      const existingCategory = this.categoriesList().find(
+        (cat) => cat.name.toLowerCase() === searchTerm.trim().toLowerCase()
+      );
+
+      if (!existingCategory) {
+        // Don't auto-create on blur, let user explicitly create with Enter
+        // Just clear the search term
+        this.currentSearchTerm.set('');
+      }
+    }
+  }
+
+  createCategory(term: string): void {
+    const companyId = this.companyId();
+
+    if (
+      !companyId ||
+      !term ||
+      term.trim().length === 0 ||
+      this.isCreatingCategory()
+    ) {
+      return;
+    }
+
+    // Generate code from name (uppercase, replace spaces with underscores, limit to 20 chars)
+    const code = term
+      .trim()
+      .toUpperCase()
+      .replace(/\s+/g, '_')
+      .replace(/[^A-Z0-9_]/g, '')
+      .substring(0, 20);
+
+    const categoryData: BudgetCategoryCreate = {
+      code: code || 'CAT_' + Date.now(),
+      name: term.trim(),
+      company_id: companyId,
+    };
+
+    this.isCreatingCategory.set(true);
+    this.isLoadingCategories.set(true);
+
+    this.budgetCategoryService.create(categoryData).subscribe({
+      next: (newCategory) => {
+        // Add the new category to the list
+        const currentCategories = this.categories();
+        this.categories.set([...currentCategories, newCategory]);
+        // Set the form value to the new category
+        this.budgetForm.patchValue({ budget_category_id: newCategory.id });
+        this.toastr.success('Categoría creada exitosamente', 'Éxito');
+        this.isLoadingCategories.set(false);
+        this.isCreatingCategory.set(false);
+        // Clear the search term
+        this.currentSearchTerm.set('');
+      },
+      error: (error) => {
+        this.toastr.error('Error al crear la categoría', 'Error');
+        this.isLoadingCategories.set(false);
+        this.isCreatingCategory.set(false);
+        // Reset the form control if creation failed
+        this.budgetForm.patchValue({ budget_category_id: '' });
       },
     });
   }
@@ -293,26 +469,62 @@ export class BudgetModalComponent implements OnInit {
         ? budget.executed_amount
         : parseFloat(budget.executed_amount) || 0;
 
-    this.budgetForm.patchValue(
-      {
-        budget_category_id: budget.budget_category_id.toString(),
-        budget_date: budgetDate,
-        budget_amount: this.formatNumberWithCommas(budgetAmount),
-        executed_amount: this.formatNumberWithCommas(executedAmount),
-        difference_amount:
-          typeof budget.difference_amount === 'number'
-            ? budget.difference_amount
-            : parseFloat(budget.difference_amount) || 0,
-        percentage:
-          typeof budget.percentage === 'number'
-            ? budget.percentage
-            : parseFloat(budget.percentage) || 0,
+    // Buscar la categoría por ID para obtener el nombre
+    const categoryId = budget.budget_category_id;
+    this.budgetCategoryService.getById(categoryId).subscribe({
+      next: (category) => {
+        // Agregar la categoría a la lista si no está presente
+        const currentCategories = this.categories();
+        const categoryExists = currentCategories.some(
+          (cat) => cat.id === category.id
+        );
+        if (!categoryExists) {
+          this.categories.set([...currentCategories, category]);
+        }
+
+        // Establecer el valor del formulario como objeto con name (formato solicitado)
+        this.budgetForm.patchValue(
+          {
+            budget_category_id: { name: category.name },
+            budget_date: budgetDate,
+            budget_amount: this.formatNumberWithCommas(budgetAmount),
+            executed_amount: this.formatNumberWithCommas(executedAmount),
+            difference_amount:
+              typeof budget.difference_amount === 'number'
+                ? budget.difference_amount
+                : parseFloat(budget.difference_amount) || 0,
+            percentage:
+              typeof budget.percentage === 'number'
+                ? budget.percentage
+                : parseFloat(budget.percentage) || 0,
+          },
+          { emitEvent: false }
+        );
       },
-      { emitEvent: false }
-    );
+      error: () => {
+        // Si falla la búsqueda, establecer solo con el ID como fallback
+        this.budgetForm.patchValue(
+          {
+            budget_category_id: budget.budget_category_id.toString(),
+            budget_date: budgetDate,
+            budget_amount: this.formatNumberWithCommas(budgetAmount),
+            executed_amount: this.formatNumberWithCommas(executedAmount),
+            difference_amount:
+              typeof budget.difference_amount === 'number'
+                ? budget.difference_amount
+                : parseFloat(budget.difference_amount) || 0,
+            percentage:
+              typeof budget.percentage === 'number'
+                ? budget.percentage
+                : parseFloat(budget.percentage) || 0,
+          },
+          { emitEvent: false }
+        );
+      },
+    });
   }
 
-  onSubmit() {
+  async onSubmit() {
     if (this.budgetForm.invalid) {
       this.budgetForm.markAllAsTouched();
       return;
@@ -320,7 +532,51 @@ export class BudgetModalComponent implements OnInit {
 
     this.isSubmitting.set(true);
 
-    const formValue = this.budgetForm.value;
+    let formValue = { ...this.budgetForm.value };
+
+    // Si budget_category_id es un objeto, extraer el ID o buscar/crear la categoría
+    if (
+      formValue.budget_category_id &&
+      typeof formValue.budget_category_id === 'object'
+    ) {
+      // Si tiene id, usar el id directamente
+      if (formValue.budget_category_id.id) {
+        formValue.budget_category_id = formValue.budget_category_id.id;
+      } else if (formValue.budget_category_id.name) {
+        // Si solo tiene name, buscar o crear la categoría
+        const categoryName = formValue.budget_category_id.name;
+        const foundCategory = this.categoriesList().find(
+          (cat) => cat.name === categoryName
+        );
+
+        if (foundCategory) {
+          // Si encontramos la categoría, usar su ID
+          formValue.budget_category_id = foundCategory.id;
+        } else {
+          // Si no encontramos la categoría, crear una nueva
+          const code = categoryName
+            .trim()
+            .toUpperCase()
+            .replace(/\s+/g, '_')
+            .replace(/[^A-Z0-9_]/g, '')
+            .substring(0, 20);
+
+          const categoryData: BudgetCategoryCreate = {
+            code: code || 'CAT_' + Date.now(),
+            name: categoryName.trim(),
+            company_id: this.companyId(),
+          };
+
+          this.isCreatingCategory.set(true);
+          this.isLoadingCategories.set(true);
+
+          const newCategory = await firstValueFrom(
+            this.budgetCategoryService.create(categoryData)
+          );
+          formValue.budget_category_id = newCategory.id;
+        }
+      }
+    }
 
     const budgetDate = formValue.budget_date
       ? `${formValue.budget_date}-01`
@@ -337,7 +593,7 @@ export class BudgetModalComponent implements OnInit {
     const percentage = budgetAmount > 0 ? (executedAmount / budgetAmount) * 100 : 0;
 
     const budgetData: BudgetCreate = {
-      budget_category_id: parseInt(formValue.budget_category_id, 10),
+      budget_category_id: parseInt(formValue.budget_category_id.toString(), 10),
       company_id: this.companyId(),
       budget_date: budgetDate,
       budget_amount: budgetAmount,
@@ -371,6 +627,15 @@ export class BudgetModalComponent implements OnInit {
     if (target.classList.contains('modal')) {
       this.onClose();
     }
+  }
+
+  compareCategories(category1: any, category2: any): boolean {
+    // Comparar por nombre para que funcione con {name: ...}
+    if (!category1 || !category2) return false;
+    if (typeof category1 === 'object' && typeof category2 === 'object') {
+      return category1.name === category2.name;
+    }
+    return category1 === category2;
   }
 }
 

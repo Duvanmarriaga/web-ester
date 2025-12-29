@@ -5,27 +5,33 @@ import { map, catchError } from 'rxjs/operators';
 import { of } from 'rxjs';
 import { environment } from '../../../environments/environment';
 
-export interface OperationCategory {
+export interface InvestmentCategory {
   id: number;
   code: string;
   name: string;
   company_id: number;
 }
 
-export interface OperationCategoryCreate {
+export interface InvestmentCategoryCreate {
   code: string;
   name: string;
   company_id: number;
 }
 
+export interface InvestmentCategoryUpdate {
+  code?: string;
+  name?: string;
+  company_id?: number;
+}
+
 @Injectable({
   providedIn: 'root',
 })
-export class OperationCategoryService {
+export class InvestmentCategoryService {
   private http = inject(HttpClient);
   private apiUrl = environment.apiUrl;
 
-  getAll(params?: { company_id?: number; code?: string; name?: string }): Observable<OperationCategory[]> {
+  getAll(params?: { company_id?: number; code?: string; name?: string }): Observable<InvestmentCategory[]> {
     let httpParams = new HttpParams();
     
     if (params?.company_id) {
@@ -38,8 +44,8 @@ export class OperationCategoryService {
       httpParams = httpParams.set('name', params.name);
     }
 
-    return this.http.get<OperationCategory[]>(
-      `${this.apiUrl}/admin/reports/operation-categories`,
+    return this.http.get<InvestmentCategory[]>(
+      `${this.apiUrl}/admin/reports/investment-categories`,
       { params: httpParams }
     ).pipe(
       map((response) => {
@@ -55,22 +61,15 @@ export class OperationCategoryService {
     );
   }
 
-  getByCompany(companyId: number): Observable<OperationCategory[]> {
-    return this.getAll({ company_id: companyId });
+  getById(id: number): Observable<InvestmentCategory> {
+    return this.http.get<InvestmentCategory>(
+      `${this.apiUrl}/admin/reports/investment-categories/${id}`
+    );
   }
 
-  search(companyId: number, searchTerm: string): Observable<OperationCategory[]> {
-    if (!searchTerm || searchTerm.trim().length === 0) {
-      return this.getByCompany(companyId);
-    }
-
-    const params = new HttpParams()
-      .set('company_id', companyId.toString())
-      .set('name', searchTerm.trim());
-
-    return this.http.get<OperationCategory[] | { data: OperationCategory[] }>(
-      `${this.apiUrl}/admin/reports/operation-categories`,
-      { params }
+  getByCompany(companyId: number): Observable<InvestmentCategory[]> {
+    return this.http.get<InvestmentCategory[]>(
+      `${this.apiUrl}/admin/reports/companies/${companyId}/investment-categories`
     ).pipe(
       map((response) => {
         if (Array.isArray(response)) {
@@ -85,29 +84,23 @@ export class OperationCategoryService {
     );
   }
 
-  create(categoryData: OperationCategoryCreate): Observable<OperationCategory> {
-    return this.http.post<OperationCategory>(
-      `${this.apiUrl}/admin/reports/operation-categories`,
+  create(categoryData: InvestmentCategoryCreate): Observable<InvestmentCategory> {
+    return this.http.post<InvestmentCategory>(
+      `${this.apiUrl}/admin/reports/investment-categories`,
       categoryData
     );
   }
 
-  getById(id: number): Observable<OperationCategory> {
-    return this.http.get<OperationCategory>(
-      `${this.apiUrl}/admin/reports/operation-categories/${id}`
-    );
-  }
-
-  update(id: number, categoryData: Partial<OperationCategoryCreate>): Observable<OperationCategory> {
-    return this.http.put<OperationCategory>(
-      `${this.apiUrl}/admin/reports/operation-categories/${id}`,
+  update(id: number, categoryData: InvestmentCategoryUpdate): Observable<InvestmentCategory> {
+    return this.http.put<InvestmentCategory>(
+      `${this.apiUrl}/admin/reports/investment-categories/${id}`,
       categoryData
     );
   }
 
   delete(id: number): Observable<void> {
     return this.http.delete<void>(
-      `${this.apiUrl}/admin/reports/operation-categories/${id}`
+      `${this.apiUrl}/admin/reports/investment-categories/${id}`
     );
   }
 }
