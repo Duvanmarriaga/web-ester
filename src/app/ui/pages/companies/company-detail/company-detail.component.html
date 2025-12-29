@@ -74,6 +74,15 @@
         <lucide-icon [img]="icons.Scale" [size]="14"></lucide-icon>
         <span>Procesos Jurídicos</span>
       </a>
+      <a
+        [routerLink]="getTabRoute('investments')"
+        routerLinkActive="active"
+        [routerLinkActiveOptions]="{ exact: false }"
+        class="tab-button"
+      >
+        <lucide-icon [img]="icons.TrendingDown" [size]="14"></lucide-icon>
+        <span>Reporte de Inversiones</span>
+      </a>
     </div>
 
     <div class="tabs-content">

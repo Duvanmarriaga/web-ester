@@ -69,7 +69,33 @@ export class InvestmentCategoryService {
 
   getByCompany(companyId: number): Observable<InvestmentCategory[]> {
     return this.http.get<InvestmentCategory[]>(
-      `${this.apiUrl}/admin/reports/companies/${companyId}/investment-categories`
+      `${this.apiUrl}/admin/reports/companies/investment-categories?company_id=${companyId}`
+    ).pipe(
+      map((response) => {
+        if (Array.isArray(response)) {
+          return response;
+        }
+        if (response && typeof response === 'object' && 'data' in response) {
+          return Array.isArray((response as any).data) ? (response as any).data : [];
+        }
+        return [];
+      }),
+      catchError(() => of([]))
+    );
+  }
+
+  search(companyId: number, searchTerm: string): Observable<InvestmentCategory[]> {
+    if (!searchTerm || searchTerm.trim().length === 0) {
+      return this.getByCompany(companyId);
+    }
+
+    const params = new HttpParams()
+      .set('company_id', companyId.toString())
+      .set('name', searchTerm.trim());
+
+    return this.http.get<InvestmentCategory[] | { data: InvestmentCategory[] }>(
+      `${this.apiUrl}/admin/reports/investment-categories`,
+      { params }
     ).pipe(
       map((response) => {
         if (Array.isArray(response)) {

@@ -111,6 +111,13 @@ export const routes: Routes = [
                     (m) => m.LegalProcessesComponent
                   ),
               },
+              {
+                path: 'investments',
+                loadComponent: () =>
+                  import('./ui/pages/companies/company-detail/investments/investments.component').then(
+                    (m) => m.InvestmentsComponent
+                  ),
+              },
             ],
           },
         ],

@@ -1,0 +1,146 @@
+<div class="tab-panel">
+  <div class="tab-panel-header">
+    <div>
+      <h4 class="tab-panel-title">Reporte de Inversiones</h4>
+    </div>
+    <div class="tab-panel-actions">
+      <button
+        type="button"
+        class="btn btn-sm btn-outline-primary"
+        (click)="downloadTemplate()"
+        title="Descargar plantilla CSV"
+      >
+        <lucide-icon [img]="icons.Download" [size]="16"></lucide-icon>
+        <span>Descargar CSV</span>
+      </button>
+      <button
+        type="button"
+        class="btn btn-sm btn-outline-primary"
+        (click)="triggerFileInput()"
+        [disabled]="isImporting()"
+        title="Importar desde CSV"
+      >
+        @if (isImporting()) {
+        <span
+          class="spinner-border spinner-border-sm me-1"
+          role="status"
+        ></span>
+        } @else {
+        <lucide-icon [img]="icons.Upload" [size]="16"></lucide-icon>
+        }
+        <span>Importar CSV</span>
+      </button>
+      <button
+        type="button"
+        class="btn btn-sm btn-primary"
+        (click)="openCreateModal()"
+        title="Crear nuevo reporte"
+      >
+        <lucide-icon [img]="icons.Plus" [size]="16"></lucide-icon>
+        <span>Crear Reporte</span>
+      </button>
+    </div>
+  </div>
+  @if (isLoading()) {
+  <div class="text-center py-5">
+    <div class="spinner-border text-primary" role="status">
+      <span class="visually-hidden">Cargando...</span>
+    </div>
+  </div>
+  } @else if (investments().length === 0) {
+  <div class="empty-state">
+    <lucide-icon
+      [img]="icons.TrendingUp"
+      [size]="48"
+      class="empty-icon"
+    ></lucide-icon>
+    <p>No hay reportes de inversiones disponibles</p>
+  </div>
+  } @else {
+  <div class="card border-0 shadow-sm">
+    <div class="card-body p-0">
+      <div class="table-responsive">
+        <table class="table table-hover mb-0">
+          <thead class="table-light">
+            <tr>
+              <th class="table-header">Fecha</th>
+              <th class="table-header">Costo Unitario</th>
+              <th class="table-header">Cantidad</th>
+              <th class="table-header">Costo Total</th>
+              <th class="table-header">Origen Documento</th>
+              <th class="table-header text-end">Acciones</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (investment of investments(); track investment.id) {
+            <tr>
+              <td class="table-cell">
+                {{ investment.investment_date | date : "dd/MM/yyyy" }}
+              </td>
+              <td class="table-cell">
+                ${{ investment.unit_cost | number : "1.2-2" }}
+              </td>
+              <td class="table-cell fw-medium">
+                {{ investment.quantity | number : "1.0-0" }}
+              </td>
+              <td class="table-cell fw-medium">
+                ${{ investment.total_cost | number : "1.2-2" }}
+              </td>
+              <td class="table-cell">{{ investment.document_origin || "-" }}</td>
+              <td class="text-end">
+                <div class="d-flex gap-2 justify-content-end">
+                  <button
+                    class="btn btn-sm btn-link text-primary p-1"
+                    title="Editar"
+                    (click)="editInvestment(investment)"
+                  >
+                    <lucide-icon [img]="icons.Pencil" [size]="14"></lucide-icon>
+                  </button>
+                  <button
+                    class="btn btn-sm btn-link text-danger p-1"
+                    title="Eliminar"
+                    (click)="deleteInvestment(investment)"
+                  >
+                    <lucide-icon [img]="icons.Trash2" [size]="14"></lucide-icon>
+                  </button>
+                </div>
+              </td>
+            </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+  @if (pagination()) {
+  <app-pagination
+    [pagination]="pagination()!"
+    (pageChange)="onPageChange($event)"
+  ></app-pagination>
+  }
+  }
+</div>
+
+@if (companyId() && userId()) {
+<app-investment-modal
+  [isVisible]="showModal()"
+  [companyId]="companyId()!"
+  [userId]="userId()!"
+  [investment]="selectedInvestment()"
+  (close)="closeModal()"
+  (save)="onSaveInvestment($event)"
+  (update)="onUpdateInvestment($event)"
+></app-investment-modal>
+}
+
+<app-confirm-dialog
+  [isVisible]="showConfirmDialog()"
+  title="Eliminar Reporte de Inversión"
+  [message]="getDeleteMessage()"
+  confirmText="Eliminar"
+  cancelText="Cancelar"
+  variant="danger"
+  (confirmed)="onConfirmDelete()"
+  (cancelled)="onCancelDelete()"
+></app-confirm-dialog>
+

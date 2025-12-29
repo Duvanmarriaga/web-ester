@@ -1,0 +1,154 @@
+@if (isVisible()) {
+<div class="modal show d-block" (click)="onBackdropClick($event)">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">
+          {{
+            isEditMode()
+              ? "Editar Reporte de Inversión"
+              : "Nuevo Reporte de Inversión"
+          }}
+        </h5>
+        <button
+          type="button"
+          class="btn-close"
+          (click)="onClose()"
+          aria-label="Close"
+        >
+          <lucide-icon [img]="icons.X" [size]="16"></lucide-icon>
+        </button>
+      </div>
+      <div class="modal-body">
+        <form [formGroup]="investmentForm" (ngSubmit)="onSubmit()">
+          <div class="row g-3">
+            <div class="col-12">
+              <label for="investment_category_id" class="form-label"
+                >Categoría</label
+              >
+              <ng-select
+                id="investment_category_id"
+                [items]="categoriesList()"
+                bindLabel="name"
+                [compareWith]="compareCategories"
+                placeholder="Escribe para buscar o presiona Enter para crear..."
+                formControlName="investment_category_id"
+                [searchable]="true"
+                [clearable]="true"
+                [loading]="isLoadingCategories()"
+                [typeahead]="categoryInput$"
+                [addTag]="true"
+                [addTagText]="'Crear: '"
+                (onAddTag)="onCreateCategoryFromTag($event)"
+                appendTo="body"
+              >
+              </ng-select>
+              @if (investmentForm.get('investment_category_id')?.invalid &&
+              investmentForm.get('investment_category_id')?.touched) {
+              <small class="form-error">Categoría requerida</small>
+              }
+            </div>
+            <div class="col-12">
+              <label for="investment_date" class="form-label">Fecha de Inversión</label>
+              <input
+                type="date"
+                class="form-control"
+                id="investment_date"
+                formControlName="investment_date"
+              />
+              @if (investmentForm.get('investment_date')?.invalid &&
+              investmentForm.get('investment_date')?.touched) {
+              <small class="form-error">Fecha de inversión requerida</small>
+              }
+            </div>
+            <div class="col-12">
+              <label for="unit_cost" class="form-label">Costo Unitario</label>
+              <div class="input-group">
+                <span class="input-group-text">$</span>
+                <input
+                  type="text"
+                  class="form-control"
+                  id="unit_cost"
+                  formControlName="unit_cost"
+                  placeholder="000"
+                  (input)="formatCurrency($event, 'unit_cost')"
+                  (blur)="formatCurrencyOnBlur('unit_cost')"
+                />
+              </div>
+              @if (investmentForm.get('unit_cost')?.invalid &&
+              investmentForm.get('unit_cost')?.touched) {
+              <small class="form-error"
+                >Costo unitario requerido (mínimo 0)</small
+              >
+              }
+            </div>
+            <div class="col-12">
+              <label for="quantity" class="form-label">Cantidad</label>
+              <input
+                type="text"
+                class="form-control"
+                id="quantity"
+                formControlName="quantity"
+                placeholder="0"
+                (input)="formatNumber($event, 'quantity')"
+                (blur)="formatNumberOnBlur('quantity')"
+              />
+              @if (investmentForm.get('quantity')?.invalid &&
+              investmentForm.get('quantity')?.touched) {
+              <small class="form-error">Cantidad requerida (mínimo 0)</small>
+              }
+            </div>
+            <div class="col-12">
+              <label for="total_cost" class="form-label">Costo Total</label>
+              <div class="input-group">
+                <span class="input-group-text">$</span>
+                <input
+                  type="text"
+                  class="form-control"
+                  id="total_cost"
+                  formControlName="total_cost"
+                  placeholder="000"
+                  (input)="formatCurrency($event, 'total_cost')"
+                  (blur)="formatCurrencyOnBlur('total_cost')"
+                  readonly
+                />
+              </div>
+              <small class="form-text text-muted"
+                >Se calcula automáticamente (Costo Unitario × Cantidad)</small
+              >
+              @if (investmentForm.get('total_cost')?.invalid &&
+              investmentForm.get('total_cost')?.touched) {
+              <small class="form-error">Costo total requerido (mínimo 0)</small>
+              }
+            </div>
+          </div>
+          <div class="d-flex gap-2 justify-content-end mt-4">
+            <button
+              type="button"
+              class="btn btn-sm btn-outline-secondary"
+              (click)="onClose()"
+              [disabled]="isSubmitting()"
+            >
+              Cancelar
+            </button>
+            <button
+              type="submit"
+              class="btn btn-sm btn-primary"
+              [disabled]="investmentForm.invalid || isSubmitting()"
+            >
+              @if (isSubmitting()) {
+              <span
+                class="spinner-border spinner-border-sm me-2"
+                role="status"
+              ></span>
+              }
+              {{ isEditMode() ? "Actualizar" : "Crear" }}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+}
+

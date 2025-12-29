@@ -46,9 +46,18 @@ export class InvestmentService {
   private http = inject(HttpClient);
   private apiUrl = environment.apiUrl;
 
-  getAll(): Observable<Investment[]> {
-    return this.http.get<Investment[]>(
-      `${this.apiUrl}/admin/reports/investments`
+  getAll(page: number = 1, perPage: number = 15, companyId?: number): Observable<PaginatedResponse<Investment>> {
+    let params = new HttpParams()
+      .set('page', page.toString())
+      .set('per_page', perPage.toString());
+    
+    if (companyId) {
+      params = params.set('company_id', companyId.toString());
+    }
+    
+    return this.http.get<PaginatedResponse<Investment>>(
+      `${this.apiUrl}/admin/reports/investments`,
+      { params }
     );
   }
 

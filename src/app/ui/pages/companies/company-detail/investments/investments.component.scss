@@ -1,0 +1,178 @@
+@use "sass:map";
+@use "../../../../../../styles/variables" as *;
+
+.tab-panel {
+  animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.tab-panel-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: map.get($spacing-scale, 4);
+  gap: map.get($spacing-scale, 4);
+  flex-wrap: wrap;
+}
+
+.tab-panel-title {
+  font-size: map.get($font-sizes, xl);
+  font-weight: map.get($font-weights, semibold);
+  color: $ester-text-primary;
+  margin: 0 0 map.get($spacing-scale, 2) 0;
+}
+
+.tab-panel-description {
+  font-size: map.get($font-sizes, sm);
+  color: $ester-text-secondary;
+  margin: 0;
+}
+
+.tab-panel-actions {
+  display: flex;
+  gap: map.get($spacing-scale, 2);
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.tab-panel-actions .btn {
+  display: inline-flex;
+  align-items: center;
+  gap: map.get($spacing-scale, 1);
+  white-space: nowrap;
+  padding: map.get($spacing-scale, 1) map.get($spacing-scale, 2);
+  font-size: map.get($font-sizes, xs);
+  font-weight: map.get($font-weights, medium);
+  border-radius: $border-radius-sm;
+  transition: all $transition-fast;
+
+  &.btn-outline-primary {
+    background-color: transparent;
+    border: 1px solid $ester-primary;
+    color: $ester-primary;
+
+    &:hover:not(:disabled) {
+      background-color: $ester-primary;
+      color: $ester-text-inverse;
+    }
+
+    &:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+  }
+
+  &.btn-primary {
+    background-color: $ester-primary;
+    border: 1px solid $ester-primary;
+    color: $ester-text-inverse;
+
+    &:hover:not(:disabled) {
+      background-color: $ester-primary-dark;
+      border-color: $ester-primary-dark;
+    }
+  }
+
+  lucide-icon {
+    flex-shrink: 0;
+  }
+}
+
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: map.get($spacing-scale, 16) map.get($spacing-scale, 8);
+  text-align: center;
+  color: $ester-text-secondary;
+}
+
+.empty-icon {
+  color: $ester-border-tertiary;
+  margin-bottom: map.get($spacing-scale, 4);
+  opacity: 0.5;
+}
+
+.empty-state p {
+  font-size: map.get($font-sizes, sm);
+  margin: 0;
+}
+
+.table-header {
+  text-transform: uppercase;
+  font-weight: map.get($font-weights, semibold);
+  font-size: map.get($font-sizes, xs);
+  color: $ester-text-inverse;
+}
+
+.table-cell {
+  font-size: map.get($font-sizes, sm);
+  color: $ester-text-secondary;
+
+  &.fw-medium {
+    font-weight: map.get($font-weights, medium);
+    color: $ester-text-primary;
+  }
+}
+
+.card {
+  border-radius: $border-radius-lg;
+}
+
+.table {
+  --bs-table-bg: transparent;
+  --bs-table-hover-bg: var(--ester-bg-light);
+
+  th,
+  td {
+    padding: map.get($spacing-scale, 2) map.get($spacing-scale, 3);
+    border-bottom: 1px solid $ester-border-primary;
+    vertical-align: middle;
+  }
+
+  th {
+    background-color: $ester-primary;
+    color: $ester-text-inverse;
+    border-bottom: 2px solid $ester-primary-dark;
+    
+    &:first-child {
+      border-top-left-radius: 4px;
+    }
+    
+    &:last-child {
+      border-top-right-radius: 4px;
+    }
+  }
+
+  tbody tr {
+    transition: all $transition-fast;
+
+    &:hover {
+      background-color: $ester-bg-tertiary;
+    }
+
+    &:last-child td {
+      border-bottom: none;
+    }
+  }
+
+  td.text-end {
+    white-space: nowrap;
+
+    .btn {
+      vertical-align: middle;
+    }
+  }
+}
+
