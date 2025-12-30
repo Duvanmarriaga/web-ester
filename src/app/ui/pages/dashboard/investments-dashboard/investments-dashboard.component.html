@@ -1,0 +1,218 @@
+<div class="dashboard-section">
+  <div class="section-header">
+    <h3 class="section-title">
+      <lucide-icon [img]="icons.TrendingDown" [size]="18" class="me-2"></lucide-icon>
+      Dashboard de Reporte de Inversiones
+    </h3>
+  </div>
+
+  <!-- Filters -->
+  <div class="filters-container mb-4">
+    <form [formGroup]="filterForm" class="filters-form">
+      <div class="row g-3">
+        @if (isAdmin()) {
+        <div class="col-md-4">
+          <label for="filter_company_id" class="form-label">
+            <lucide-icon [img]="icons.Filter" [size]="14" class="me-1"></lucide-icon>
+            Compañía <span class="text-danger">*</span>
+          </label>
+          <ng-select
+            id="filter_company_id"
+            [items]="companies()"
+            bindLabel="name"
+            bindValue="id"
+            placeholder="Seleccionar compañía"
+            formControlName="company_id"
+            [clearable]="false"
+            [searchable]="true"
+            [loading]="isLoadingCompanies()"
+            appendTo="body"
+          >
+          </ng-select>
+          @if (filterForm.get('company_id')?.invalid && filterForm.get('company_id')?.touched) {
+          <small class="form-error">Compañía requerida</small>
+          }
+        </div>
+        }
+        <div [class]="isAdmin() ? 'col-md-3' : 'col-md-4'">
+          <label for="filter_date_from" class="form-label">
+            <lucide-icon [img]="icons.Calendar" [size]="14" class="me-1"></lucide-icon>
+            Fecha Desde
+          </label>
+          <input
+            type="date"
+            class="form-control"
+            id="filter_date_from"
+            formControlName="date_from"
+          />
+        </div>
+        <div [class]="isAdmin() ? 'col-md-3' : 'col-md-4'">
+          <label for="filter_date_to" class="form-label">
+            <lucide-icon [img]="icons.Calendar" [size]="14" class="me-1"></lucide-icon>
+            Fecha Hasta
+          </label>
+          <input
+            type="date"
+            class="form-control"
+            id="filter_date_to"
+            formControlName="date_to"
+          />
+        </div>
+        <div [class]="isAdmin() ? 'col-md-2' : 'col-md-4' + ' d-flex align-items-end'">
+          <button
+            type="button"
+            class="btn btn-outline-secondary w-100"
+            (click)="resetFilters()"
+          >
+            Resetear
+          </button>
+        </div>
+      </div>
+    </form>
+  </div>
+
+  @if (isLoading()) {
+  <div class="text-center py-5">
+    <div class="spinner-border text-primary" role="status">
+      <span class="visually-hidden">Cargando...</span>
+    </div>
+  </div>
+  } @else {
+  <!-- Stats Cards -->
+  <div class="row g-3 mb-4">
+    <div class="col-xl-4 col-lg-6 col-md-6">
+      <div class="stat-card">
+        <div class="stat-icon bg-info-light">
+          <lucide-icon [img]="icons.DollarSign" [size]="20"></lucide-icon>
+        </div>
+        <div class="stat-content">
+          <h3 class="stat-value">${{ totalInvestment() | number : '1.0-0' }}</h3>
+          <p class="stat-label">Inversión Total</p>
+        </div>
+      </div>
+    </div>
+    <div class="col-xl-4 col-lg-6 col-md-6">
+      <div class="stat-card">
+        <div class="stat-icon bg-success-light">
+          <lucide-icon [img]="icons.Package" [size]="20"></lucide-icon>
+        </div>
+        <div class="stat-content">
+          <h3 class="stat-value">{{ totalQuantity() | number : '1.0-0' }}</h3>
+          <p class="stat-label">Cantidad Total</p>
+        </div>
+      </div>
+    </div>
+    <div class="col-xl-4 col-lg-6 col-md-6">
+      <div class="stat-card">
+        <div class="stat-icon bg-warning-light">
+          <lucide-icon [img]="icons.BarChart3" [size]="20"></lucide-icon>
+        </div>
+        <div class="stat-content">
+          <h3 class="stat-value">${{ averageUnitCost() | number : '1.0-0' }}</h3>
+          <p class="stat-label">Costo Unitario Promedio</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Charts Grid -->
+  <div class="row g-3">
+    <!-- Investment Trend -->
+    <div class="col-xl-6 col-lg-6 col-12">
+      <div class="chart-card">
+        <div class="chart-header">
+          <h3 class="chart-title">
+            <lucide-icon [img]="icons.TrendingDown" [size]="18" class="me-2"></lucide-icon>
+            Tendencia de Inversión
+          </h3>
+        </div>
+        <div class="chart-body">
+          <apx-chart
+            [series]="investmentTrendChart.series"
+            [chart]="investmentTrendChart.chart"
+            [colors]="investmentTrendChart.colors"
+            [stroke]="investmentTrendChart.stroke"
+            [xaxis]="investmentTrendChart.xaxis"
+            [yaxis]="investmentTrendChart.yaxis"
+            [grid]="investmentTrendChart.grid">
+          </apx-chart>
+        </div>
+      </div>
+    </div>
+
+    <!-- Total Cost -->
+    <div class="col-xl-6 col-lg-6 col-12">
+      <div class="chart-card">
+        <div class="chart-header">
+          <h3 class="chart-title">
+            <lucide-icon [img]="icons.DollarSign" [size]="18" class="me-2"></lucide-icon>
+            Costo Total por Mes
+          </h3>
+        </div>
+        <div class="chart-body">
+          <apx-chart
+            [series]="totalCostChart.series"
+            [chart]="totalCostChart.chart"
+            [colors]="totalCostChart.colors"
+            [plotOptions]="totalCostChart.plotOptions"
+            [dataLabels]="totalCostChart.dataLabels"
+            [xaxis]="totalCostChart.xaxis"
+            [yaxis]="totalCostChart.yaxis"
+            [grid]="totalCostChart.grid">
+          </apx-chart>
+        </div>
+      </div>
+    </div>
+
+    <!-- Monthly Investment -->
+    <div class="col-xl-8 col-lg-12 col-12">
+      <div class="chart-card">
+        <div class="chart-header">
+          <h3 class="chart-title">
+            <lucide-icon [img]="icons.BarChart3" [size]="18" class="me-2"></lucide-icon>
+            Inversión Mensual
+          </h3>
+        </div>
+        <div class="chart-body">
+          <apx-chart
+            [series]="monthlyInvestmentChart.series"
+            [chart]="monthlyInvestmentChart.chart"
+            [colors]="monthlyInvestmentChart.colors"
+            [fill]="monthlyInvestmentChart.fill"
+            [stroke]="monthlyInvestmentChart.stroke"
+            [xaxis]="monthlyInvestmentChart.xaxis"
+            [yaxis]="monthlyInvestmentChart.yaxis"
+            [legend]="monthlyInvestmentChart.legend"
+            [grid]="monthlyInvestmentChart.grid">
+          </apx-chart>
+        </div>
+      </div>
+    </div>
+
+    <!-- Quantity -->
+    <div class="col-xl-4 col-lg-12 col-12">
+      <div class="chart-card">
+        <div class="chart-header">
+          <h3 class="chart-title">
+            <lucide-icon [img]="icons.Package" [size]="18" class="me-2"></lucide-icon>
+            Cantidad por Mes
+          </h3>
+        </div>
+        <div class="chart-body">
+          <apx-chart
+            [series]="quantityChart.series"
+            [chart]="quantityChart.chart"
+            [colors]="quantityChart.colors"
+            [plotOptions]="quantityChart.plotOptions"
+            [dataLabels]="quantityChart.dataLabels"
+            [xaxis]="quantityChart.xaxis"
+            [yaxis]="quantityChart.yaxis"
+            [grid]="quantityChart.grid">
+          </apx-chart>
+        </div>
+      </div>
+    </div>
+  </div>
+  }
+</div>
+

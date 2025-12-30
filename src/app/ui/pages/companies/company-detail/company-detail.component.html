@@ -19,16 +19,28 @@
       <div class="company-details-compact">
         <div class="company-name-row">
           <h2 class="company-title-compact">{{ company()!.name }}</h2>
-          <span class="company-nit-compact">NIT: {{ company()!.identification_number }}</span>
+          <span class="company-nit-compact"
+            >NIT: {{ company()!.identification_number }}</span
+          >
         </div>
         <div class="company-info-row">
           <div class="info-item-inline">
-            <lucide-icon [img]="icons.Mail" [size]="12" class="info-icon-small"></lucide-icon>
+            <lucide-icon
+              [img]="icons.Mail"
+              [size]="12"
+              class="info-icon-small"
+            ></lucide-icon>
             <span class="info-text-small">{{ company()!.email }}</span>
           </div>
           <div class="info-item-inline">
-            <lucide-icon [img]="icons.MapPin" [size]="12" class="info-icon-small"></lucide-icon>
-            <span class="info-text-small text-truncate">{{ company()!.address }}</span>
+            <lucide-icon
+              [img]="icons.MapPin"
+              [size]="12"
+              class="info-icon-small"
+            ></lucide-icon>
+            <span class="info-text-small text-truncate">{{
+              company()!.address
+            }}</span>
           </div>
         </div>
       </div>
@@ -38,6 +50,15 @@
   <!-- Tabs Section -->
   <div class="tabs-container">
     <div class="tabs-header">
+      <a
+        [routerLink]="getTabRoute('budgets')"
+        routerLinkActive="active"
+        [routerLinkActiveOptions]="{ exact: false }"
+        class="tab-button"
+      >
+        <lucide-icon [img]="icons.DollarSign" [size]="14"></lucide-icon>
+        <span>Presupuestos Financieros</span>
+      </a>
       <a
         [routerLink]="getTabRoute('financial')"
         routerLinkActive="active"
@@ -57,13 +78,13 @@
         <span>Reportes de Operaciones</span>
       </a>
       <a
-        [routerLink]="getTabRoute('budgets')"
+        [routerLink]="getTabRoute('investments')"
         routerLinkActive="active"
         [routerLinkActiveOptions]="{ exact: false }"
         class="tab-button"
       >
-        <lucide-icon [img]="icons.DollarSign" [size]="14"></lucide-icon>
-        <span>Presupuestos Financieros</span>
+        <lucide-icon [img]="icons.TrendingDown" [size]="14"></lucide-icon>
+        <span>Reporte de Inversiones</span>
       </a>
       <a
         [routerLink]="getTabRoute('legal')"
@@ -73,15 +94,6 @@
       >
         <lucide-icon [img]="icons.Scale" [size]="14"></lucide-icon>
         <span>Procesos Jurídicos</span>
-      </a>
-      <a
-        [routerLink]="getTabRoute('investments')"
-        routerLinkActive="active"
-        [routerLinkActiveOptions]="{ exact: false }"
-        class="tab-button"
-      >
-        <lucide-icon [img]="icons.TrendingDown" [size]="14"></lucide-icon>
-        <span>Reporte de Inversiones</span>
       </a>
     </div>
 

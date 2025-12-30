@@ -1,3 +1,7 @@
+@use "sass:map";
+@use "../../../../styles/variables" as *;
+@use "../../../../styles/mixins" as *;
+
 // Dashboard Component Styles - Ester
 
 .dashboard {
@@ -176,6 +180,93 @@
   }
 }
 
+// Tabs Container
+.tabs-container {
+  background: $ester-bg-primary;
+  border: 1px solid $ester-border-primary;
+  border-radius: $border-radius-md;
+  overflow: hidden;
+  box-shadow: $ester-shadow-sm;
+}
+
+.tabs-header {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  background: linear-gradient(
+    135deg,
+    $ester-primary 0%,
+    $ester-primary-dark 100%
+  );
+  padding: 0;
+  overflow-x: auto;
+  overflow-y: hidden;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.3) transparent;
+
+  &::-webkit-scrollbar {
+    height: 4px;
+  }
+
+  &::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.3);
+    border-radius: 2px;
+  }
+}
+
+.tab-button {
+  display: flex;
+  align-items: center;
+  gap: map.get($spacing-scale, 2);
+  padding: map.get($spacing-scale, 3) map.get($spacing-scale, 4);
+  background: transparent;
+  border: none;
+  border-bottom: 3px solid transparent;
+  color: rgba(255, 255, 255, 0.7);
+  font-size: map.get($font-sizes, sm);
+  font-weight: map.get($font-weights, medium);
+  cursor: pointer;
+  transition: all $transition-fast;
+  white-space: nowrap;
+  position: relative;
+  text-decoration: none;
+
+  lucide-icon {
+    transition: color $transition-fast;
+    color: rgba(255, 255, 255, 0.7);
+  }
+
+  &:hover {
+    background: rgba(255, 255, 255, 0.1);
+    color: $ester-text-inverse;
+
+    lucide-icon {
+      color: $ester-text-inverse;
+    }
+  }
+
+  &.active {
+    color: $ester-text-inverse;
+    border-bottom-color: #ffe138;
+    background: rgba(255, 255, 255, 0.1);
+    font-weight: map.get($font-weights, semibold);
+
+    lucide-icon {
+      color: $ester-text-inverse;
+    }
+  }
+}
+
+.tabs-content {
+  padding: map.get($spacing-scale, 4);
+  min-height: 400px;
+  background: $ester-bg-primary;
+}
+
 // Responsive
 @media (max-width: 768px) {
   .stat-card {
@@ -210,5 +301,14 @@
   
   .chart-body {
     padding: 0.75rem;
+  }
+
+  .tabs-content {
+    padding: map.get($spacing-scale, 3);
+  }
+
+  .tab-button {
+    padding: map.get($spacing-scale, 2) map.get($spacing-scale, 3);
+    font-size: map.get($font-sizes, xs);
   }
 }

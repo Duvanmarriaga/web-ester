@@ -35,7 +35,7 @@
   <!-- Navigation Menu -->
   <nav class="sidebar__nav">
     <ul class="sidebar__menu">
-      @for (item of menuItems; track item.route) {
+      @for (item of menuItems(); track item.route) {
       <li class="sidebar__menu-item">
                     <a
           [routerLink]="item.route"

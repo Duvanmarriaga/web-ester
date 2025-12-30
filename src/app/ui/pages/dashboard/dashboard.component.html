@@ -2,227 +2,78 @@
   <!-- Header -->
   <div class="d-flex justify-content-between align-items-center mb-3">
     <div>
-      <h1 class="h4 mb-1 fw-bold" style="color: var(--ester-text-primary);">Dashboard</h1>
-      <p class="text-secondary mb-0" style="font-size: 13px;">Bienvenido, <span class="fw-semibold">{{ userName() }}</span></p>
+      <h1 class="h4 mb-1 fw-bold" style="color: var(--ester-text-primary)">
+        Dashboard
+      </h1>
+      <p class="text-secondary mb-0" style="font-size: 13px">
+        Bienvenido, <span class="fw-semibold">{{ userName() }}</span>
+      </p>
     </div>
   </div>
 
-  <!-- Stats Cards -->
-  <div class="row g-3 mb-4">
-    <div class="col-xl-6 col-lg-6 col-md-6">
-      <div class="stat-card">
-        <div class="stat-icon bg-warning-light">
-          <lucide-icon [img]="icons.DollarSign" [size]="20"></lucide-icon>
-        </div>
-        <div class="stat-content">
-          <h3 class="stat-value">$112k</h3>
-          <p class="stat-label">Ingresos</p>
-        </div>
+  <!-- Company Dashboards Section -->
+  <div class="mt-4">
+    <div class="tabs-container">
+      <div class="tabs-header">
+        <button
+          type="button"
+          (click)="setActiveTab('financial')"
+          [class.active]="activeTab() === 'financial'"
+          class="tab-button"
+        >
+          <lucide-icon [img]="icons.FileText" [size]="14"></lucide-icon>
+          <span>Reportes Financieros</span>
+        </button>
+        <button
+          type="button"
+          (click)="setActiveTab('operations')"
+          [class.active]="activeTab() === 'operations'"
+          class="tab-button"
+        >
+          <lucide-icon [img]="icons.TrendingUp" [size]="14"></lucide-icon>
+          <span>Reportes de Operaciones</span>
+        </button>
+        <button
+          type="button"
+          (click)="setActiveTab('budgets')"
+          [class.active]="activeTab() === 'budgets'"
+          class="tab-button"
+        >
+          <lucide-icon [img]="icons.DollarSign" [size]="14"></lucide-icon>
+          <span>Presupuestos Financieros</span>
+        </button>
+        <button
+          type="button"
+          (click)="setActiveTab('investments')"
+          [class.active]="activeTab() === 'investments'"
+          class="tab-button"
+        >
+          <lucide-icon [img]="icons.TrendingDown" [size]="14"></lucide-icon>
+          <span>Reporte de Inversiones</span>
+        </button>
+        <button
+          type="button"
+          (click)="setActiveTab('legal')"
+          [class.active]="activeTab() === 'legal'"
+          class="tab-button"
+        >
+          <lucide-icon [img]="icons.Scale" [size]="14"></lucide-icon>
+          <span>Procesos Jurídicos</span>
+        </button>
       </div>
-    </div>
-    <div class="col-xl-6 col-lg-6 col-md-6">
-      <div class="stat-card">
-        <div class="stat-icon bg-info-light">
-          <lucide-icon [img]="icons.TrendingUp" [size]="20"></lucide-icon>
-        </div>
-        <div class="stat-content">
-          <h3 class="stat-value">+23%</h3>
-          <p class="stat-label">Crecimiento</p>
-        </div>
-      </div>
-    </div>
-  </div>
 
-  <!-- Charts Grid -->
-  <div class="row g-3">
-    <!-- Ventas (Line Chart) -->
-    <div class="col-xl-6 col-lg-6 col-12">
-      <div class="chart-card">
-        <div class="chart-header">
-          <h3 class="chart-title">
-            <lucide-icon [img]="icons.TrendingUp" [size]="18" class="me-2"></lucide-icon>
-            Ventas Mensuales
-          </h3>
-        </div>
-        <div class="chart-body">
-          <apx-chart
-            [series]="salesChart.series"
-            [chart]="salesChart.chart"
-            [colors]="salesChart.colors"
-            [stroke]="salesChart.stroke"
-            [xaxis]="salesChart.xaxis"
-            [yaxis]="salesChart.yaxis"
-            [grid]="salesChart.grid">
-          </apx-chart>
-        </div>
-      </div>
-    </div>
-
-    <!-- Ingresos (Bar Chart) -->
-    <div class="col-xl-6 col-lg-6 col-12">
-      <div class="chart-card">
-        <div class="chart-header">
-          <h3 class="chart-title">
-            <lucide-icon [img]="icons.DollarSign" [size]="18" class="me-2"></lucide-icon>
-            Ingresos por Mes
-          </h3>
-        </div>
-        <div class="chart-body">
-          <apx-chart
-            [series]="revenueChart.series"
-            [chart]="revenueChart.chart"
-            [colors]="revenueChart.colors"
-            [plotOptions]="revenueChart.plotOptions"
-            [dataLabels]="revenueChart.dataLabels"
-            [xaxis]="revenueChart.xaxis"
-            [yaxis]="revenueChart.yaxis"
-            [grid]="revenueChart.grid">
-          </apx-chart>
-        </div>
-      </div>
-    </div>
-
-    <!-- Categorías (Pie Chart) -->
-    <div class="col-xl-4 col-lg-6 col-12">
-      <div class="chart-card">
-        <div class="chart-header">
-          <h3 class="chart-title">
-            <lucide-icon [img]="icons.PieChart" [size]="18" class="me-2"></lucide-icon>
-            Ventas por Categoría
-          </h3>
-        </div>
-        <div class="chart-body">
-          <apx-chart
-            [series]="categoriesChart.series"
-            [chart]="categoriesChart.chart"
-            [labels]="categoriesChart.labels"
-            [colors]="categoriesChart.colors"
-            [legend]="categoriesChart.legend"
-            [dataLabels]="categoriesChart.dataLabels">
-          </apx-chart>
-        </div>
-      </div>
-    </div>
-
-    <!-- Gastos (Donut Chart) -->
-    <div class="col-xl-4 col-lg-6 col-12">
-      <div class="chart-card">
-        <div class="chart-header">
-          <h3 class="chart-title">
-            <lucide-icon [img]="icons.ShoppingCart" [size]="18" class="me-2"></lucide-icon>
-            Distribución de Gastos
-          </h3>
-        </div>
-        <div class="chart-body">
-          <apx-chart
-            [series]="expensesChart.series"
-            [chart]="expensesChart.chart"
-            [labels]="expensesChart.labels"
-            [colors]="expensesChart.colors"
-            [legend]="expensesChart.legend"
-            [plotOptions]="expensesChart.plotOptions">
-          </apx-chart>
-        </div>
-      </div>
-    </div>
-
-    <!-- Progreso (Radial Bar) -->
-    <div class="col-xl-4 col-lg-12 col-12">
-      <div class="chart-card">
-        <div class="chart-header">
-          <h3 class="chart-title">
-            <lucide-icon [img]="icons.Activity" [size]="18" class="me-2"></lucide-icon>
-            Objetivos del Año
-          </h3>
-        </div>
-        <div class="chart-body">
-          <apx-chart
-            [series]="progressChart.series"
-            [chart]="progressChart.chart"
-            [plotOptions]="progressChart.plotOptions"
-            [colors]="progressChart.colors"
-            [labels]="progressChart.labels"
-            [legend]="progressChart.legend">
-          </apx-chart>
-        </div>
-      </div>
-    </div>
-
-    <!-- Beneficios (Area Chart) -->
-    <div class="col-xl-6 col-lg-6 col-12">
-      <div class="chart-card">
-        <div class="chart-header">
-          <h3 class="chart-title">
-            <lucide-icon [img]="icons.TrendingUp" [size]="18" class="me-2"></lucide-icon>
-            Beneficio Neto
-          </h3>
-        </div>
-        <div class="chart-body">
-          <apx-chart
-            [series]="profitChart.series"
-            [chart]="profitChart.chart"
-            [colors]="profitChart.colors"
-            [fill]="profitChart.fill"
-            [stroke]="profitChart.stroke"
-            [xaxis]="profitChart.xaxis"
-            [yaxis]="profitChart.yaxis"
-            [grid]="profitChart.grid">
-          </apx-chart>
-        </div>
-      </div>
-    </div>
-
-    <!-- Comparación (Column Chart) -->
-    <div class="col-xl-6 col-lg-6 col-12">
-      <div class="chart-card">
-        <div class="chart-header">
-          <h3 class="chart-title">
-            <lucide-icon [img]="icons.BarChart2" [size]="18" class="me-2"></lucide-icon>
-            Comparación Anual
-          </h3>
-        </div>
-        <div class="chart-body">
-          <apx-chart
-            [series]="comparisonChart.series"
-            [chart]="comparisonChart.chart"
-            [colors]="comparisonChart.colors"
-            [plotOptions]="comparisonChart.plotOptions"
-            [dataLabels]="comparisonChart.dataLabels"
-            [stroke]="comparisonChart.stroke"
-            [xaxis]="comparisonChart.xaxis"
-            [yaxis]="comparisonChart.yaxis"
-            [fill]="comparisonChart.fill"
-            [legend]="comparisonChart.legend"
-            [grid]="comparisonChart.grid">
-          </apx-chart>
-        </div>
-      </div>
-    </div>
-
-    <!-- Resumen Financiero (Mixed Chart) -->
-    <div class="col-12">
-      <div class="chart-card">
-        <div class="chart-header">
-          <h3 class="chart-title">
-            <lucide-icon [img]="icons.Activity" [size]="18" class="me-2"></lucide-icon>
-            Resumen Financiero Anual
-          </h3>
-        </div>
-        <div class="chart-body">
-          <apx-chart
-            [series]="mixedChart.series"
-            [chart]="mixedChart.chart"
-            [colors]="mixedChart.colors"
-            [stroke]="mixedChart.stroke"
-            [plotOptions]="mixedChart.plotOptions"
-            [fill]="mixedChart.fill"
-            [labels]="mixedChart.labels"
-            [xaxis]="mixedChart.xaxis"
-            [yaxis]="mixedChart.yaxis"
-            [legend]="mixedChart.legend"
-            [grid]="mixedChart.grid">
-          </apx-chart>
-        </div>
+      <div class="tabs-content">
+        @if (activeTab() === 'financial') {
+        <app-financial-reports-dashboard></app-financial-reports-dashboard>
+        } @else if (activeTab() === 'operations') {
+        <app-operations-reports-dashboard></app-operations-reports-dashboard>
+        } @else if (activeTab() === 'budgets') {
+        <app-budgets-dashboard></app-budgets-dashboard>
+        } @else if (activeTab() === 'investments') {
+        <app-investments-dashboard></app-investments-dashboard>
+        } @else if (activeTab() === 'legal') {
+        <app-legal-processes-dashboard></app-legal-processes-dashboard>
+        }
       </div>
     </div>
   </div>

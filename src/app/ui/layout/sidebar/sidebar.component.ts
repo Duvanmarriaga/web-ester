@@ -1,6 +1,7 @@
-import { Component, input, output, computed } from '@angular/core';
+import { Component, input, output, computed, OnInit, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterLink, RouterLinkActive } from '@angular/router';
+import { Store } from '@ngrx/store';
 import {
   LucideAngularModule,
   LayoutDashboard,
@@ -11,6 +12,8 @@ import {
   ChevronLeft,
 } from 'lucide-angular';
 import { version } from '../../../../../package.json';
+import { selectUser } from '../../../infrastructure/store/auth';
+import { UserType } from '../../../entities/interfaces';
 interface MenuItem {
   label: string;
   icon: any;
@@ -24,7 +27,9 @@ interface MenuItem {
   templateUrl: './sidebar.component.html',
   styleUrl: './sidebar.component.scss',
 })
-export class SidebarComponent {
+export class SidebarComponent implements OnInit {
+  private store = inject(Store);
+  
   isOpen = input<boolean>(true);
   isMobileOpen = input<boolean>(false);
   openChange = output<boolean>();
@@ -32,6 +37,8 @@ export class SidebarComponent {
   version = version;
   // Lucide icons
   readonly icons = { LayoutDashboard, Users, Building2, Info, X, ChevronLeft };
+
+  user = signal<any>(null);
 
   // Determinar si es mobile
   isMobile = computed(() => {
@@ -41,7 +48,7 @@ export class SidebarComponent {
     return false;
   });
 
-  menuItems: MenuItem[] = [
+  allMenuItems: MenuItem[] = [
     {
       label: 'Dashboard',
       icon: LayoutDashboard,
@@ -58,6 +65,22 @@ export class SidebarComponent {
       route: '/companies',
     },
   ];
+
+  menuItems = computed(() => {
+    const currentUser = this.user();
+    if (!currentUser || currentUser.type !== UserType.ADMIN) {
+      // Si no es admin, solo mostrar Dashboard
+      return this.allMenuItems.filter(item => item.route === '/dashboard');
+    }
+    // Si es admin, mostrar todos los items
+    return this.allMenuItems;
+  });
+
+  ngOnInit() {
+    this.store.select(selectUser).subscribe(user => {
+      this.user.set(user);
+    });
+  }
 
   // Toggle sidebar (desktop)
   toggleSidebar() {

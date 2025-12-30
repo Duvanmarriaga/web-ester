@@ -1,0 +1,205 @@
+<div class="dashboard-section">
+  <div class="section-header">
+    <h3 class="section-title">
+      <lucide-icon [img]="icons.Scale" [size]="18" class="me-2"></lucide-icon>
+      Dashboard de Procesos Jurídicos
+    </h3>
+  </div>
+
+  <!-- Filters -->
+  <div class="filters-container mb-4">
+    <form [formGroup]="filterForm" class="filters-form">
+      <div class="row g-3">
+        @if (isAdmin()) {
+        <div class="col-md-4">
+          <label for="filter_company_id" class="form-label">
+            <lucide-icon [img]="icons.Filter" [size]="14" class="me-1"></lucide-icon>
+            Compañía <span class="text-danger">*</span>
+          </label>
+          <ng-select
+            id="filter_company_id"
+            [items]="companies()"
+            bindLabel="name"
+            bindValue="id"
+            placeholder="Seleccionar compañía"
+            formControlName="company_id"
+            [clearable]="false"
+            [searchable]="true"
+            [loading]="isLoadingCompanies()"
+            appendTo="body"
+          >
+          </ng-select>
+          @if (filterForm.get('company_id')?.invalid && filterForm.get('company_id')?.touched) {
+          <small class="form-error">Compañía requerida</small>
+          }
+        </div>
+        }
+        <div [class]="isAdmin() ? 'col-md-3' : 'col-md-4'">
+          <label for="filter_date_from" class="form-label">
+            <lucide-icon [img]="icons.Calendar" [size]="14" class="me-1"></lucide-icon>
+            Fecha Desde
+          </label>
+          <input
+            type="date"
+            class="form-control"
+            id="filter_date_from"
+            formControlName="date_from"
+          />
+        </div>
+        <div [class]="isAdmin() ? 'col-md-3' : 'col-md-4'">
+          <label for="filter_date_to" class="form-label">
+            <lucide-icon [img]="icons.Calendar" [size]="14" class="me-1"></lucide-icon>
+            Fecha Hasta
+          </label>
+          <input
+            type="date"
+            class="form-control"
+            id="filter_date_to"
+            formControlName="date_to"
+          />
+        </div>
+        <div [class]="isAdmin() ? 'col-md-2' : 'col-md-4' + ' d-flex align-items-end'">
+          <button
+            type="button"
+            class="btn btn-outline-secondary w-100"
+            (click)="resetFilters()"
+          >
+            Resetear
+          </button>
+        </div>
+      </div>
+    </form>
+  </div>
+
+  @if (isLoading()) {
+  <div class="text-center py-5">
+    <div class="spinner-border text-primary" role="status">
+      <span class="visually-hidden">Cargando...</span>
+    </div>
+  </div>
+  } @else {
+  <!-- Stats Cards -->
+  <div class="row g-3 mb-4">
+    <div class="col-xl-3 col-lg-6 col-md-6">
+      <div class="stat-card">
+        <div class="stat-icon bg-info-light">
+          <lucide-icon [img]="icons.FileText" [size]="20"></lucide-icon>
+        </div>
+        <div class="stat-content">
+          <h3 class="stat-value">{{ totalProcesses() }}</h3>
+          <p class="stat-label">Total de Procesos</p>
+        </div>
+      </div>
+    </div>
+    @for (status of statusKeys(); track status) {
+    <div class="col-xl-3 col-lg-6 col-md-6">
+      <div class="stat-card">
+        <div class="stat-icon bg-warning-light">
+          <lucide-icon [img]="icons.Clock" [size]="20"></lucide-icon>
+        </div>
+        <div class="stat-content">
+          <h3 class="stat-value">{{ processesByStatus()[status] }}</h3>
+          <p class="stat-label">{{ status }}</p>
+        </div>
+      </div>
+    </div>
+    }
+  </div>
+
+  <!-- Charts Grid -->
+  <div class="row g-3">
+    <!-- Status Distribution -->
+    <div class="col-xl-6 col-lg-6 col-12">
+      <div class="chart-card">
+        <div class="chart-header">
+          <h3 class="chart-title">
+            <lucide-icon [img]="icons.Scale" [size]="18" class="me-2"></lucide-icon>
+            Distribución por Estado
+          </h3>
+        </div>
+        <div class="chart-body">
+          <apx-chart
+            [series]="statusDistributionChart.series"
+            [chart]="statusDistributionChart.chart"
+            [labels]="statusDistributionChart.labels"
+            [colors]="statusDistributionChart.colors"
+            [legend]="statusDistributionChart.legend"
+            [dataLabels]="statusDistributionChart.dataLabels">
+          </apx-chart>
+        </div>
+      </div>
+    </div>
+
+    <!-- Type Distribution -->
+    <div class="col-xl-6 col-lg-6 col-12">
+      <div class="chart-card">
+        <div class="chart-header">
+          <h3 class="chart-title">
+            <lucide-icon [img]="icons.FileText" [size]="18" class="me-2"></lucide-icon>
+            Distribución por Tipo
+          </h3>
+        </div>
+        <div class="chart-body">
+          <apx-chart
+            [series]="typeDistributionChart.series"
+            [chart]="typeDistributionChart.chart"
+            [labels]="typeDistributionChart.labels"
+            [colors]="typeDistributionChart.colors"
+            [legend]="typeDistributionChart.legend"
+            [plotOptions]="typeDistributionChart.plotOptions">
+          </apx-chart>
+        </div>
+      </div>
+    </div>
+
+    <!-- Monthly Processes -->
+    <div class="col-xl-8 col-lg-12 col-12">
+      <div class="chart-card">
+        <div class="chart-header">
+          <h3 class="chart-title">
+            <lucide-icon [img]="icons.Clock" [size]="18" class="me-2"></lucide-icon>
+            Procesos por Mes
+          </h3>
+        </div>
+        <div class="chart-body">
+          <apx-chart
+            [series]="monthlyProcessesChart.series"
+            [chart]="monthlyProcessesChart.chart"
+            [colors]="monthlyProcessesChart.colors"
+            [plotOptions]="monthlyProcessesChart.plotOptions"
+            [dataLabels]="monthlyProcessesChart.dataLabels"
+            [xaxis]="monthlyProcessesChart.xaxis"
+            [yaxis]="monthlyProcessesChart.yaxis"
+            [grid]="monthlyProcessesChart.grid">
+          </apx-chart>
+        </div>
+      </div>
+    </div>
+
+    <!-- Status Trend -->
+    <div class="col-xl-4 col-lg-12 col-12">
+      <div class="chart-card">
+        <div class="chart-header">
+          <h3 class="chart-title">
+            <lucide-icon [img]="icons.CheckCircle" [size]="18" class="me-2"></lucide-icon>
+            Tendencia por Estado
+          </h3>
+        </div>
+        <div class="chart-body">
+          <apx-chart
+            [series]="statusTrendChart.series"
+            [chart]="statusTrendChart.chart"
+            [colors]="statusTrendChart.colors"
+            [stroke]="statusTrendChart.stroke"
+            [xaxis]="statusTrendChart.xaxis"
+            [yaxis]="statusTrendChart.yaxis"
+            [legend]="statusTrendChart.legend"
+            [grid]="statusTrendChart.grid">
+          </apx-chart>
+        </div>
+      </div>
+    </div>
+  </div>
+  }
+</div>
+

@@ -48,7 +48,6 @@
             </div>
             <div class="col-12">
               <label for="process_status_id" class="form-label">Estado</label>
-              {{ processForm.get("process_status_id")?.value | json }}
               <ng-select
                 id="process_status_id"
                 [items]="filteredStatuses()"
