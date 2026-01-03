@@ -254,17 +254,13 @@ export class FinancialReportsComponent implements OnInit {
               // Check if it's an Excel serial number (numeric value)
               if (typeof dateValue === 'number') {
                 // Use XLSX to convert Excel serial date to JavaScript Date
-                // XLSX handles the Excel date conversion correctly
                 const excelDate = XLSX.SSF.parse_date_code(dateValue);
                 if (excelDate) {
                   const year = excelDate.y;
                   const month = String(excelDate.m).padStart(2, '0');
                   parsedDate = `${year}-${month}`;
-                  console.log('Parsed Excel serial date:', dateValue, '->', parsedDate);
                 } else {
                   // Fallback: manual conversion
-                  // Excel epoch: December 30, 1899 (day 0)
-                  // But Excel incorrectly treats 1900 as leap year, so we adjust
                   const excelEpoch = new Date(1899, 11, 30); // December 30, 1899
                   const jsDate = new Date(excelEpoch.getTime() + (dateValue - 1) * 24 * 60 * 60 * 1000);
                   
@@ -272,31 +268,22 @@ export class FinancialReportsComponent implements OnInit {
                     const year = jsDate.getFullYear();
                     const month = String(jsDate.getMonth() + 1).padStart(2, '0');
                     parsedDate = `${year}-${month}`;
-                    console.log('Parsed Excel serial date (fallback):', dateValue, '->', parsedDate);
                   }
                 }
               } else {
                 // Try to parse as string in format d/MM/yyyy or dd/MM/yyyy
                 const dateStr = String(dateValue).trim();
-                console.log('Parsing date string:', dateStr);
                 
                 const parts = dateStr.split('/');
                 if (parts.length === 3) {
                   const day = parseInt(parts[0], 10);
-                  const month = parseInt(parts[1], 10); // Month is 1-indexed in the string
+                  const month = parseInt(parts[1], 10);
                   const year = parseInt(parts[2], 10);
-                  console.log('Date parts:', { day, month, year });
-                  const date = new Date(year, month - 1, day); // Month is 0-indexed in Date
+                  const date = new Date(year, month - 1, day);
                   if (!isNaN(date.getTime())) {
-                    // Format as YYYY-MM for input type="month"
                     const monthStr = String(month).padStart(2, '0');
                     parsedDate = `${year}-${monthStr}`;
-                    console.log('Parsed date (YYYY-MM):', parsedDate);
-                  } else {
-                    console.warn('Invalid date:', date);
                   }
-                } else {
-                  console.warn('Date format incorrect, expected d/MM/yyyy, got:', dateStr);
                 }
               }
             } catch (e) {
@@ -344,42 +331,11 @@ export class FinancialReportsComponent implements OnInit {
           return;
         }
         
-        // Log processed data
-        console.log('=== Datos procesados del Excel ===');
-        console.log('Total de filas procesadas:', processedData.length);
-        processedData.forEach((data, index) => {
-          console.log(`Fila ${index + 1}:`, data);
-        });
-        console.log('=== Fin de datos procesados ===');
-        
         // Show import modal
         this.importedReports.set(processedData);
         this.showImportModal.set(true);
         this.isImporting.set(false);
         input.value = '';
-        
-        // Uncomment to use the original import service
-        // this.financialReportService.import(file).subscribe({
-        //   next: () => {
-        //     this.toastr.success(
-        //       'Reportes financieros importados correctamente',
-        //       'Éxito'
-        //     );
-        //     this.isImporting.set(false);
-        //     input.value = '';
-        //     this.loadReports(this.currentPage());
-        //   },
-        //   error: (error: unknown) => {
-        //     const errorMessage =
-        //       (error as { error?: { message?: string }; message?: string })?.error
-        //         ?.message ||
-        //       (error as { message?: string })?.message ||
-        //       'Error al importar el archivo';
-        //     this.toastr.error(errorMessage, 'Error');
-        //     this.isImporting.set(false);
-        //     input.value = '';
-        //   },
-        // });
       } catch (error) {
         console.error('Error al leer el archivo Excel:', error);
         this.toastr.error(

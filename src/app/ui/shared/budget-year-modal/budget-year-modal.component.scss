@@ -1,0 +1,158 @@
+@use "sass:map";
+@use "../../../../styles/variables" as *;
+@use "../../../../styles/mixins" as *;
+
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1050;
+}
+
+.modal-content {
+  background: white;
+  border-radius: 8px;
+  width: 90%;
+  max-width: 500px;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1.5rem;
+  border-bottom: 1px solid #dee2e6;
+
+  .modal-title {
+    margin: 0;
+    font-size: 1.25rem;
+    font-weight: 600;
+  }
+
+  .btn-close {
+    background: none;
+    border: none;
+    padding: 0;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #6c757d;
+
+    &:hover {
+      color: #000;
+    }
+  }
+}
+
+.modal-body {
+  padding: 1.5rem;
+  padding-bottom: 0;
+}
+
+.modal-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.5rem;
+  padding: 0.5rem 1.5rem;
+  background-color: white;
+  border: none;
+}
+
+.form-label {
+  font-weight: 500;
+  margin-bottom: 0.5rem;
+  display: block;
+}
+
+.input-group {
+  display: flex;
+  align-items: stretch;
+  flex-wrap: nowrap;
+
+  .input-group-text {
+    display: flex;
+    align-items: center;
+    padding: 4px 10px;
+    font-size: map.get($font-sizes, sm);
+    font-weight: map.get($font-weights, medium);
+    color: $ester-text-secondary;
+    background-color: $ester-bg-secondary;
+    border: 1px solid $ester-border-primary;
+    border-right: none;
+    border-radius: $border-radius-md 0 0 $border-radius-md;
+  }
+
+  .form-control {
+    border-radius: 0 $border-radius-md $border-radius-md 0;
+  }
+}
+
+.form-control {
+  width: 100%;
+  padding: 0.5rem;
+  border: 1px solid #ced4da;
+  border-radius: 4px;
+  font-size: 0.875rem;
+
+  &:focus {
+    outline: none;
+    border-color: #80bdff;
+    box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+  }
+
+  &.is-invalid {
+    border-color: #dc3545;
+  }
+}
+
+.form-error {
+  display: block;
+  color: $ester-danger;
+  font-size: map.get($font-sizes, xs);
+  margin-top: map.get($spacing-scale, 1);
+}
+
+.btn {
+  @include button-base;
+  min-width: 80px;
+  font-size: map.get($font-sizes, sm);
+  padding: map.get($spacing-scale, 1) map.get($spacing-scale, 3);
+
+  &.btn-primary {
+    @include button-variant($ester-primary);
+  }
+
+  &.btn-secondary {
+    background-color: transparent;
+    border: 1px solid $ester-border-primary;
+    color: $ester-text-secondary;
+
+    &:hover:not(:disabled) {
+      background-color: $ester-bg-tertiary;
+      border-color: $ester-border-secondary;
+      color: $ester-text-primary;
+    }
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+}
+
+.spinner-border-sm {
+  width: 1rem;
+  height: 1rem;
+  border-width: 0.15em;
+}
+

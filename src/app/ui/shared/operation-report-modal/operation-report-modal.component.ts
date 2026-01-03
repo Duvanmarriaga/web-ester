@@ -501,16 +501,16 @@ export class OperationReportModalComponent implements OnInit {
       },
       error: () => {
         // Si falla la búsqueda, establecer solo con el ID como fallback
-        this.reportForm.patchValue(
-          {
-            operation_category_id: report.operation_category_id.toString(),
-            operation_date: operationDate,
-            description: report.description,
-            monthly_cost: this.formatNumberWithCommas(monthlyCost),
-            annual_cost: this.formatNumberWithCommas(annualCost),
-          },
-          { emitEvent: false }
-        );
+    this.reportForm.patchValue(
+      {
+        operation_category_id: report.operation_category_id.toString(),
+        operation_date: operationDate,
+        description: report.description,
+        monthly_cost: this.formatNumberWithCommas(monthlyCost),
+        annual_cost: this.formatNumberWithCommas(annualCost),
+      },
+      { emitEvent: false }
+    );
       },
     });
   }
@@ -547,28 +547,28 @@ export class OperationReportModalComponent implements OnInit {
       } else {
         // Si no encontramos la categoría, crear una nueva
         const code = categoryName
-          .trim()
-          .toUpperCase()
-          .replace(/\s+/g, '_')
-          .replace(/[^A-Z0-9_]/g, '')
-          .substring(0, 20);
+        .trim()
+        .toUpperCase()
+        .replace(/\s+/g, '_')
+        .replace(/[^A-Z0-9_]/g, '')
+        .substring(0, 20);
 
-        const categoryData: OperationCategoryCreate = {
-          code: code || 'CAT_' + Date.now(),
+      const categoryData: OperationCategoryCreate = {
+        code: code || 'CAT_' + Date.now(),
           name: categoryName.trim(),
-          company_id: this.companyId(),
-        };
+        company_id: this.companyId(),
+      };
 
-        this.isCreatingCategory.set(true);
-        this.isLoadingCategories.set(true);
+      this.isCreatingCategory.set(true);
+      this.isLoadingCategories.set(true);
 
-        const newCategory = await firstValueFrom(
-          this.operationCategoryService.create(categoryData)
-        );
-        formValue.operation_category_id = {
-          id: newCategory.id,
-          name: newCategory.name,
-        };
+      const newCategory = await firstValueFrom(
+        this.operationCategoryService.create(categoryData)
+      );
+      formValue.operation_category_id = {
+        id: newCategory.id,
+        name: newCategory.name,
+      };
       }
     }
     const operationDate = formValue.operation_date

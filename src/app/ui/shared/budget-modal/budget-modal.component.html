@@ -49,6 +49,25 @@
               }
             </div>
             <div class="col-12">
+              <label for="budget_year_id" class="form-label"
+                >Presupuesto Anual (Opcional)</label
+              >
+              <ng-select
+                id="budget_year_id"
+                [items]="budgetYears()"
+                bindLabel="year"
+                bindValue="id"
+                placeholder="Seleccionar año..."
+                formControlName="budget_year_id"
+                [searchable]="false"
+                [clearable]="true"
+                [loading]="isLoadingBudgetYears()"
+                appendTo="body"
+              >
+                <ng-option [value]="null">Sin presupuesto anual</ng-option>
+              </ng-select>
+            </div>
+            <div class="col-12">
               <label for="budget_date" class="form-label"
                 >Mes y Año</label
               >

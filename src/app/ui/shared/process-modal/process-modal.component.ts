@@ -82,22 +82,22 @@ export class ProcessModalComponent implements OnInit {
         this.isEditMode.set(true);
         // Solo poblar si los statuses ya están cargados
         if (this.statuses().length > 0) {
-          setTimeout(() => {
+        setTimeout(() => {
             this.populateForm(currentProcess);
           }, 0);
-        }
+          }
         // Si no hay statuses cargados, loadStatuses() se encargará de poblar después de cargar
       } else if (isVisible && !currentProcess && this.processForm) {
         this.isEditMode.set(false);
         setTimeout(() => {
-          this.processForm.reset({
-            docket_number: '',
-            type: 'penal',
-            start_date: '',
-            end_date: '',
-            description: '',
+            this.processForm.reset({
+              docket_number: '',
+              type: 'penal',
+              start_date: '',
+              end_date: '',
+              description: '',
             process_status_id: '',
-          });
+            });
         }, 0);
       }
     });
@@ -132,9 +132,9 @@ export class ProcessModalComponent implements OnInit {
         this.statuses.set([]);
         // Aún así intentar poblar el formulario si hay un proceso
         if (this.process() && this.isVisible() && !this.isEditMode()) {
-          this.isEditMode.set(true);
-          this.populateForm(this.process()!);
-        }
+      this.isEditMode.set(true);
+      this.populateForm(this.process()!);
+    }
       },
     });
   }

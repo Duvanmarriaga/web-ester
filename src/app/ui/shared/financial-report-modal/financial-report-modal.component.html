@@ -23,6 +23,28 @@
         <form [formGroup]="reportForm" (ngSubmit)="onSubmit()">
           <div class="row g-3">
             <div class="col-12">
+              <label for="financial_report_category_id" class="form-label"
+                >Categoría (Opcional)</label
+              >
+              <ng-select
+                id="financial_report_category_id"
+                [items]="categoriesList()"
+                bindLabel="name"
+                [compareWith]="compareCategories"
+                placeholder="Escribe para buscar o presiona Enter para crear..."
+                formControlName="financial_report_category_id"
+                [searchable]="true"
+                [clearable]="true"
+                [loading]="isLoadingCategories()"
+                [typeahead]="categoryInput$"
+                [addTag]="true"
+                [addTagText]="'Crear: '"
+                (onAddTag)="onCreateCategoryFromTag($event)"
+                appendTo="body"
+              >
+              </ng-select>
+            </div>
+            <div class="col-12">
               <label for="report_date" class="form-label"
                 >Mes y Año del Reporte</label
               >
@@ -125,3 +147,4 @@
   </div>
 </div>
 }
+

@@ -185,3 +185,81 @@
   }
 }
 
+// Form styles
+.form-error {
+  display: block;
+  color: $ester-danger;
+  font-size: map.get($font-sizes, xs);
+  margin-top: map.get($spacing-scale, 1);
+}
+
+.form-text {
+  font-size: map.get($font-sizes, xs);
+  margin-top: map.get($spacing-scale, 1);
+  color: $ester-text-secondary;
+}
+
+.input-group {
+  display: flex;
+  align-items: stretch;
+
+  .input-group-text {
+    display: flex;
+    align-items: center;
+    padding: 4px 10px;
+    font-size: map.get($font-sizes, sm);
+    font-weight: map.get($font-weights, medium);
+    color: $ester-text-secondary;
+    background-color: $ester-bg-secondary;
+    border: 1px solid $ester-border-primary;
+    border-right: none;
+    border-radius: $border-radius-md 0 0 $border-radius-md;
+  }
+
+  .form-control {
+    border-radius: 0 $border-radius-md $border-radius-md 0;
+  }
+}
+
+.profit-display {
+  display: flex;
+  flex-direction: column;
+  gap: map.get($spacing-scale, 1);
+  padding: map.get($spacing-scale, 3);
+  background-color: $ester-bg-secondary;
+  border: 1px solid $ester-border-primary;
+  border-radius: $border-radius-md;
+  margin-bottom: map.get($spacing-scale, 1);
+
+  .profit-label {
+    font-size: map.get($font-sizes, xs);
+    color: $ester-text-secondary;
+    font-weight: map.get($font-weights, medium);
+  }
+
+  .profit-value {
+    font-size: map.get($font-sizes, xl);
+    font-weight: map.get($font-weights, bold);
+    color: $ester-text-primary;
+    transition: color $transition-fast;
+  }
+
+  &.profit-positive {
+    border-color: $ester-success;
+    background-color: rgba($ester-success, 0.05);
+
+    .profit-value {
+      color: $ester-success;
+    }
+  }
+
+  &.profit-negative {
+    border-color: $ester-danger;
+    background-color: rgba($ester-danger, 0.05);
+
+    .profit-value {
+      color: $ester-danger;
+    }
+  }
+}
+

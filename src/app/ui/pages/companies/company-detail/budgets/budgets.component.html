@@ -33,11 +33,11 @@
       <button
         type="button"
         class="btn btn-sm btn-primary"
-        (click)="openCreateModal()"
-        title="Crear nuevo presupuesto"
+        (click)="openCreateBudgetYearModal()"
+        title="Crear nuevo presupuesto anual"
       >
         <lucide-icon [img]="icons.Plus" [size]="16"></lucide-icon>
-        <span>Crear Presupuesto</span>
+        <span>Crear Presupuesto Anual</span>
       </button>
     </div>
   </div>
@@ -47,7 +47,8 @@
       <span class="visually-hidden">Cargando...</span>
     </div>
   </div>
-  } @else if (budgets().length === 0) {
+  } @else if (budgetYearsWithBudgets().length === 0 &&
+  budgetsWithoutYear().length === 0) {
   <div class="empty-state">
     <lucide-icon
       [img]="icons.DollarSign"
@@ -63,35 +64,189 @@
         <table class="table table-hover mb-0">
           <thead class="table-light">
             <tr>
-              <th class="table-header">Fecha</th>
-              <th class="table-header">Presupuesto</th>
-              <th class="table-header">Ejecutado</th>
-              <th class="table-header">Diferencia</th>
-              <th class="table-header">Porcentaje</th>
+              <th class="table-header" style="width: 40px"></th>
+              <th class="table-header">Año</th>
+              <th class="table-header">Monto Anual</th>
               <th class="table-header text-end">Acciones</th>
             </tr>
           </thead>
           <tbody>
-            @for (budget of budgets(); track budget.id) {
-            <tr>
+            @for (budgetYear of budgetYearsWithBudgets(); track budgetYear.id) {
+            <tr class="budget-year-row">
               <td class="table-cell">
-                {{ budget.budget_date | date : "MM/yyyy" }}
+                <button
+                  type="button"
+                  class="btn btn-sm btn-link p-0"
+                  (click)="toggleBudgetYear(budgetYear)"
+                  [title]="budgetYear.isExpanded ? 'Contraer' : 'Expandir'"
+                >
+                  @if (budgetYear.isExpanded) {
+                  <lucide-icon
+                    [img]="icons.ChevronUp"
+                    [size]="16"
+                  ></lucide-icon>
+                  } @else {
+                  <lucide-icon
+                    [img]="icons.ChevronDown"
+                    [size]="16"
+                  ></lucide-icon>
+                  }
+                </button>
               </td>
+              <td class="table-cell fw-medium">{{ budgetYear.year }}</td>
               <td class="table-cell fw-medium">
-                ${{ budget.budget_amount | number : "1.2-2" }}
+                ${{ budgetYear.allocated_budget | number : "1.2-2" }}
               </td>
-              <td class="table-cell">
-                ${{ budget.executed_amount | number : "1.2-2" }}
+              <td class="text-end">
+                <div class="d-flex gap-2 justify-content-end">
+                  <button
+                    class="btn btn-sm btn-link text-primary p-1"
+                    title="Agregar Presupuesto Mensual"
+                    (click)="openCreateModal(budgetYear.id)"
+                  >
+                    <lucide-icon [img]="icons.Plus" [size]="14"></lucide-icon>
+                  </button>
+                  <button
+                    class="btn btn-sm btn-link text-primary p-1"
+                    title="Editar Presupuesto Anual"
+                    (click)="editBudgetYear(budgetYear)"
+                  >
+                    <lucide-icon [img]="icons.Pencil" [size]="14"></lucide-icon>
+                  </button>
+                  <button
+                    class="btn btn-sm btn-link text-danger p-1"
+                    title="Eliminar Presupuesto Anual"
+                    [disabled]="!canDeleteBudgetYear(budgetYear)"
+                    (click)="deleteBudgetYear(budgetYear)"
+                  >
+                    <lucide-icon [img]="icons.Trash2" [size]="14"></lucide-icon>
+                  </button>
+                </div>
               </td>
-              <td
-                class="table-cell fw-medium"
-                [class.text-success]="budget.difference_amount > 0"
-                [class.text-danger]="budget.difference_amount < 0"
-              >
-                ${{ budget.difference_amount | number : "1.2-2" }}
+            </tr>
+            @if (budgetYear.isExpanded) {
+            <tr class="budget-month-row">
+              <td colspan="4" class="p-0">
+                <div class="budget-months-container">
+                  @if (budgetYear.budgets.length === 0) {
+                  <div class="text-center py-4 text-muted">
+                    <p class="mb-0">
+                      No hay presupuestos mensuales para este año
+                    </p>
+                  </div>
+                  } @else {
+                  <div class="budget-months-list">
+                    @for (budget of budgetYear.budgets; track budget.id) {
+                    <div class="budget-month-item">
+                      <div class="budget-month-date-col">
+                        <span class="budget-month-date fw-medium">
+                          {{ budget.budget_date | date : "MM/yyyy" }}
+                        </span>
+                      </div>
+                      <div class="budget-month-data-col">
+                        <div class="budget-month-data-item">
+                          <span class="budget-data-label">Presupuesto</span>
+                          <span class="budget-data-value fw-medium">
+                            ${{ budget.budget_amount | number : "1.2-2" }}
+                          </span>
+                        </div>
+                        <div class="budget-month-data-item">
+                          <span class="budget-data-label">Ejecutado</span>
+                          <span class="budget-data-value">
+                            ${{ budget.executed_amount | number : "1.2-2" }}
+                          </span>
+                        </div>
+                        <div class="budget-month-data-item">
+                          <span class="budget-data-label">Diferencia</span>
+                          <span
+                            class="budget-data-value fw-medium"
+                            [class.text-success]="budget.difference_amount > 0"
+                            [class.text-danger]="budget.difference_amount < 0"
+                          >
+                            ${{ budget.difference_amount | number : "1.2-2" }}
+                          </span>
+                        </div>
+                        <div class="budget-month-data-item">
+                          <span class="budget-data-label">Porcentaje</span>
+                          <span class="budget-data-value">
+                            {{ budget.percentage | number : "1.2-2" }}%
+                          </span>
+                        </div>
+                      </div>
+                      <div class="budget-month-actions-col">
+                        <div class="budget-month-actions">
+                          <button
+                            class="btn btn-sm btn-link text-primary p-1"
+                            title="Editar"
+                            (click)="editBudget(budget)"
+                          >
+                            <lucide-icon
+                              [img]="icons.Pencil"
+                              [size]="14"
+                            ></lucide-icon>
+                          </button>
+                          <button
+                            class="btn btn-sm btn-link text-danger p-1"
+                            title="Eliminar"
+                            (click)="deleteBudget(budget)"
+                          >
+                            <lucide-icon
+                              [img]="icons.Trash2"
+                              [size]="14"
+                            ></lucide-icon>
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                    }
+                  </div>
+                  }
+                </div>
               </td>
-              <td class="table-cell">
-                {{ budget.percentage | number : "1.2-2" }}%
+            </tr>
+            } } @if (budgetsWithoutYear().length > 0) {
+            <tr>
+              <td colspan="4" class="table-cell fw-bold bg-light">
+                Presupuestos sin año asignado
+              </td>
+            </tr>
+            @for (budget of budgetsWithoutYear(); track budget.id) {
+            <tr>
+              <td class="table-cell"></td>
+              <td class="table-cell" colspan="2">
+                <div class="d-flex flex-column">
+                  <span class="fw-medium">{{
+                    budget.budget_date | date : "MM/yyyy"
+                  }}</span>
+                  <div class="d-flex gap-3 mt-1">
+                    <small>
+                      <span class="text-muted">Presupuesto:</span>
+                      <span class="fw-medium"
+                        >${{ budget.budget_amount | number : "1.2-2" }}</span
+                      >
+                    </small>
+                    <small>
+                      <span class="text-muted">Ejecutado:</span>
+                      <span
+                        >${{ budget.executed_amount | number : "1.2-2" }}</span
+                      >
+                    </small>
+                    <small>
+                      <span class="text-muted">Diferencia:</span>
+                      <span
+                        [class.text-success]="budget.difference_amount > 0"
+                        [class.text-danger]="budget.difference_amount < 0"
+                        class="fw-medium"
+                      >
+                        ${{ budget.difference_amount | number : "1.2-2" }}
+                      </span>
+                    </small>
+                    <small>
+                      <span class="text-muted">Porcentaje:</span>
+                      <span>{{ budget.percentage | number : "1.2-2" }}%</span>
+                    </small>
+                  </div>
+                </div>
               </td>
               <td class="text-end">
                 <div class="d-flex gap-2 justify-content-end">
@@ -112,18 +267,12 @@
                 </div>
               </td>
             </tr>
-            }
+            } }
           </tbody>
         </table>
       </div>
     </div>
   </div>
-  @if (pagination()) {
-  <app-pagination
-    [pagination]="pagination()!"
-    (pageChange)="onPageChange($event)"
-  ></app-pagination>
-  }
   }
 </div>
 
@@ -137,11 +286,24 @@
   (save)="onSaveBudget($event)"
   (update)="onUpdateBudget($event)"
 ></app-budget-modal>
+} @if (companyId()) {
+<app-budget-year-modal
+  [isVisible]="showBudgetYearModal()"
+  [companyId]="companyId()!"
+  [budgetYear]="selectedBudgetYear()"
+  (close)="closeBudgetYearModal()"
+  (save)="onSaveBudgetYear($event)"
+  (update)="onUpdateBudgetYear($event)"
+></app-budget-year-modal>
 }
 
 <app-confirm-dialog
   [isVisible]="showConfirmDialog()"
-  title="Eliminar Presupuesto"
+  [title]="
+    isDeletingBudgetYear()
+      ? 'Eliminar Presupuesto Anual'
+      : 'Eliminar Presupuesto'
+  "
   [message]="getDeleteMessage()"
   confirmText="Eliminar"
   cancelText="Cancelar"
