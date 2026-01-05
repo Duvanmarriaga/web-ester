@@ -14,7 +14,7 @@ export interface FinancialReport {
   profit: number;
   user_id: number;
   document_origin?: string | null;
-  financial_report_category_id?: number | null;
+  financial_category_id?: number | null;
 }
 
 export interface FinancialReportCreate {
@@ -25,7 +25,7 @@ export interface FinancialReportCreate {
   profit: number;
   user_id: number;
   document_origin?: string | null;
-  category_id?: number | null;
+  financial_category_id?: number | null;
 }
 
 @Injectable({

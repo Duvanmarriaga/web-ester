@@ -14,6 +14,15 @@ export interface Process {
   description?: string | null;
   process_status_id?: number | null;
   process_status_date?: string | null;
+  status_history?: Array<{
+    id?: number;
+    process_id?: number;
+    process_status_id: number;
+    user_id?: number;
+    status_date?: string;
+    created_at?: string;
+    updated_at?: string;
+  }>;
 }
 
 export interface ProcessCreate {

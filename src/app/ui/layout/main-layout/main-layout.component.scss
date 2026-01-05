@@ -5,12 +5,14 @@
 .main-layout {
   @include flex(row, stretch, flex-start);
   background: #ffffff;
+  overflow: hidden;
 }
 
 .content-wrapper {
   flex: 1;
   @include flex(column, stretch, flex-start);
   @include transition(margin-left, $transition-normal);
+  overflow: hidden;
 
   // Desktop: ajusta según sidebar
   @include media-md {
@@ -28,10 +30,9 @@
 }
 
 .main-content {
-  flex: 1;
   padding: map.get($spacing-scale, 3);
-  margin-top: $toolbar-height;
-  min-height: calc(100svh - 77px);
+  margin-top: 0;
+  height: calc(100svh - 56px);
   overflow-y: auto;
   max-width: 100%;
 

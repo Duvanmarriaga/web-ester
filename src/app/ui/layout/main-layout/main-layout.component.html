@@ -1,26 +1,25 @@
 <div class="main-layout">
   <!-- Sidebar -->
-  <app-sidebar 
+  <app-sidebar
     [isOpen]="isSidebarOpen()"
     [isMobileOpen]="isMobileSidebarOpen()"
     (openChange)="onSidebarOpenChange($event)"
-    (mobileOpenChange)="onMobileSidebarOpenChange($event)">
+    (mobileOpenChange)="onMobileSidebarOpenChange($event)"
+  >
   </app-sidebar>
 
   <!-- Main Content Area -->
   <div class="content-wrapper" [class.sidebar-open]="isSidebarOpen()">
-    <!-- Toolbar -->
-    <app-toolbar 
+    <app-toolbar
       [isOpen]="isSidebarOpen()"
       [isMobileOpen]="isMobileSidebarOpen()"
       (openChange)="onSidebarOpenChange($event)"
-      (mobileOpenChange)="onMobileSidebarOpenChange($event)">
+      (mobileOpenChange)="onMobileSidebarOpenChange($event)"
+    >
     </app-toolbar>
 
-    <!-- Page Content -->
     <main class="main-content container-fluid">
-          <router-outlet />
-        </main>
-      </div>
-    </div>
-~
+      <router-outlet />
+    </main>
+  </div>
+</div>

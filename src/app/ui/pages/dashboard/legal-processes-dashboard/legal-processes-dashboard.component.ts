@@ -30,6 +30,10 @@ import {
   ProcessService,
   Process,
 } from '../../../../infrastructure/services/process.service';
+import {
+  ProcessStatusService,
+  ProcessStatus,
+} from '../../../../infrastructure/services/process-status.service';
 import { Company, UserType } from '../../../../entities/interfaces';
 import { selectUser } from '../../../../infrastructure/store/auth';
 import { selectAllCompanies } from '../../../../infrastructure/store/company';
@@ -51,6 +55,7 @@ import * as CompanyActions from '../../../../infrastructure/store/company';
 export class LegalProcessesDashboardComponent implements OnInit {
   private route = inject(ActivatedRoute);
   private processService = inject(ProcessService);
+  private processStatusService = inject(ProcessStatusService);
   private toastr = inject(ToastrService);
   private fb = inject(FormBuilder);
   private store = inject(Store);
@@ -63,6 +68,7 @@ export class LegalProcessesDashboardComponent implements OnInit {
   isLoadingCompanies = signal(false);
   processes = signal<Process[]>([]);
   companies = signal<Company[]>([]);
+  statuses = signal<ProcessStatus[]>([]);
   currentUser = signal<any>(null);
   isAdmin = computed(() => this.currentUser()?.type === UserType.ADMIN);
 
@@ -76,9 +82,8 @@ export class LegalProcessesDashboardComponent implements OnInit {
   processesByStatus = computed(() => {
     const statusCount: { [key: string]: number } = {};
     this.processes().forEach((process) => {
-      const statusName = process.process_status_id
-        ? `Estado ${process.process_status_id}`
-        : 'Sin estado';
+      const currentStatusId = this.getCurrentStatusId(process);
+      const statusName = this.getStatusName(currentStatusId);
       statusCount[statusName] = (statusCount[statusName] || 0) + 1;
     });
     return statusCount;
@@ -104,6 +109,9 @@ export class LegalProcessesDashboardComponent implements OnInit {
   statusTrendChart: any = {};
 
   ngOnInit() {
+    // Load statuses first
+    this.loadStatuses();
+    
     // Get current user
     this.store.select(selectUser).subscribe((user) => {
       this.currentUser.set(user);
@@ -117,9 +125,39 @@ export class LegalProcessesDashboardComponent implements OnInit {
     });
   }
 
+  loadStatuses(): void {
+    this.processStatusService.getAll().subscribe({
+      next: (statuses) => {
+        this.statuses.set(statuses);
+      },
+      error: () => {
+        this.statuses.set([]);
+      },
+    });
+  }
+
+  // Helper function to get current status ID from process (using status_history if available)
+  getCurrentStatusId(process: Process): number | null {
+    // If status_history exists and has items, use the last one
+    if (process.status_history && Array.isArray(process.status_history) && process.status_history.length > 0) {
+      const lastStatusHistory = process.status_history[process.status_history.length - 1];
+      return lastStatusHistory?.process_status_id || null;
+    }
+    // Otherwise, use process_status_id
+    return process.process_status_id || null;
+  }
+
+  // Helper function to get status name by ID
+  getStatusName(statusId: number | null): string {
+    if (!statusId) return 'Sin estado';
+    const status = this.statuses().find((s) => s.id === statusId);
+    return status ? status.name : `Estado ${statusId}`;
+  }
+
   initFilterForm(): void {
     const today = new Date();
-    const firstDayOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
+    // Set date_from to 4 years ago
+    const fourYearsAgo = new Date(today.getFullYear() - 4, today.getMonth(), 1);
     const lastDayOfMonth = new Date(
       today.getFullYear(),
       today.getMonth() + 1,
@@ -142,7 +180,7 @@ export class LegalProcessesDashboardComponent implements OnInit {
     this.filterForm = this.fb.group({
       company_id: [defaultCompanyId, Validators.required],
       date_from: [
-        firstDayOfMonth.toISOString().split('T')[0],
+        fourYearsAgo.toISOString().split('T')[0],
         Validators.required,
       ],
       date_to: [
@@ -186,7 +224,8 @@ export class LegalProcessesDashboardComponent implements OnInit {
 
   resetFilters(): void {
     const today = new Date();
-    const firstDayOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
+    // Set date_from to 4 years ago
+    const fourYearsAgo = new Date(today.getFullYear() - 4, today.getMonth(), 1);
     const lastDayOfMonth = new Date(
       today.getFullYear(),
       today.getMonth() + 1,
@@ -211,7 +250,7 @@ export class LegalProcessesDashboardComponent implements OnInit {
     this.filterForm.patchValue(
       {
         company_id: defaultCompanyId,
-        date_from: firstDayOfMonth.toISOString().split('T')[0],
+        date_from: fourYearsAgo.toISOString().split('T')[0],
         date_to: lastDayOfMonth.toISOString().split('T')[0],
       },
       { emitEvent: false }
@@ -250,7 +289,13 @@ export class LegalProcessesDashboardComponent implements OnInit {
       )
       .subscribe({
         next: (response) => {
-          this.processes.set(response.data || []);
+          // Sort processes by date (oldest first)
+          const sortedData = (response.data || []).sort((a, b) => {
+            const dateA = new Date(a.start_date).getTime();
+            const dateB = new Date(b.start_date).getTime();
+            return dateA - dateB;
+          });
+          this.processes.set(sortedData);
           this.updateCharts();
           this.isLoading.set(false);
         },
@@ -325,7 +370,7 @@ export class LegalProcessesDashboardComponent implements OnInit {
 
     // Monthly Processes (Bar)
     const monthlyData = this.groupByMonth(processes);
-    const months = Object.keys(monthlyData).sort();
+    const months = this.sortMonthsByDate(Object.keys(monthlyData));
 
     // Ensure we have at least one month for empty data
     if (months.length === 0) {
@@ -370,7 +415,7 @@ export class LegalProcessesDashboardComponent implements OnInit {
 
     // Status Trend (Line)
     const statusTrendData = this.getStatusTrend(processes);
-    const statusMonths = Object.keys(statusTrendData).sort();
+    const statusMonths = this.sortMonthsByDate(Object.keys(statusTrendData));
 
     // Ensure we have at least one month
     if (statusMonths.length === 0) {
@@ -437,9 +482,40 @@ export class LegalProcessesDashboardComponent implements OnInit {
         month: 'short',
         year: 'numeric',
       });
-      const statusName = process.process_status_id
-        ? `Estado ${process.process_status_id}`
-        : 'Sin estado';
+      
+      // Use status_history to get the status at the time of the process start_date
+      // If status_history exists, find the status that was active at that time
+      let statusId: number | null = null;
+      if (process.status_history && Array.isArray(process.status_history) && process.status_history.length > 0) {
+        // Find the status that was active at the start_date
+        // Sort by status_date and find the one closest to but not after start_date
+        const sortedHistory = [...process.status_history].sort((a, b) => {
+          const dateA = a.status_date ? new Date(a.status_date).getTime() : 0;
+          const dateB = b.status_date ? new Date(b.status_date).getTime() : 0;
+          return dateA - dateB;
+        });
+        
+        const processStartDate = date.getTime();
+        let activeStatus = sortedHistory[0]; // Default to first status
+        
+        for (const historyItem of sortedHistory) {
+          if (historyItem.status_date) {
+            const historyDate = new Date(historyItem.status_date).getTime();
+            if (historyDate <= processStartDate) {
+              activeStatus = historyItem;
+            } else {
+              break;
+            }
+          }
+        }
+        
+        statusId = activeStatus?.process_status_id || null;
+      } else {
+        // If no status_history, use process_status_id
+        statusId = process.process_status_id || null;
+      }
+      
+      const statusName = this.getStatusName(statusId);
 
       if (!trend[monthKey]) {
         trend[monthKey] = {};
@@ -465,5 +541,31 @@ export class LegalProcessesDashboardComponent implements OnInit {
       name: status,
       data: months.map((month) => trendData[month]?.[status] || 0),
     }));
+  }
+
+  private sortMonthsByDate(monthKeys: string[]): string[] {
+    return monthKeys.sort((a, b) => {
+      // Parse month strings like "ene 2020" to dates
+      const dateA = this.parseMonthString(a);
+      const dateB = this.parseMonthString(b);
+      return dateA.getTime() - dateB.getTime();
+    });
+  }
+
+  private parseMonthString(monthStr: string): Date {
+    // Parse Spanish month strings like "ene 2020" or "enero 2020"
+    const monthNames: { [key: string]: number } = {
+      'ene': 0, 'feb': 1, 'mar': 2, 'abr': 3, 'may': 4, 'jun': 5,
+      'jul': 6, 'ago': 7, 'sep': 8, 'oct': 9, 'nov': 10, 'dic': 11,
+      'enero': 0, 'febrero': 1, 'marzo': 2, 'abril': 3, 'mayo': 4, 'junio': 5,
+      'julio': 6, 'agosto': 7, 'septiembre': 8, 'octubre': 9, 'noviembre': 10, 'diciembre': 11
+    };
+
+    const parts = monthStr.toLowerCase().split(' ');
+    const monthName = parts[0];
+    const year = parseInt(parts[1], 10);
+
+    const monthIndex = monthNames[monthName] ?? 0;
+    return new Date(year, monthIndex, 1);
   }
 }

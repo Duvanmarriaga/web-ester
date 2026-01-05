@@ -113,7 +113,8 @@ export class InvestmentsDashboardComponent implements OnInit {
 
   initFilterForm(): void {
     const today = new Date();
-    const firstDayOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
+    // Set date_from to 4 years ago
+    const fourYearsAgo = new Date(today.getFullYear() - 4, today.getMonth(), 1);
     const lastDayOfMonth = new Date(
       today.getFullYear(),
       today.getMonth() + 1,
@@ -136,7 +137,7 @@ export class InvestmentsDashboardComponent implements OnInit {
     this.filterForm = this.fb.group({
       company_id: [defaultCompanyId, Validators.required],
       date_from: [
-        firstDayOfMonth.toISOString().split('T')[0],
+        fourYearsAgo.toISOString().split('T')[0],
         Validators.required,
       ],
       date_to: [
@@ -180,7 +181,8 @@ export class InvestmentsDashboardComponent implements OnInit {
 
   resetFilters(): void {
     const today = new Date();
-    const firstDayOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
+    // Set date_from to 4 years ago
+    const fourYearsAgo = new Date(today.getFullYear() - 4, today.getMonth(), 1);
     const lastDayOfMonth = new Date(
       today.getFullYear(),
       today.getMonth() + 1,
@@ -205,7 +207,7 @@ export class InvestmentsDashboardComponent implements OnInit {
     this.filterForm.patchValue(
       {
         company_id: defaultCompanyId,
-        date_from: firstDayOfMonth.toISOString().split('T')[0],
+        date_from: fourYearsAgo.toISOString().split('T')[0],
         date_to: lastDayOfMonth.toISOString().split('T')[0],
       },
       { emitEvent: false }
@@ -244,7 +246,13 @@ export class InvestmentsDashboardComponent implements OnInit {
       )
       .subscribe({
         next: (response) => {
-          this.investments.set(response.data || []);
+          // Sort investments by date (oldest first)
+          const sortedData = (response.data || []).sort((a, b) => {
+            const dateA = new Date(a.investment_date).getTime();
+            const dateB = new Date(b.investment_date).getTime();
+            return dateA - dateB;
+          });
+          this.investments.set(sortedData);
           this.updateCharts();
           this.isLoading.set(false);
         },
@@ -267,7 +275,7 @@ export class InvestmentsDashboardComponent implements OnInit {
 
     // Group by month
     const monthlyData = this.groupByMonth(investments);
-    const months = Object.keys(monthlyData).sort();
+    const months = this.sortMonthsByDate(Object.keys(monthlyData));
 
     // Ensure we have at least one month for empty data
     if (months.length === 0) {
@@ -277,9 +285,9 @@ export class InvestmentsDashboardComponent implements OnInit {
       );
     }
 
-    const totalCostData = months.map((m) => monthlyData[m]?.totalCost || 0);
-    const quantityData = months.map((m) => monthlyData[m]?.quantity || 0);
-    const unitCostData = months.map((m) => monthlyData[m]?.unitCost || 0);
+    const totalCostData = months.map((m: string) => monthlyData[m]?.totalCost || 0);
+    const quantityData = months.map((m: string) => monthlyData[m]?.quantity || 0);
+    const unitCostData = months.map((m: string) => monthlyData[m]?.unitCost || 0);
 
     // Investment Trend Chart (Line)
     this.investmentTrendChart = {
@@ -375,7 +383,7 @@ export class InvestmentsDashboardComponent implements OnInit {
     this.monthlyInvestmentChart = {
       series: [
         { name: 'Costo Total', data: totalCostData },
-        { name: 'Cantidad', data: quantityData.map((q) => q * 1000) }, // Scale for visibility
+        { name: 'Cantidad', data: quantityData.map((q: number) => q * 1000) }, // Scale for visibility
       ],
       chart: {
         type: 'area',
@@ -430,5 +438,31 @@ export class InvestmentsDashboardComponent implements OnInit {
     });
 
     return grouped;
+  }
+
+  private sortMonthsByDate(monthKeys: string[]): string[] {
+    return monthKeys.sort((a, b) => {
+      // Parse month strings like "ene 2020" to dates
+      const dateA = this.parseMonthString(a);
+      const dateB = this.parseMonthString(b);
+      return dateA.getTime() - dateB.getTime();
+    });
+  }
+
+  private parseMonthString(monthStr: string): Date {
+    // Parse Spanish month strings like "ene 2020" or "enero 2020"
+    const monthNames: { [key: string]: number } = {
+      'ene': 0, 'feb': 1, 'mar': 2, 'abr': 3, 'may': 4, 'jun': 5,
+      'jul': 6, 'ago': 7, 'sep': 8, 'oct': 9, 'nov': 10, 'dic': 11,
+      'enero': 0, 'febrero': 1, 'marzo': 2, 'abril': 3, 'mayo': 4, 'junio': 5,
+      'julio': 6, 'agosto': 7, 'septiembre': 8, 'octubre': 9, 'noviembre': 10, 'diciembre': 11
+    };
+
+    const parts = monthStr.toLowerCase().split(' ');
+    const monthName = parts[0];
+    const year = parseInt(parts[1], 10);
+
+    const monthIndex = monthNames[monthName] ?? 0;
+    return new Date(year, monthIndex, 1);
   }
 }

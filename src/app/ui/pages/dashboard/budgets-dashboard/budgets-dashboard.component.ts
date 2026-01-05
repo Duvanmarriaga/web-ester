@@ -120,7 +120,8 @@ export class BudgetsDashboardComponent implements OnInit {
 
   initFilterForm(): void {
     const today = new Date();
-    const firstDayOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
+    // Set date_from to 4 years ago
+    const fourYearsAgo = new Date(today.getFullYear() - 4, today.getMonth(), 1);
     const lastDayOfMonth = new Date(
       today.getFullYear(),
       today.getMonth() + 1,
@@ -143,7 +144,7 @@ export class BudgetsDashboardComponent implements OnInit {
     this.filterForm = this.fb.group({
       company_id: [defaultCompanyId, Validators.required],
       date_from: [
-        firstDayOfMonth.toISOString().split('T')[0],
+        fourYearsAgo.toISOString().split('T')[0],
         Validators.required,
       ],
       date_to: [
@@ -187,7 +188,8 @@ export class BudgetsDashboardComponent implements OnInit {
 
   resetFilters(): void {
     const today = new Date();
-    const firstDayOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
+    // Set date_from to 4 years ago
+    const fourYearsAgo = new Date(today.getFullYear() - 4, today.getMonth(), 1);
     const lastDayOfMonth = new Date(
       today.getFullYear(),
       today.getMonth() + 1,
@@ -212,7 +214,7 @@ export class BudgetsDashboardComponent implements OnInit {
     this.filterForm.patchValue(
       {
         company_id: defaultCompanyId,
-        date_from: firstDayOfMonth.toISOString().split('T')[0],
+        date_from: fourYearsAgo.toISOString().split('T')[0],
         date_to: lastDayOfMonth.toISOString().split('T')[0],
       },
       { emitEvent: false }
@@ -251,7 +253,13 @@ export class BudgetsDashboardComponent implements OnInit {
       )
       .subscribe({
         next: (response) => {
-          this.budgets.set(response.data || []);
+          // Sort budgets by date (oldest first)
+          const sortedData = (response.data || []).sort((a, b) => {
+            const dateA = new Date(a.budget_date).getTime();
+            const dateB = new Date(b.budget_date).getTime();
+            return dateA - dateB;
+          });
+          this.budgets.set(sortedData);
           this.updateCharts();
           this.isLoading.set(false);
         },
@@ -274,7 +282,7 @@ export class BudgetsDashboardComponent implements OnInit {
 
     // Group by month
     const monthlyData = this.groupByMonth(budgets);
-    const months = Object.keys(monthlyData).sort();
+    const months = this.sortMonthsByDate(Object.keys(monthlyData));
 
     // Ensure we have at least one month for empty data
     if (months.length === 0) {
@@ -284,10 +292,10 @@ export class BudgetsDashboardComponent implements OnInit {
       );
     }
 
-    const budgetData = months.map((m) => monthlyData[m]?.budget || 0);
-    const executedData = months.map((m) => monthlyData[m]?.executed || 0);
-    const differenceData = months.map((m) => monthlyData[m]?.difference || 0);
-    const percentageData = months.map((m) => monthlyData[m]?.percentage || 0);
+    const budgetData = months.map((m: string) => monthlyData[m]?.budget || 0);
+    const executedData = months.map((m: string) => monthlyData[m]?.executed || 0);
+    const differenceData = months.map((m: string) => monthlyData[m]?.difference || 0);
+    const percentageData = months.map((m: string) => monthlyData[m]?.percentage || 0);
 
     // Budget vs Executed Chart (Bar)
     this.budgetVsExecutedChart = {
@@ -453,5 +461,31 @@ export class BudgetsDashboardComponent implements OnInit {
     });
 
     return grouped;
+  }
+
+  private sortMonthsByDate(monthKeys: string[]): string[] {
+    return monthKeys.sort((a, b) => {
+      // Parse month strings like "ene 2020" to dates
+      const dateA = this.parseMonthString(a);
+      const dateB = this.parseMonthString(b);
+      return dateA.getTime() - dateB.getTime();
+    });
+  }
+
+  private parseMonthString(monthStr: string): Date {
+    // Parse Spanish month strings like "ene 2020" or "enero 2020"
+    const monthNames: { [key: string]: number } = {
+      'ene': 0, 'feb': 1, 'mar': 2, 'abr': 3, 'may': 4, 'jun': 5,
+      'jul': 6, 'ago': 7, 'sep': 8, 'oct': 9, 'nov': 10, 'dic': 11,
+      'enero': 0, 'febrero': 1, 'marzo': 2, 'abril': 3, 'mayo': 4, 'junio': 5,
+      'julio': 6, 'agosto': 7, 'septiembre': 8, 'octubre': 9, 'noviembre': 10, 'diciembre': 11
+    };
+
+    const parts = monthStr.toLowerCase().split(' ');
+    const monthName = parts[0];
+    const year = parseInt(parts[1], 10);
+
+    const monthIndex = monthNames[monthName] ?? 0;
+    return new Date(year, monthIndex, 1);
   }
 }

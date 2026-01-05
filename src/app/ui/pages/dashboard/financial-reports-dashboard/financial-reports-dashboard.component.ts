@@ -116,7 +116,8 @@ export class FinancialReportsDashboardComponent implements OnInit {
 
   initFilterForm(): void {
     const today = new Date();
-    const firstDayOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
+    // Set date_from to 4 years ago
+    const fourYearsAgo = new Date(today.getFullYear() - 4, today.getMonth(), 1);
     const lastDayOfMonth = new Date(
       today.getFullYear(),
       today.getMonth() + 1,
@@ -142,7 +143,7 @@ export class FinancialReportsDashboardComponent implements OnInit {
           Validators.required,
         ],
         date_from: [
-          firstDayOfMonth.toISOString().split('T')[0],
+          fourYearsAgo.toISOString().split('T')[0],
           Validators.required,
         ],
         date_to: [
@@ -155,7 +156,7 @@ export class FinancialReportsDashboardComponent implements OnInit {
       this.filterForm = this.fb.group({
         company_id: [this.companyId() || null, Validators.required],
         date_from: [
-          firstDayOfMonth.toISOString().split('T')[0],
+          fourYearsAgo.toISOString().split('T')[0],
           Validators.required,
         ],
         date_to: [
@@ -203,7 +204,8 @@ export class FinancialReportsDashboardComponent implements OnInit {
 
   resetFilters(): void {
     const today = new Date();
-    const firstDayOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
+    // Set date_from to 4 years ago
+    const fourYearsAgo = new Date(today.getFullYear() - 4, today.getMonth(), 1);
     const lastDayOfMonth = new Date(
       today.getFullYear(),
       today.getMonth() + 1,
@@ -228,7 +230,7 @@ export class FinancialReportsDashboardComponent implements OnInit {
     this.filterForm.patchValue(
       {
         company_id: defaultCompanyId,
-        date_from: firstDayOfMonth.toISOString().split('T')[0],
+        date_from: fourYearsAgo.toISOString().split('T')[0],
         date_to: lastDayOfMonth.toISOString().split('T')[0],
       },
       { emitEvent: false }
@@ -268,7 +270,13 @@ export class FinancialReportsDashboardComponent implements OnInit {
       )
       .subscribe({
         next: (response) => {
-          this.reports.set(response.data || []);
+          // Sort reports by date (oldest first)
+          const sortedData = (response.data || []).sort((a, b) => {
+            const dateA = new Date(a.report_date).getTime();
+            const dateB = new Date(b.report_date).getTime();
+            return dateA - dateB;
+          });
+          this.reports.set(sortedData);
           this.updateCharts();
           this.isLoading.set(false);
         },
@@ -291,7 +299,7 @@ export class FinancialReportsDashboardComponent implements OnInit {
 
     // Group by month
     const monthlyData = this.groupByMonth(reports);
-    const months = Object.keys(monthlyData).sort();
+    const months = this.sortMonthsByDate(Object.keys(monthlyData));
 
     // Ensure we have at least one month for empty data
     if (months.length === 0) {
@@ -301,9 +309,9 @@ export class FinancialReportsDashboardComponent implements OnInit {
       );
     }
 
-    const incomeData = months.map((m) => monthlyData[m]?.income || 0);
-    const expensesData = months.map((m) => monthlyData[m]?.expenses || 0);
-    const profitData = months.map((m) => monthlyData[m]?.profit || 0);
+    const incomeData = months.map((m: string) => monthlyData[m]?.income || 0);
+    const expensesData = months.map((m: string) => monthlyData[m]?.expenses || 0);
+    const profitData = months.map((m: string) => monthlyData[m]?.profit || 0);
 
     // Income vs Expenses Chart (Bar)
     this.incomeExpensesChart = {
@@ -399,9 +407,9 @@ export class FinancialReportsDashboardComponent implements OnInit {
     };
 
     // Profit Distribution (Pie)
-    const positiveMonths = profitData.filter((p) => p > 0).length;
-    const negativeMonths = profitData.filter((p) => p < 0).length;
-    const neutralMonths = profitData.filter((p) => p === 0).length;
+    const positiveMonths = profitData.filter((p: number) => p > 0).length;
+    const negativeMonths = profitData.filter((p: number) => p < 0).length;
+    const neutralMonths = profitData.filter((p: number) => p === 0).length;
 
     // Ensure we have at least one value for pie chart
     const hasData =
@@ -451,5 +459,31 @@ export class FinancialReportsDashboardComponent implements OnInit {
     });
 
     return grouped;
+  }
+
+  private sortMonthsByDate(monthKeys: string[]): string[] {
+    return monthKeys.sort((a, b) => {
+      // Parse month strings like "ene 2020" to dates
+      const dateA = this.parseMonthString(a);
+      const dateB = this.parseMonthString(b);
+      return dateA.getTime() - dateB.getTime();
+    });
+  }
+
+  private parseMonthString(monthStr: string): Date {
+    // Parse Spanish month strings like "ene 2020" or "enero 2020"
+    const monthNames: { [key: string]: number } = {
+      'ene': 0, 'feb': 1, 'mar': 2, 'abr': 3, 'may': 4, 'jun': 5,
+      'jul': 6, 'ago': 7, 'sep': 8, 'oct': 9, 'nov': 10, 'dic': 11,
+      'enero': 0, 'febrero': 1, 'marzo': 2, 'abril': 3, 'mayo': 4, 'junio': 5,
+      'julio': 6, 'agosto': 7, 'septiembre': 8, 'octubre': 9, 'noviembre': 10, 'diciembre': 11
+    };
+
+    const parts = monthStr.toLowerCase().split(' ');
+    const monthName = parts[0];
+    const year = parseInt(parts[1], 10);
+
+    const monthIndex = monthNames[monthName] ?? 0;
+    return new Date(year, monthIndex, 1);
   }
 }

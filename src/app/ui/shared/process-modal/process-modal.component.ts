@@ -40,13 +40,13 @@ import { NgSelectModule } from '@ng-select/ng-select';
 })
 export class ProcessModalComponent implements OnInit {
   private fb = inject(FormBuilder);
-  private processService = inject(ProcessService);
   private processStatusService = inject(ProcessStatusService);
 
   // Inputs
   isVisible = input.required<boolean>();
   companyId = input.required<number>();
   process = input<Process | null>(null);
+  defaultType = input<'penal' | 'juridico'>('penal');
 
   // Outputs
   close = output<void>();
@@ -82,31 +82,35 @@ export class ProcessModalComponent implements OnInit {
         this.isEditMode.set(true);
         // Solo poblar si los statuses ya están cargados
         if (this.statuses().length > 0) {
-        setTimeout(() => {
+          setTimeout(() => {
             this.populateForm(currentProcess);
           }, 0);
-          }
+        }
         // Si no hay statuses cargados, loadStatuses() se encargará de poblar después de cargar
       } else if (isVisible && !currentProcess && this.processForm) {
         this.isEditMode.set(false);
         setTimeout(() => {
-            this.processForm.reset({
-              docket_number: '',
-              type: 'penal',
-              start_date: '',
-              end_date: '',
-              description: '',
+          const defaultTypeValue = this.defaultType() || 'penal';
+          this.processForm.reset({
+            docket_number: '',
+            type: defaultTypeValue,
+            start_date: '',
+            end_date: '',
+            description: '',
             process_status_id: '',
-            });
+          });
         }, 0);
       }
     });
   }
 
   ngOnInit() {
+    // Usar el tipo por defecto del input, o 'penal' si no se proporciona
+    const defaultTypeValue = this.defaultType() || 'penal';
+    
     this.processForm = this.fb.group({
       docket_number: ['', [Validators.required]],
-      type: ['penal', [Validators.required]],
+      type: [defaultTypeValue, [Validators.required]],
       start_date: ['', [Validators.required]],
       end_date: [''],
       description: [''],
@@ -121,7 +125,7 @@ export class ProcessModalComponent implements OnInit {
     this.processStatusService.getAll().subscribe({
       next: (statuses) => {
         this.statuses.set(statuses);
-        
+
         // Después de cargar los statuses, si hay un proceso para editar, poblar el formulario
         if (this.process() && this.isVisible() && !this.isEditMode()) {
           this.isEditMode.set(true);
@@ -132,9 +136,9 @@ export class ProcessModalComponent implements OnInit {
         this.statuses.set([]);
         // Aún así intentar poblar el formulario si hay un proceso
         if (this.process() && this.isVisible() && !this.isEditMode()) {
-      this.isEditMode.set(true);
-      this.populateForm(this.process()!);
-    }
+          this.isEditMode.set(true);
+          this.populateForm(this.process()!);
+        }
       },
     });
   }
@@ -157,12 +161,23 @@ export class ProcessModalComponent implements OnInit {
       { emitEvent: false }
     );
 
+    // En modo edición, obtener el process_status_id del último elemento de status_history
+    let statusIdToUse: number | null | undefined = null;
+    if (this.isEditMode() && process.status_history && Array.isArray(process.status_history) && process.status_history.length > 0) {
+      // Tomar el último elemento del array status_history
+      const lastStatusHistory = process.status_history[process.status_history.length - 1];
+      statusIdToUse = lastStatusHistory?.process_status_id;
+    } else {
+      // Si no hay status_history o no está en modo edición, usar process_status_id directamente
+      statusIdToUse = process.process_status_id;
+    }
+
     // Buscar el status por ID si existe
-    if (process.process_status_id) {
+    if (statusIdToUse) {
       // Primero intentar encontrar el status en la lista actual
       const currentStatuses = this.statuses();
       const statusInList = currentStatuses.find(
-        (s) => s.id === process.process_status_id
+        (s) => s.id === statusIdToUse
       );
 
       if (statusInList) {
@@ -175,7 +190,7 @@ export class ProcessModalComponent implements OnInit {
         );
       } else {
         // Si no está en la lista, buscarlo por ID
-        this.processStatusService.getById(process.process_status_id).subscribe({
+        this.processStatusService.getById(statusIdToUse).subscribe({
           next: (status) => {
             // Agregar el status a la lista si no está presente
             const updatedStatuses = this.statuses();
@@ -191,7 +206,7 @@ export class ProcessModalComponent implements OnInit {
               // Buscar el status en la lista actualizada para asegurar referencia correcta
               const finalStatuses = this.statuses();
               const finalStatus = finalStatuses.find((s) => s.id === status.id);
-              
+
               // Establecer el valor del formulario con el objeto de la lista
               if (finalStatus) {
                 this.processForm.patchValue(
@@ -215,7 +230,7 @@ export class ProcessModalComponent implements OnInit {
             // Si falla la búsqueda, establecer solo con el ID como fallback
             this.processForm.patchValue(
               {
-                process_status_id: process.process_status_id || '',
+                process_status_id: statusIdToUse || '',
               },
               { emitEvent: false }
             );
@@ -245,7 +260,10 @@ export class ProcessModalComponent implements OnInit {
     // Extraer el ID del status si es un objeto
     let statusId: number | null = null;
     if (formValue.process_status_id) {
-      if (typeof formValue.process_status_id === 'object' && formValue.process_status_id.id) {
+      if (
+        typeof formValue.process_status_id === 'object' &&
+        formValue.process_status_id.id
+      ) {
         statusId = formValue.process_status_id.id;
       } else if (typeof formValue.process_status_id === 'number') {
         statusId = formValue.process_status_id;
@@ -292,7 +310,7 @@ export class ProcessModalComponent implements OnInit {
 
   compareStatuses(status1: any, status2: any): boolean {
     if (!status1 || !status2) return false;
-    
+
     // Si ambos son objetos, comparar por ID
     if (typeof status1 === 'object' && typeof status2 === 'object') {
       // Si tienen id, comparar por id
@@ -304,15 +322,23 @@ export class ProcessModalComponent implements OnInit {
         return status1.name === status2.name;
       }
     }
-    
+
     // Si uno es número y el otro es objeto con id, comparar
-    if (typeof status1 === 'number' && typeof status2 === 'object' && status2.id) {
+    if (
+      typeof status1 === 'number' &&
+      typeof status2 === 'object' &&
+      status2.id
+    ) {
       return status1 === status2.id;
     }
-    if (typeof status2 === 'number' && typeof status1 === 'object' && status1.id) {
+    if (
+      typeof status2 === 'number' &&
+      typeof status1 === 'object' &&
+      status1.id
+    ) {
       return status2 === status1.id;
     }
-    
+
     // Comparación directa
     return status1 === status2;
   }

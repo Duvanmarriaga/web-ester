@@ -93,7 +93,7 @@ export class FinancialReportModalComponent implements OnInit {
         setTimeout(() => {
           if (this.reportForm) {
             this.reportForm.reset({
-              financial_report_category_id: null,
+              financial_category_id: null,
               report_date: '',
               income: '0',
               expenses: '0',
@@ -109,7 +109,7 @@ export class FinancialReportModalComponent implements OnInit {
     this.setupTypeahead();
     
     this.reportForm = this.fb.group({
-      financial_report_category_id: [null],
+      financial_category_id: [null],
       report_date: [
         '',
         [Validators.required],
@@ -228,7 +228,7 @@ export class FinancialReportModalComponent implements OnInit {
 
     if (existingCategory) {
       this.reportForm.patchValue({
-        financial_report_category_id: existingCategory.id,
+        financial_category_id: existingCategory.id,
       });
       return;
     }
@@ -268,7 +268,7 @@ export class FinancialReportModalComponent implements OnInit {
       next: (newCategory) => {
         const currentCategories = this.categories();
         this.categories.set([...currentCategories, newCategory]);
-        this.reportForm.patchValue({ financial_report_category_id: newCategory.id });
+        this.reportForm.patchValue({ financial_category_id: newCategory.id });
         this.toastr.success('Categoría creada exitosamente', 'Éxito');
         this.isCreatingCategory.set(false);
         this.isLoadingCategories.set(false);
@@ -417,7 +417,7 @@ export class FinancialReportModalComponent implements OnInit {
 
     this.reportForm.patchValue(
       {
-        financial_report_category_id: report.financial_report_category_id || null,
+        financial_category_id: report.financial_category_id || null,
         report_date: reportDate,
         income: this.formatNumberWithCommas(income),
         expenses: this.formatNumberWithCommas(expenses),
@@ -457,21 +457,21 @@ export class FinancialReportModalComponent implements OnInit {
 
     let formValue = { ...this.reportForm.value };
     
-    // Si financial_report_category_id es un objeto con name pero sin id, buscar la categoría en la lista
+    // Si financial_category_id es un objeto con name pero sin id, buscar la categoría en la lista
     if (
-      formValue.financial_report_category_id &&
-      typeof formValue.financial_report_category_id === 'object' &&
-      formValue.financial_report_category_id.name &&
-      !formValue.financial_report_category_id.id
+      formValue.financial_category_id &&
+      typeof formValue.financial_category_id === 'object' &&
+      formValue.financial_category_id.name &&
+      !formValue.financial_category_id.id
     ) {
-      const categoryName = formValue.financial_report_category_id.name;
+      const categoryName = formValue.financial_category_id.name;
       const foundCategory = this.categoriesList().find(
         (cat) => cat.name === categoryName
       );
 
       if (foundCategory) {
         // Si encontramos la categoría, usar su ID
-        formValue.financial_report_category_id = foundCategory.id;
+        formValue.financial_category_id = foundCategory.id;
       } else {
         // Si no encontramos la categoría, crear una nueva
         const code = categoryName
@@ -493,27 +493,27 @@ export class FinancialReportModalComponent implements OnInit {
         const newCategory = await firstValueFrom(
           this.categoryService.create(categoryData)
         );
-        formValue.financial_report_category_id = newCategory.id;
+        formValue.financial_category_id = newCategory.id;
         
         this.isCreatingCategory.set(false);
         this.isLoadingCategories.set(false);
       }
     } else if (
-      formValue.financial_report_category_id &&
-      typeof formValue.financial_report_category_id === 'object' &&
-      formValue.financial_report_category_id.id
+      formValue.financial_category_id &&
+      typeof formValue.financial_category_id === 'object' &&
+      formValue.financial_category_id.id
     ) {
       // Si es un objeto con id, usar solo el id
-      formValue.financial_report_category_id = formValue.financial_report_category_id.id;
+      formValue.financial_category_id = formValue.financial_category_id.id;
     } else if (
-      formValue.financial_report_category_id &&
-      typeof formValue.financial_report_category_id === 'number'
+      formValue.financial_category_id &&
+      typeof formValue.financial_category_id === 'number'
     ) {
       // Si ya es un número, mantenerlo
-      formValue.financial_report_category_id = formValue.financial_report_category_id;
+      formValue.financial_category_id = formValue.financial_category_id;
     } else {
       // Si no hay categoría, establecer null
-      formValue.financial_report_category_id = null;
+      formValue.financial_category_id = null;
     }
     
     // Convert month/year format (YYYY-MM) to full date (YYYY-MM-01)
@@ -536,7 +536,7 @@ export class FinancialReportModalComponent implements OnInit {
       profit: parseFloat(formValue.profit) || 0,
       user_id: this.userId(),
       document_origin: '', // Always send empty string as requested
-      category_id: formValue.financial_report_category_id || null,
+      financial_category_id: formValue.financial_category_id || null,
     };
     if (this.isEditMode() && this.report()?.id) {
       this.update.emit({
