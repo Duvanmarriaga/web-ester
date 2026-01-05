@@ -97,9 +97,12 @@ export class BudgetService {
     );
   }
 
-  import(file: File): Observable<{ message?: string }> {
+  import(file: File, budgetYearId?: number): Observable<{ message?: string }> {
     const formData = new FormData();
     formData.append('file', file);
+    if (budgetYearId) {
+      formData.append('budget_year_id', budgetYearId.toString());
+    }
     return this.http.post<{ message?: string }>(`${this.apiUrl}/admin/reports/budgets/import`, formData);
   }
 

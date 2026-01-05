@@ -6,32 +6,6 @@
     <div class="tab-panel-actions">
       <button
         type="button"
-        class="btn btn-sm btn-outline-primary"
-        (click)="downloadTemplate()"
-        title="Descargar plantilla CSV"
-      >
-        <lucide-icon [img]="icons.Download" [size]="16"></lucide-icon>
-        <span>Descargar CSV</span>
-      </button>
-      <button
-        type="button"
-        class="btn btn-sm btn-outline-primary"
-        (click)="triggerFileInput()"
-        [disabled]="isImporting()"
-        title="Importar desde CSV"
-      >
-        @if (isImporting()) {
-        <span
-          class="spinner-border spinner-border-sm me-1"
-          role="status"
-        ></span>
-        } @else {
-        <lucide-icon [img]="icons.Upload" [size]="16"></lucide-icon>
-        }
-        <span>Importar CSV</span>
-      </button>
-      <button
-        type="button"
         class="btn btn-sm btn-primary"
         (click)="openCreateBudgetYearModal()"
         title="Crear nuevo presupuesto anual"
@@ -99,6 +73,29 @@
               </td>
               <td class="text-end">
                 <div class="d-flex gap-2 justify-content-end">
+                  <button
+                    class="btn btn-sm btn-link text-primary p-1"
+                    title="Descargar plantilla XLS"
+                    (click)="downloadTemplate(budgetYear.id)"
+                  >
+                    <lucide-icon [img]="icons.Download" [size]="14"></lucide-icon>
+                  </button>
+                  <button
+                    class="btn btn-sm btn-link text-primary p-1"
+                    title="Importar desde XLS"
+                    (click)="triggerFileInput(budgetYear.id)"
+                    [disabled]="isImporting() && importingYearId() === budgetYear.id"
+                  >
+                    @if (isImporting() && importingYearId() === budgetYear.id) {
+                    <span
+                      class="spinner-border spinner-border-sm"
+                      role="status"
+                      style="width: 14px; height: 14px;"
+                    ></span>
+                    } @else {
+                    <lucide-icon [img]="icons.Upload" [size]="14"></lucide-icon>
+                    }
+                  </button>
                   <button
                     class="btn btn-sm btn-link text-primary p-1"
                     title="Agregar Presupuesto Mensual"
@@ -311,3 +308,15 @@
   (confirmed)="onConfirmDelete()"
   (cancelled)="onCancelDelete()"
 ></app-confirm-dialog>
+
+@if (companyId() && userId() && currentImportYearId()) {
+<app-budget-import-modal
+  [isVisible]="showImportModal()"
+  [companyId]="companyId()!"
+  [userId]="userId()!"
+  [budgetYearId]="currentImportYearId()!"
+  [importedData]="importedBudgets()"
+  (close)="onCloseImportModal()"
+  (save)="onSaveImportedBudgets($event)"
+></app-budget-import-modal>
+}

@@ -21,11 +21,13 @@
             class="form-control"
             id="year"
             formControlName="year"
-            [class.is-invalid]="budgetYearForm.get('year')?.invalid && budgetYearForm.get('year')?.touched"
+            [class.is-invalid]="(budgetYearForm.get('year')?.invalid && budgetYearForm.get('year')?.touched) || yearExistsError()"
             min="2000"
             max="2100"
           />
-          @if (budgetYearForm.get('year')?.invalid && budgetYearForm.get('year')?.touched) {
+          @if (yearExistsError()) {
+          <small class="form-error">{{ yearExistsError() }}</small>
+          } @else if (budgetYearForm.get('year')?.invalid && budgetYearForm.get('year')?.touched) {
           <small class="form-error">El año es requerido y debe estar entre 2000 y 2100</small>
           }
         </div>
@@ -60,7 +62,7 @@
         <button
           type="submit"
           class="btn btn-primary"
-          [disabled]="budgetYearForm.invalid || isSubmitting()"
+          [disabled]="budgetYearForm.invalid || isSubmitting() || yearExistsError()"
         >
           @if (isSubmitting()) {
           <span class="spinner-border spinner-border-sm me-2" role="status"></span>

@@ -26,11 +26,13 @@ import {
 } from '../../../../../infrastructure/services/budget-year.service';
 import { BudgetModalComponent } from '../../../../shared/budget-modal/budget-modal.component';
 import { BudgetYearModalComponent } from '../../../../shared/budget-year-modal/budget-year-modal.component';
+import { BudgetImportModalComponent, ImportedBudget } from '../../../../shared/budget-import-modal/budget-import-modal.component';
 import { selectUser } from '../../../../../infrastructure/store/auth/auth.selectors';
 import { ToastrService } from 'ngx-toastr';
 import { PaginationComponent } from '../../../../shared/pagination/pagination.component';
 import { PaginatedResponse } from '../../../../../entities/interfaces/pagination.interface';
 import { ConfirmDialogComponent } from '../../../../shared/confirm-dialog/confirm-dialog.component';
+import * as XLSX from 'xlsx';
 
 interface BudgetYearWithBudgets extends BudgetYear {
   budgets: Budget[];
@@ -40,7 +42,7 @@ interface BudgetYearWithBudgets extends BudgetYear {
 @Component({
   selector: 'app-budgets',
   standalone: true,
-  imports: [CommonModule, LucideAngularModule, BudgetModalComponent, BudgetYearModalComponent, ConfirmDialogComponent],
+  imports: [CommonModule, LucideAngularModule, BudgetModalComponent, BudgetYearModalComponent, ConfirmDialogComponent, BudgetImportModalComponent],
   templateUrl: './budgets.component.html',
   styleUrl: './budgets.component.scss',
 })
@@ -73,6 +75,10 @@ export class BudgetsComponent implements OnInit {
   pagination = signal<PaginatedResponse<Budget> | null>(null);
   isLoading = signal(false);
   isImporting = signal(false);
+  importingYearId = signal<number | null>(null);
+  showImportModal = signal(false);
+  importedBudgets = signal<ImportedBudget[]>([]);
+  currentImportYearId = signal<number | null>(null);
   currentPage = signal(1);
   selectedBudget = signal<Budget | null>(null);
   selectedBudgetYear = signal<BudgetYear | null>(null);
@@ -186,13 +192,14 @@ export class BudgetsComponent implements OnInit {
     this.loadBudgets(page);
   }
 
-  downloadTemplate(): void {
+  downloadTemplate(budgetYearId?: number): void {
     this.budgetService.downloadTemplate().subscribe({
       next: (blob: Blob) => {
         const url = window.URL.createObjectURL(blob);
         const link = document.createElement('a');
+        const yearSuffix = budgetYearId ? `-${budgetYearId}` : '';
         link.href = url;
-        link.download = 'plantilla-presupuestos.csv';
+        link.download = `plantilla-presupuestos${yearSuffix}.xls`;
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
@@ -210,40 +217,221 @@ export class BudgetsComponent implements OnInit {
     });
   }
 
-  onFileSelected(event: Event): void {
+  onFileSelected(event: Event, budgetYearId?: number): void {
     const input = event.target as HTMLInputElement;
     const file = input.files?.[0];
     if (!file) return;
 
+    // Validate file extension
+    const fileName = file.name.toLowerCase();
+    if (!fileName.endsWith('.xls') && !fileName.endsWith('.xlsx')) {
+      this.toastr.error('Por favor, selecciona un archivo Excel (.xls o .xlsx)', 'Error');
+      input.value = '';
+      return;
+    }
+
+    if (!budgetYearId) {
+      this.toastr.error('No se pudo determinar el año del presupuesto', 'Error');
+      input.value = '';
+      return;
+    }
+
     this.isImporting.set(true);
-    this.budgetService.import(file).subscribe({
-      next: () => {
-        this.toastr.success(
-          'Presupuestos importados correctamente',
-          'Éxito'
+    this.importingYearId.set(budgetYearId);
+
+    const reader = new FileReader();
+
+    reader.onload = (e: ProgressEvent<FileReader>) => {
+      try {
+        const data = e.target?.result;
+        if (!data) {
+          throw new Error('No se pudo leer el archivo');
+        }
+
+        // Read Excel file
+        const workbook = XLSX.read(data, { type: 'binary' });
+        const firstSheetName = workbook.SheetNames[0];
+        const worksheet = workbook.Sheets[firstSheetName];
+        const jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1, defval: null });
+
+        if (jsonData.length < 2) {
+          this.toastr.warning(
+            'El archivo no contiene datos válidos. Asegúrate de que tenga al menos una fila de datos.',
+            'Advertencia'
+          );
+          this.isImporting.set(false);
+          this.importingYearId.set(null);
+          input.value = '';
+          return;
+        }
+
+        // Find header row (usually first row)
+        const headerRow = jsonData[0] as any[];
+        const headerMap: { [key: string]: number } = {};
+        
+        // Map common column names
+        headerRow.forEach((header, index) => {
+          const headerStr = String(header || '').toLowerCase().trim();
+          if (headerStr.includes('fecha') || headerStr.includes('date')) {
+            headerMap['date'] = index;
+          } else if (headerStr.includes('presupuesto') || headerStr.includes('budget')) {
+            headerMap['budget'] = index;
+          } else if (headerStr.includes('ejecutado') || headerStr.includes('executed')) {
+            headerMap['executed'] = index;
+          }
+        });
+
+        const hasDate = 'date' in headerMap;
+        const hasBudget = 'budget' in headerMap;
+        const hasExecuted = 'executed' in headerMap;
+
+        if (!hasDate || !hasBudget || !hasExecuted) {
+          this.toastr.warning(
+            'El archivo no contiene las columnas requeridas: Fecha, Presupuesto, Ejecutado',
+            'Advertencia'
+          );
+          this.isImporting.set(false);
+          this.importingYearId.set(null);
+          input.value = '';
+          return;
+        }
+
+        // Process data rows (skip header row)
+        const processedData: ImportedBudget[] = [];
+
+        for (let i = 1; i < jsonData.length; i++) {
+          const row = jsonData[i] as any[];
+          if (!row || row.length === 0) continue;
+
+          const dateValue = row[headerMap['date']];
+          const budgetValue = row[headerMap['budget']];
+          const executedValue = row[headerMap['executed']];
+
+          // Skip empty rows
+          if (!dateValue && !budgetValue && !executedValue) continue;
+
+          // Parse date
+          let parsedDate: string | null = null;
+          if (hasDate && dateValue) {
+            try {
+              if (typeof dateValue === 'number') {
+                const excelDate = XLSX.SSF.parse_date_code(dateValue);
+                if (excelDate) {
+                  const year = excelDate.y;
+                  const month = String(excelDate.m).padStart(2, '0');
+                  parsedDate = `${year}-${month}`;
+                } else {
+                  const excelEpoch = new Date(1899, 11, 30);
+                  const jsDate = new Date(excelEpoch.getTime() + (dateValue - 1) * 24 * 60 * 60 * 1000);
+                  if (!isNaN(jsDate.getTime())) {
+                    const year = jsDate.getFullYear();
+                    const month = String(jsDate.getMonth() + 1).padStart(2, '0');
+                    parsedDate = `${year}-${month}`;
+                  }
+                }
+              } else {
+                const dateStr = String(dateValue).trim();
+                const parts = dateStr.split('/');
+                if (parts.length === 3) {
+                  const day = parseInt(parts[0], 10);
+                  const month = parseInt(parts[1], 10);
+                  const year = parseInt(parts[2], 10);
+                  const date = new Date(year, month - 1, day);
+                  if (!isNaN(date.getTime())) {
+                    const monthStr = String(month).padStart(2, '0');
+                    parsedDate = `${year}-${monthStr}`;
+                  }
+                }
+              }
+            } catch (e) {
+              console.warn('Error parsing date:', dateValue, e);
+            }
+          }
+
+          // Parse budget amount
+          let parsedBudget: number | null = null;
+          if (hasBudget && budgetValue !== null && budgetValue !== undefined) {
+            const budgetNum = typeof budgetValue === 'number'
+              ? budgetValue
+              : parseFloat(String(budgetValue).replace(/[^0-9.-]/g, ''));
+            if (!isNaN(budgetNum)) {
+              parsedBudget = budgetNum;
+            }
+          }
+
+          // Parse executed amount
+          let parsedExecuted: number | null = null;
+          if (hasExecuted && executedValue !== null && executedValue !== undefined) {
+            const executedNum = typeof executedValue === 'number'
+              ? executedValue
+              : parseFloat(String(executedValue).replace(/[^0-9.-]/g, ''));
+            if (!isNaN(executedNum)) {
+              parsedExecuted = executedNum;
+            }
+          }
+
+          if (parsedDate && (parsedBudget !== null || parsedExecuted !== null)) {
+            const budgetAmount = parsedBudget || 0;
+            const executedAmount = parsedExecuted || 0;
+            const difference = budgetAmount - executedAmount;
+            const percentage = budgetAmount > 0 ? (executedAmount / budgetAmount) * 100 : 0;
+
+            processedData.push({
+              budget_date: parsedDate,
+              budget_amount: parsedBudget,
+              executed_amount: parsedExecuted,
+              difference_amount: difference,
+              percentage: percentage,
+            });
+          }
+        }
+
+        if (processedData.length === 0) {
+          this.toastr.warning(
+            'No se encontraron datos válidos en el archivo.',
+            'Advertencia'
+          );
+          this.isImporting.set(false);
+          this.importingYearId.set(null);
+          input.value = '';
+          return;
+        }
+
+        // Show import modal
+        this.importedBudgets.set(processedData);
+        this.currentImportYearId.set(budgetYearId);
+        this.showImportModal.set(true);
+        this.isImporting.set(false);
+        this.importingYearId.set(null);
+        input.value = '';
+      } catch (error) {
+        console.error('Error al leer el archivo Excel:', error);
+        this.toastr.error(
+          'Error al leer el archivo Excel. Asegúrate de que el archivo sea válido.',
+          'Error'
         );
         this.isImporting.set(false);
+        this.importingYearId.set(null);
         input.value = '';
-        this.loadBudgets(this.currentPage());
-      },
-      error: (error: unknown) => {
-        const errorMessage =
-          (error as { error?: { message?: string }; message?: string })?.error
-            ?.message ||
-          (error as { message?: string })?.message ||
-          'Error al importar el archivo';
-        this.toastr.error(errorMessage, 'Error');
-        this.isImporting.set(false);
-        input.value = '';
-      },
-    });
+      }
+    };
+
+    reader.onerror = () => {
+      this.toastr.error('Error al leer el archivo', 'Error');
+      this.isImporting.set(false);
+      this.importingYearId.set(null);
+      input.value = '';
+    };
+
+    // Read file as binary string
+    reader.readAsBinaryString(file);
   }
 
-  triggerFileInput(): void {
+  triggerFileInput(budgetYearId?: number): void {
     const input = document.createElement('input');
     input.type = 'file';
-    input.accept = '.csv';
-    input.onchange = (e) => this.onFileSelected(e);
+    input.accept = '.xls,.xlsx';
+    input.onchange = (e) => this.onFileSelected(e, budgetYearId);
     input.click();
   }
 
@@ -488,6 +676,42 @@ export class BudgetsComponent implements OnInit {
       (by) => by.id === budgetYear.id
     );
     return !budgetYearWithBudgets || budgetYearWithBudgets.budgets.length === 0;
+  }
+
+  onCloseImportModal(): void {
+    this.showImportModal.set(false);
+    this.importedBudgets.set([]);
+    this.currentImportYearId.set(null);
+  }
+
+  onSaveImportedBudgets(budgets: BudgetCreate[]): void {
+    if (budgets.length === 0) {
+      this.toastr.error('No hay presupuestos para guardar', 'Error');
+      return;
+    }
+
+    // Remove user_id from each budget as createMultiple expects Omit<BudgetCreate, 'user_id'>[]
+    const budgetsWithoutUserId = budgets.map(({ user_id, ...budget }) => budget);
+
+    this.budgetService.createMultiple(budgetsWithoutUserId).subscribe({
+      next: () => {
+        this.toastr.success(
+          `${budgets.length} presupuesto(s) importado(s) correctamente`,
+          'Éxito'
+        );
+        this.onCloseImportModal();
+        this.loadBudgets(this.currentPage());
+        this.loadBudgetYears();
+      },
+      error: (error: unknown) => {
+        const errorMessage =
+          (error as { error?: { message?: string }; message?: string })?.error
+            ?.message ||
+          (error as { message?: string })?.message ||
+          'Error al importar los presupuestos';
+        this.toastr.error(errorMessage, 'Error');
+      },
+    });
   }
 }
 

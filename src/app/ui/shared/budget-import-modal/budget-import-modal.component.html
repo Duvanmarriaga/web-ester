@@ -1,0 +1,206 @@
+@if (isVisible()) {
+<div class="modal show d-block" (click)="onBackdropClick($event)">
+  <div class="modal-dialog modal-dialog-centered" style="max-width: 95%; width: 900px;">
+    <div class="modal-content" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h5 class="modal-title">Verificar Datos Importados</h5>
+        <button
+          type="button"
+          class="btn-close"
+          (click)="onClose()"
+          [disabled]="isSubmitting()"
+          aria-label="Close"
+        >
+          <lucide-icon [img]="icons.X" [size]="16"></lucide-icon>
+        </button>
+      </div>
+
+    <form [formGroup]="budgetForm" (ngSubmit)="onSubmit()">
+      <div class="modal-body">
+        <div class="mb-3">
+          <label for="default_category_id" class="form-label fw-bold">Categoría por Defecto</label>
+          <ng-select
+            id="default_category_id"
+            [items]="categories()"
+            bindLabel="name"
+            bindValue="id"
+            placeholder="Seleccionar categoría..."
+            formControlName="default_category_id"
+            [searchable]="true"
+            [clearable]="false"
+            [loading]="isLoadingCategories()"
+            appendTo="body"
+          >
+          </ng-select>
+          @if (budgetForm.get('default_category_id')?.invalid && budgetForm.get('default_category_id')?.touched) {
+          <small class="text-danger d-block">Categoría requerida</small>
+          }
+        </div>
+        <div class="table-responsive">
+          <table class="table table-sm">
+            <thead>
+              <tr>
+                <th>Fecha</th>
+                <th>Presupuesto</th>
+                <th>Ejecutado</th>
+                <th>Diferencia</th>
+                <th>Porcentaje</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody formArrayName="budgets">
+              @for (budget of budgetsArray.controls; track $index) {
+              <tr [formGroupName]="$index">
+                <td>
+                  <input
+                    type="month"
+                    class="form-control form-control-sm"
+                    formControlName="budget_date"
+                    [class.is-invalid]="
+                      budget.get('budget_date')?.invalid &&
+                      budget.get('budget_date')?.touched
+                    "
+                  />
+                  @if (
+                  budget.get('budget_date')?.invalid &&
+                  budget.get('budget_date')?.touched
+                  ) {
+                    @if (dateErrors().has($index)) {
+                      <small class="text-danger d-block">{{ dateErrors().get($index) }}</small>
+                    } @else {
+                      <small class="text-danger d-block">Fecha requerida</small>
+                    }
+                  }
+                </td>
+                <td class="align-middle">
+                  <div class="input-group input-group-sm">
+                    <span class="input-group-text">$</span>
+                    <input
+                      type="text"
+                      class="form-control"
+                      formControlName="budget_amount"
+                      (input)="formatCurrency($event, $index, 'budget_amount')"
+                      (blur)="formatCurrencyOnBlur($index, 'budget_amount')"
+                      [class.is-invalid]="
+                        budget.get('budget_amount')?.invalid &&
+                        budget.get('budget_amount')?.touched
+                      "
+                    />
+                  </div>
+                  @if (
+                  budget.get('budget_amount')?.invalid &&
+                  budget.get('budget_amount')?.touched
+                  ) {
+                  <small class="text-danger d-block">Presupuesto requerido</small>
+                  }
+                </td>
+                <td class="align-middle">
+                  <div class="input-group input-group-sm">
+                    <span class="input-group-text">$</span>
+                    <input
+                      type="text"
+                      class="form-control"
+                      formControlName="executed_amount"
+                      (input)="formatCurrency($event, $index, 'executed_amount')"
+                      (blur)="formatCurrencyOnBlur($index, 'executed_amount')"
+                      [class.is-invalid]="
+                        budget.get('executed_amount')?.invalid &&
+                        budget.get('executed_amount')?.touched
+                      "
+                    />
+                  </div>
+                  @if (
+                  budget.get('executed_amount')?.invalid &&
+                  budget.get('executed_amount')?.touched
+                  ) {
+                  <small class="text-danger d-block">Ejecutado requerido</small>
+                  }
+                </td>
+                <td class="align-middle">
+                  <div class="input-group input-group-sm">
+                    <span class="input-group-text">$</span>
+                    <input
+                      type="text"
+                      class="form-control"
+                      formControlName="difference_amount"
+                      readonly
+                    />
+                  </div>
+                </td>
+                <td class="align-middle">
+                  <div class="input-group input-group-sm">
+                    <input
+                      type="text"
+                      class="form-control"
+                      formControlName="percentage"
+                      readonly
+                    />
+                    <span class="input-group-text">%</span>
+                  </div>
+                </td>
+                <td class="align-middle">
+                  <button
+                    type="button"
+                    class="btn btn-sm btn-link text-danger p-0"
+                    (click)="removeBudget($index)"
+                    [disabled]="isSubmitting()"
+                    title="Eliminar"
+                  >
+                    <lucide-icon [img]="icons.Trash2" [size]="16"></lucide-icon>
+                  </button>
+                </td>
+              </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+
+        @if (budgetsArray.length > 0) {
+        <div class="mt-3 p-3 bg-light rounded">
+          <div class="row">
+            <div class="col-md-4">
+              <strong>Total Presupuesto:</strong>
+              <span class="ms-2">${{ getTotalBudget() | number : "1.2-2" }}</span>
+            </div>
+            <div class="col-md-4">
+              <strong>Total Ejecutado:</strong>
+              <span class="ms-2">${{ getTotalExecuted() | number : "1.2-2" }}</span>
+            </div>
+            <div class="col-md-4">
+              <strong>Total Diferencia:</strong>
+              <span class="ms-2">${{ (getTotalBudget() - getTotalExecuted()) | number : "1.2-2" }}</span>
+            </div>
+          </div>
+        </div>
+        }
+      </div>
+
+      <div class="modal-footer">
+        <button
+          type="button"
+          class="btn btn-secondary"
+          (click)="onClose()"
+          [disabled]="isSubmitting()"
+        >
+          Cancelar
+        </button>
+        <button
+          type="submit"
+          class="btn btn-primary"
+          [disabled]="isSubmitting() || budgetsArray.length === 0"
+        >
+          @if (isSubmitting()) {
+          <span
+            class="spinner-border spinner-border-sm me-2"
+            role="status"
+          ></span>
+          }
+          Guardar Presupuestos
+        </button>
+      </div>
+    </form>
+    </div>
+  </div>
+</div>
+}
+
