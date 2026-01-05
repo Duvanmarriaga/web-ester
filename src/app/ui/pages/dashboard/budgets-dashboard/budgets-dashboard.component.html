@@ -1,7 +1,11 @@
 <div class="dashboard-section">
   <div class="section-header">
     <h3 class="section-title">
-      <lucide-icon [img]="icons.DollarSign" [size]="18" class="me-2"></lucide-icon>
+      <lucide-icon
+        [img]="icons.DollarSign"
+        [size]="18"
+        class="me-2"
+      ></lucide-icon>
       Dashboard de Presupuestos Financieros
     </h3>
   </div>
@@ -13,7 +17,11 @@
         @if (isAdmin()) {
         <div class="col-md-4">
           <label for="filter_company_id" class="form-label">
-            <lucide-icon [img]="icons.Filter" [size]="14" class="me-1"></lucide-icon>
+            <lucide-icon
+              [img]="icons.Filter"
+              [size]="14"
+              class="me-1"
+            ></lucide-icon>
             Compañía <span class="text-danger">*</span>
           </label>
           <ng-select
@@ -29,14 +37,19 @@
             appendTo="body"
           >
           </ng-select>
-          @if (filterForm.get('company_id')?.invalid && filterForm.get('company_id')?.touched) {
+          @if (filterForm.get('company_id')?.invalid &&
+          filterForm.get('company_id')?.touched) {
           <small class="form-error">Compañía requerida</small>
           }
         </div>
         }
         <div [class]="isAdmin() ? 'col-md-3' : 'col-md-4'">
           <label for="filter_date_from" class="form-label">
-            <lucide-icon [img]="icons.Calendar" [size]="14" class="me-1"></lucide-icon>
+            <lucide-icon
+              [img]="icons.Calendar"
+              [size]="14"
+              class="me-1"
+            ></lucide-icon>
             Fecha Desde
           </label>
           <input
@@ -48,7 +61,11 @@
         </div>
         <div [class]="isAdmin() ? 'col-md-3' : 'col-md-4'">
           <label for="filter_date_to" class="form-label">
-            <lucide-icon [img]="icons.Calendar" [size]="14" class="me-1"></lucide-icon>
+            <lucide-icon
+              [img]="icons.Calendar"
+              [size]="14"
+              class="me-1"
+            ></lucide-icon>
             Fecha Hasta
           </label>
           <input
@@ -58,13 +75,17 @@
             formControlName="date_to"
           />
         </div>
-        <div [class]="isAdmin() ? 'col-md-2' : 'col-md-4' + ' d-flex align-items-end'">
+        <div
+          [class]="
+            isAdmin() ? 'col-md-2' : 'col-md-4' + ' d-flex align-items-end'
+          "
+        >
           <button
             type="button"
-            class="btn btn-outline-secondary w-100"
-            (click)="resetFilters()"
+            class="btn btn-primary w-100 search-btn"
+            (click)="applyFilters()"
           >
-            Resetear
+            Buscar
           </button>
         </div>
       </div>
@@ -86,7 +107,7 @@
           <lucide-icon [img]="icons.Target" [size]="20"></lucide-icon>
         </div>
         <div class="stat-content">
-          <h3 class="stat-value">${{ totalBudget() | number : '1.0-0' }}</h3>
+          <h3 class="stat-value">${{ totalBudget() | number : "1.0-0" }}</h3>
           <p class="stat-label">Presupuesto Total</p>
         </div>
       </div>
@@ -97,7 +118,7 @@
           <lucide-icon [img]="icons.TrendingUp" [size]="20"></lucide-icon>
         </div>
         <div class="stat-content">
-          <h3 class="stat-value">${{ totalExecuted() | number : '1.0-0' }}</h3>
+          <h3 class="stat-value">${{ totalExecuted() | number : "1.0-0" }}</h3>
           <p class="stat-label">Ejecutado Total</p>
         </div>
       </div>
@@ -105,8 +126,12 @@
     <div class="col-xl-3 col-lg-6 col-md-6">
       <div class="stat-card">
         <div class="stat-content">
-          <h3 class="stat-value" [class.text-success]="totalDifference() > 0" [class.text-danger]="totalDifference() < 0">
-            ${{ totalDifference() | number : '1.0-0' }}
+          <h3
+            class="stat-value"
+            [class.text-success]="totalDifference() > 0"
+            [class.text-danger]="totalDifference() < 0"
+          >
+            ${{ totalDifference() | number : "1.0-0" }}
           </h3>
           <p class="stat-label">Diferencia Total</p>
         </div>
@@ -118,7 +143,9 @@
           <lucide-icon [img]="icons.Percent" [size]="20"></lucide-icon>
         </div>
         <div class="stat-content">
-          <h3 class="stat-value">{{ averagePercentage() | number : '1.1-1' }}%</h3>
+          <h3 class="stat-value">
+            {{ averagePercentage() | number : "1.1-1" }}%
+          </h3>
           <p class="stat-label">Porcentaje Promedio</p>
         </div>
       </div>
@@ -132,7 +159,11 @@
       <div class="chart-card">
         <div class="chart-header">
           <h3 class="chart-title">
-            <lucide-icon [img]="icons.DollarSign" [size]="18" class="me-2"></lucide-icon>
+            <lucide-icon
+              [img]="icons.DollarSign"
+              [size]="18"
+              class="me-2"
+            ></lucide-icon>
             Presupuesto vs Ejecutado
           </h3>
         </div>
@@ -146,7 +177,8 @@
             [xaxis]="budgetVsExecutedChart.xaxis"
             [yaxis]="budgetVsExecutedChart.yaxis"
             [legend]="budgetVsExecutedChart.legend"
-            [grid]="budgetVsExecutedChart.grid">
+            [grid]="budgetVsExecutedChart.grid"
+          >
           </apx-chart>
         </div>
       </div>
@@ -157,7 +189,11 @@
       <div class="chart-card">
         <div class="chart-header">
           <h3 class="chart-title">
-            <lucide-icon [img]="icons.TrendingUp" [size]="18" class="me-2"></lucide-icon>
+            <lucide-icon
+              [img]="icons.TrendingUp"
+              [size]="18"
+              class="me-2"
+            ></lucide-icon>
             Diferencia por Mes
           </h3>
         </div>
@@ -169,7 +205,8 @@
             [stroke]="differenceChart.stroke"
             [xaxis]="differenceChart.xaxis"
             [yaxis]="differenceChart.yaxis"
-            [grid]="differenceChart.grid">
+            [grid]="differenceChart.grid"
+          >
           </apx-chart>
         </div>
       </div>
@@ -180,7 +217,11 @@
       <div class="chart-card">
         <div class="chart-header">
           <h3 class="chart-title">
-            <lucide-icon [img]="icons.Target" [size]="18" class="me-2"></lucide-icon>
+            <lucide-icon
+              [img]="icons.Target"
+              [size]="18"
+              class="me-2"
+            ></lucide-icon>
             Comparación Mensual
           </h3>
         </div>
@@ -194,7 +235,8 @@
             [xaxis]="monthlyComparisonChart.xaxis"
             [yaxis]="monthlyComparisonChart.yaxis"
             [legend]="monthlyComparisonChart.legend"
-            [grid]="monthlyComparisonChart.grid">
+            [grid]="monthlyComparisonChart.grid"
+          >
           </apx-chart>
         </div>
       </div>
@@ -205,7 +247,11 @@
       <div class="chart-card">
         <div class="chart-header">
           <h3 class="chart-title">
-            <lucide-icon [img]="icons.Percent" [size]="18" class="me-2"></lucide-icon>
+            <lucide-icon
+              [img]="icons.Percent"
+              [size]="18"
+              class="me-2"
+            ></lucide-icon>
             Porcentaje de Ejecución
           </h3>
         </div>
@@ -218,7 +264,8 @@
             [dataLabels]="percentageChart.dataLabels"
             [xaxis]="percentageChart.xaxis"
             [yaxis]="percentageChart.yaxis"
-            [grid]="percentageChart.grid">
+            [grid]="percentageChart.grid"
+          >
           </apx-chart>
         </div>
       </div>
@@ -226,4 +273,3 @@
   </div>
   }
 </div>
-

@@ -20,6 +20,9 @@ function getUserFromToken(token: string): User | null {
       return null;
     }
 
+    // Extract companies from token if available
+    const companies = payload.user.companies || [];
+
     const user: User = {
       id:
         typeof payload.user.uid === 'string'
@@ -32,6 +35,7 @@ function getUserFromToken(token: string): User | null {
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
       deleted_at: null,
+      companies: companies.length > 0 ? companies : undefined,
     };
 
     return user;

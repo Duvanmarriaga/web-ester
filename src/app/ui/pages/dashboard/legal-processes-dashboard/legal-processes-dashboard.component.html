@@ -61,10 +61,10 @@
         <div [class]="isAdmin() ? 'col-md-2' : 'col-md-4' + ' d-flex align-items-end'">
           <button
             type="button"
-            class="btn btn-outline-secondary w-100"
-            (click)="resetFilters()"
+            class="btn btn-primary w-100 search-btn"
+            (click)="applyFilters()"
           >
-            Resetear
+          Buscar
           </button>
         </div>
       </div>

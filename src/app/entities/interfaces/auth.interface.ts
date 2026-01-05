@@ -52,6 +52,10 @@ export interface JwtPayload {
     email: string;
     uid: string | number;
     email_verified_at?: string | null;
+    companies?: Array<{
+      id: number;
+      name: string;
+    }>;
   };
   iat?: number;
   exp?: number;

@@ -28,7 +28,7 @@ import {
 } from '../../../infrastructure/services/financial-report-category.service';
 import { LucideAngularModule, X } from 'lucide-angular';
 import { NgSelectModule } from '@ng-select/ng-select';
-import { Observable, of, Subject } from 'rxjs';
+import { firstValueFrom, Observable, of, Subject } from 'rxjs';
 import { map, catchError, debounceTime, switchMap, distinctUntilChanged } from 'rxjs/operators';
 import { computed } from '@angular/core';
 import { ToastrService } from 'ngx-toastr';
@@ -447,7 +447,7 @@ export class FinancialReportModalComponent implements OnInit {
     this.reportForm.patchValue({ profit }, { emitEvent: false });
   }
 
-  onSubmit() {
+  async onSubmit() {
     if (this.reportForm.invalid) {
       this.reportForm.markAllAsTouched();
       return;
@@ -455,8 +455,67 @@ export class FinancialReportModalComponent implements OnInit {
 
     this.isSubmitting.set(true);
 
-    const formValue = this.reportForm.value;
+    let formValue = { ...this.reportForm.value };
+    
+    // Si financial_report_category_id es un objeto con name pero sin id, buscar la categoría en la lista
+    if (
+      formValue.financial_report_category_id &&
+      typeof formValue.financial_report_category_id === 'object' &&
+      formValue.financial_report_category_id.name &&
+      !formValue.financial_report_category_id.id
+    ) {
+      const categoryName = formValue.financial_report_category_id.name;
+      const foundCategory = this.categoriesList().find(
+        (cat) => cat.name === categoryName
+      );
 
+      if (foundCategory) {
+        // Si encontramos la categoría, usar su ID
+        formValue.financial_report_category_id = foundCategory.id;
+      } else {
+        // Si no encontramos la categoría, crear una nueva
+        const code = categoryName
+          .trim()
+          .toUpperCase()
+          .replace(/\s+/g, '_')
+          .replace(/[^A-Z0-9_]/g, '')
+          .substring(0, 20);
+
+        const categoryData: FinancialReportCategoryCreate = {
+          code: code || 'CAT_' + Date.now(),
+          name: categoryName.trim(),
+          company_id: this.companyId(),
+        };
+
+        this.isCreatingCategory.set(true);
+        this.isLoadingCategories.set(true);
+
+        const newCategory = await firstValueFrom(
+          this.categoryService.create(categoryData)
+        );
+        formValue.financial_report_category_id = newCategory.id;
+        
+        this.isCreatingCategory.set(false);
+        this.isLoadingCategories.set(false);
+      }
+    } else if (
+      formValue.financial_report_category_id &&
+      typeof formValue.financial_report_category_id === 'object' &&
+      formValue.financial_report_category_id.id
+    ) {
+      // Si es un objeto con id, usar solo el id
+      formValue.financial_report_category_id = formValue.financial_report_category_id.id;
+    } else if (
+      formValue.financial_report_category_id &&
+      typeof formValue.financial_report_category_id === 'number'
+    ) {
+      // Si ya es un número, mantenerlo
+      formValue.financial_report_category_id = formValue.financial_report_category_id;
+    } else {
+      // Si no hay categoría, establecer null
+      formValue.financial_report_category_id = null;
+    }
+    
     // Convert month/year format (YYYY-MM) to full date (YYYY-MM-01)
     // Using the first day of the selected month
     const reportDate = formValue.report_date
@@ -477,9 +536,8 @@ export class FinancialReportModalComponent implements OnInit {
       profit: parseFloat(formValue.profit) || 0,
       user_id: this.userId(),
       document_origin: '', // Always send empty string as requested
-      financial_report_category_id: formValue.financial_report_category_id || null,
+      category_id: formValue.financial_report_category_id || null,
     };
-
     if (this.isEditMode() && this.report()?.id) {
       this.update.emit({
         id: this.report()!.id!,

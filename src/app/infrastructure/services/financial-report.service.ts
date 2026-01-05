@@ -25,7 +25,7 @@ export interface FinancialReportCreate {
   profit: number;
   user_id: number;
   document_origin?: string | null;
-  financial_report_category_id?: number | null;
+  category_id?: number | null;
 }
 
 @Injectable({
@@ -35,15 +35,29 @@ export class FinancialReportService {
   private http = inject(HttpClient);
   private apiUrl = environment.apiUrl;
 
-  getAll(page: number = 1, perPage: number = 15, companyId?: number): Observable<PaginatedResponse<FinancialReport>> {
+  getAll(
+    page: number = 1,
+    perPage: number = 15,
+    companyId?: number,
+    dateFrom?: string,
+    dateTo?: string
+  ): Observable<PaginatedResponse<FinancialReport>> {
     let params = new HttpParams()
       .set('page', page.toString())
       .set('per_page', perPage.toString());
-    
+
     if (companyId) {
       params = params.set('company_id', companyId.toString());
     }
-    
+
+    if (dateFrom) {
+      params = params.set('date_from', dateFrom);
+    }
+
+    if (dateTo) {
+      params = params.set('date_to', dateTo);
+    }
+
     return this.http.get<PaginatedResponse<FinancialReport>>(
       `${this.apiUrl}/admin/reports/financial-reports`,
       { params }
@@ -51,7 +65,9 @@ export class FinancialReportService {
   }
 
   getById(id: number): Observable<FinancialReport> {
-    return this.http.get<FinancialReport>(`${this.apiUrl}/admin/reports/financial-reports/${id}`);
+    return this.http.get<FinancialReport>(
+      `${this.apiUrl}/admin/reports/financial-reports/${id}`
+    );
   }
 
   create(reportData: FinancialReportCreate): Observable<FinancialReport> {
@@ -61,7 +77,10 @@ export class FinancialReportService {
     );
   }
 
-  update(id: number, reportData: Partial<FinancialReportCreate>): Observable<FinancialReport> {
+  update(
+    id: number,
+    reportData: Partial<FinancialReportCreate>
+  ): Observable<FinancialReport> {
     return this.http.put<FinancialReport>(
       `${this.apiUrl}/admin/reports/financial-reports/${id}`,
       reportData
@@ -69,7 +88,9 @@ export class FinancialReportService {
   }
 
   delete(id: number): Observable<void> {
-    return this.http.delete<void>(`${this.apiUrl}/admin/reports/financial-reports/${id}`);
+    return this.http.delete<void>(
+      `${this.apiUrl}/admin/reports/financial-reports/${id}`
+    );
   }
 
   downloadTemplate(): Observable<Blob> {
@@ -82,37 +103,53 @@ export class FinancialReportService {
   import(file: File): Observable<{ message?: string }> {
     const formData = new FormData();
     formData.append('file', file);
-    return this.http.post<{ message?: string }>(`${this.apiUrl}/admin/reports/financial-reports/import`, formData);
+    return this.http.post<{ message?: string }>(
+      `${this.apiUrl}/admin/reports/financial-reports/import`,
+      formData
+    );
   }
 
-  createMultiple(reports: FinancialReportCreate[]): Observable<FinancialReport[]> {
+  createMultiple(
+    reports: FinancialReportCreate[]
+  ): Observable<FinancialReport[]> {
     return this.http.post<FinancialReport[]>(
       `${this.apiUrl}/admin/reports/financial-reports/multiple`,
       { reports }
     );
   }
 
-  checkDateExists(companyId: number, reportDate: string, excludeId?: number): Observable<boolean> {
+  checkDateExists(
+    companyId: number,
+    reportDate: string,
+    excludeId?: number
+  ): Observable<boolean> {
     // Convert YYYY-MM-DD to date range (same day for date_from and date_to)
     let params = new HttpParams()
       .set('company_id', companyId.toString())
       .set('date_from', reportDate)
       .set('date_to', reportDate)
       .set('per_page', '100'); // Get enough to check for duplicates
-    
-    return this.http.get<PaginatedResponse<FinancialReport>>(
-      `${this.apiUrl}/admin/reports/financial-reports`,
-      { params }
-    ).pipe(
-      map((response) => {
-        if (excludeId) {
-          // In edit mode, check if there's any report with this date that is NOT the current one
-          return response.data.some(report => report.id !== excludeId && report.report_date.startsWith(reportDate.substring(0, 7)));
-        }
-        // In create mode, check if any report exists with this date
-        return response.data.some(report => report.report_date.startsWith(reportDate.substring(0, 7)));
-      })
-    );
+
+    return this.http
+      .get<PaginatedResponse<FinancialReport>>(
+        `${this.apiUrl}/admin/reports/financial-reports`,
+        { params }
+      )
+      .pipe(
+        map((response) => {
+          if (excludeId) {
+            // In edit mode, check if there's any report with this date that is NOT the current one
+            return response.data.some(
+              (report) =>
+                report.id !== excludeId &&
+                report.report_date.startsWith(reportDate.substring(0, 7))
+            );
+          }
+          // In create mode, check if any report exists with this date
+          return response.data.some((report) =>
+            report.report_date.startsWith(reportDate.substring(0, 7))
+          );
+        })
+      );
   }
 }
-

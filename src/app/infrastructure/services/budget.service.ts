@@ -39,13 +39,27 @@ export class BudgetService {
   private http = inject(HttpClient);
   private apiUrl = environment.apiUrl;
 
-  getAll(page: number = 1, perPage: number = 15, companyId?: number): Observable<PaginatedResponse<Budget>> {
+  getAll(
+    page: number = 1, 
+    perPage: number = 15, 
+    companyId?: number,
+    dateFrom?: string,
+    dateTo?: string
+  ): Observable<PaginatedResponse<Budget>> {
     let params = new HttpParams()
       .set('page', page.toString())
       .set('per_page', perPage.toString());
     
     if (companyId) {
       params = params.set('company_id', companyId.toString());
+    }
+    
+    if (dateFrom) {
+      params = params.set('date_from', dateFrom);
+    }
+    
+    if (dateTo) {
+      params = params.set('date_to', dateTo);
     }
     
     return this.http.get<PaginatedResponse<Budget>>(

@@ -1,7 +1,11 @@
 <div class="dashboard-section">
   <div class="section-header">
     <h3 class="section-title">
-      <lucide-icon [img]="icons.TrendingUp" [size]="18" class="me-2"></lucide-icon>
+      <lucide-icon
+        [img]="icons.TrendingUp"
+        [size]="18"
+        class="me-2"
+      ></lucide-icon>
       Dashboard de Reportes de Operaciones
     </h3>
   </div>
@@ -13,7 +17,11 @@
         @if (isAdmin()) {
         <div class="col-md-4">
           <label for="filter_company_id" class="form-label">
-            <lucide-icon [img]="icons.Filter" [size]="14" class="me-1"></lucide-icon>
+            <lucide-icon
+              [img]="icons.Filter"
+              [size]="14"
+              class="me-1"
+            ></lucide-icon>
             Compañía <span class="text-danger">*</span>
           </label>
           <ng-select
@@ -29,14 +37,19 @@
             appendTo="body"
           >
           </ng-select>
-          @if (filterForm.get('company_id')?.invalid && filterForm.get('company_id')?.touched) {
+          @if (filterForm.get('company_id')?.invalid &&
+          filterForm.get('company_id')?.touched) {
           <small class="form-error">Compañía requerida</small>
           }
         </div>
         }
         <div [class]="isAdmin() ? 'col-md-3' : 'col-md-4'">
           <label for="filter_date_from" class="form-label">
-            <lucide-icon [img]="icons.Calendar" [size]="14" class="me-1"></lucide-icon>
+            <lucide-icon
+              [img]="icons.Calendar"
+              [size]="14"
+              class="me-1"
+            ></lucide-icon>
             Fecha Desde
           </label>
           <input
@@ -48,7 +61,11 @@
         </div>
         <div [class]="isAdmin() ? 'col-md-3' : 'col-md-4'">
           <label for="filter_date_to" class="form-label">
-            <lucide-icon [img]="icons.Calendar" [size]="14" class="me-1"></lucide-icon>
+            <lucide-icon
+              [img]="icons.Calendar"
+              [size]="14"
+              class="me-1"
+            ></lucide-icon>
             Fecha Hasta
           </label>
           <input
@@ -58,13 +75,17 @@
             formControlName="date_to"
           />
         </div>
-        <div [class]="isAdmin() ? 'col-md-2' : 'col-md-4' + ' d-flex align-items-end'">
+        <div
+          [class]="
+            isAdmin() ? 'col-md-2' : 'col-md-4' + ' d-flex align-items-end'
+          "
+        >
           <button
             type="button"
-            class="btn btn-outline-secondary w-100"
-            (click)="resetFilters()"
+            class="btn btn-primary w-100 search-btn"
+            (click)="applyFilters()"
           >
-            Resetear
+            Buscar
           </button>
         </div>
       </div>
@@ -86,7 +107,9 @@
           <lucide-icon [img]="icons.DollarSign" [size]="20"></lucide-icon>
         </div>
         <div class="stat-content">
-          <h3 class="stat-value">${{ totalMonthlyCost() | number : '1.0-0' }}</h3>
+          <h3 class="stat-value">
+            ${{ totalMonthlyCost() | number : "1.0-0" }}
+          </h3>
           <p class="stat-label">Costo Mensual Total</p>
         </div>
       </div>
@@ -97,7 +120,9 @@
           <lucide-icon [img]="icons.DollarSign" [size]="20"></lucide-icon>
         </div>
         <div class="stat-content">
-          <h3 class="stat-value">${{ totalAnnualCost() | number : '1.0-0' }}</h3>
+          <h3 class="stat-value">
+            ${{ totalAnnualCost() | number : "1.0-0" }}
+          </h3>
           <p class="stat-label">Costo Anual Total</p>
         </div>
       </div>
@@ -108,7 +133,9 @@
           <lucide-icon [img]="icons.Calendar" [size]="20"></lucide-icon>
         </div>
         <div class="stat-content">
-          <h3 class="stat-value">${{ averageMonthlyCost() | number : '1.0-0' }}</h3>
+          <h3 class="stat-value">
+            ${{ averageMonthlyCost() | number : "1.0-0" }}
+          </h3>
           <p class="stat-label">Costo Mensual Promedio</p>
         </div>
       </div>
@@ -122,7 +149,11 @@
       <div class="chart-card">
         <div class="chart-header">
           <h3 class="chart-title">
-            <lucide-icon [img]="icons.DollarSign" [size]="18" class="me-2"></lucide-icon>
+            <lucide-icon
+              [img]="icons.DollarSign"
+              [size]="18"
+              class="me-2"
+            ></lucide-icon>
             Costo Mensual por Mes
           </h3>
         </div>
@@ -135,7 +166,8 @@
             [dataLabels]="monthlyCostChart.dataLabels"
             [xaxis]="monthlyCostChart.xaxis"
             [yaxis]="monthlyCostChart.yaxis"
-            [grid]="monthlyCostChart.grid">
+            [grid]="monthlyCostChart.grid"
+          >
           </apx-chart>
         </div>
       </div>
@@ -146,7 +178,11 @@
       <div class="chart-card">
         <div class="chart-header">
           <h3 class="chart-title">
-            <lucide-icon [img]="icons.TrendingUp" [size]="18" class="me-2"></lucide-icon>
+            <lucide-icon
+              [img]="icons.TrendingUp"
+              [size]="18"
+              class="me-2"
+            ></lucide-icon>
             Costo Anual por Mes
           </h3>
         </div>
@@ -158,7 +194,8 @@
             [stroke]="annualCostChart.stroke"
             [xaxis]="annualCostChart.xaxis"
             [yaxis]="annualCostChart.yaxis"
-            [grid]="annualCostChart.grid">
+            [grid]="annualCostChart.grid"
+          >
           </apx-chart>
         </div>
       </div>
@@ -169,7 +206,11 @@
       <div class="chart-card">
         <div class="chart-header">
           <h3 class="chart-title">
-            <lucide-icon [img]="icons.TrendingUp" [size]="18" class="me-2"></lucide-icon>
+            <lucide-icon
+              [img]="icons.TrendingUp"
+              [size]="18"
+              class="me-2"
+            ></lucide-icon>
             Comparación Mensual vs Anual
           </h3>
         </div>
@@ -183,7 +224,8 @@
             [xaxis]="costComparisonChart.xaxis"
             [yaxis]="costComparisonChart.yaxis"
             [legend]="costComparisonChart.legend"
-            [grid]="costComparisonChart.grid">
+            [grid]="costComparisonChart.grid"
+          >
           </apx-chart>
         </div>
       </div>
@@ -194,7 +236,11 @@
       <div class="chart-card">
         <div class="chart-header">
           <h3 class="chart-title">
-            <lucide-icon [img]="icons.Calendar" [size]="18" class="me-2"></lucide-icon>
+            <lucide-icon
+              [img]="icons.Calendar"
+              [size]="18"
+              class="me-2"
+            ></lucide-icon>
             Tendencia Mensual
           </h3>
         </div>
@@ -207,7 +253,8 @@
             [stroke]="monthlyTrendChart.stroke"
             [xaxis]="monthlyTrendChart.xaxis"
             [yaxis]="monthlyTrendChart.yaxis"
-            [grid]="monthlyTrendChart.grid">
+            [grid]="monthlyTrendChart.grid"
+          >
           </apx-chart>
         </div>
       </div>
@@ -215,4 +262,3 @@
   </div>
   }
 </div>
-

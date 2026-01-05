@@ -69,7 +69,7 @@ export class FinancialReportCategoryService {
       .set('name', searchTerm.trim());
 
     return this.http.get<FinancialReportCategory[] | { data: FinancialReportCategory[] }>(
-      `${this.apiUrl}/admin/reports/financial-report-categories`,
+      `${this.apiUrl}/admin/reports/financial-categories`,
       { params }
     ).pipe(
       map((response) => {
@@ -87,7 +87,7 @@ export class FinancialReportCategoryService {
 
   create(categoryData: FinancialReportCategoryCreate): Observable<FinancialReportCategory> {
     return this.http.post<FinancialReportCategory>(
-      `${this.apiUrl}/admin/reports/financial-report-categories`,
+      `${this.apiUrl}/admin/reports/financial-categories`,
       categoryData
     );
   }
