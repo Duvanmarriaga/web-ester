@@ -46,5 +46,5 @@ export interface UserTypeOption {
 // Constante con los tipos de usuario y sus nombres en español
 export const USER_TYPES: UserTypeOption[] = [
   { id: UserType.CLIENT, name: 'Cliente' },
-  { id: UserType.COMPANY, name: 'Compañía' },
+  { id: UserType.COMPANY, name: 'Administrador' },
 ];

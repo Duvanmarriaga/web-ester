@@ -23,6 +23,9 @@ import {
   TrendingDown,
   Filter,
   Calendar,
+  AlertCircle,
+  BarChart3,
+  Activity,
 } from 'lucide-angular';
 import { NgApexchartsModule } from 'ng-apexcharts';
 import { NgSelectModule } from '@ng-select/ng-select';
@@ -62,6 +65,9 @@ export class FinancialReportsDashboardComponent implements OnInit {
     TrendingDown,
     Filter,
     Calendar,
+    AlertCircle,
+    BarChart3,
+    Activity,
   };
 
   companyIdInput = input<number | null>(null);
@@ -75,30 +81,69 @@ export class FinancialReportsDashboardComponent implements OnInit {
 
   filterForm!: FormGroup;
 
-  // Stats computed
-  totalIncome = computed(() => {
-    return this.reports().reduce((sum, r) => sum + (r.total_revenue || 0), 0);
-  });
-
-  totalExpenses = computed(() => {
-    return this.reports().reduce((sum, r) => sum + (r.executed_value || 0), 0);
-  });
-
-  totalProfit = computed(() => {
-    return this.reports().reduce((sum, r) => sum + (r.net_profit || 0), 0);
-  });
-
-  averageProfit = computed(() => {
+  // Financial Indicators - Computed from latest report
+  latestReport = computed(() => {
     const reports = this.reports();
-    if (reports.length === 0) return 0;
-    return this.totalProfit() / reports.length;
+    if (reports.length === 0) return null;
+    // Get the most recent report
+    return reports.sort((a, b) => 
+      new Date(b.report_date).getTime() - new Date(a.report_date).getTime()
+    )[0];
+  });
+
+  // 1. Liquidez corriente: current_asset / current_passive
+  currentLiquidity = computed(() => {
+    const report = this.latestReport();
+    if (!report || !report.current_passive || report.current_passive === 0) return null;
+    return (report.current_asset || 0) / report.current_passive;
+  });
+
+  // 2. Prueba ácida: (current_asset - inventories) / current_passive
+  acidTest = computed(() => {
+    const report = this.latestReport();
+    if (!report || !report.current_passive || report.current_passive === 0) return null;
+    return ((report.current_asset || 0) - (report.inventories || 0)) / report.current_passive;
+  });
+
+  // 3. Endeudamiento total: total_passive / total_assets
+  totalDebt = computed(() => {
+    const report = this.latestReport();
+    if (!report || !report.total_assets || report.total_assets === 0) return null;
+    return (report.total_passive || 0) / report.total_assets;
+  });
+
+  // 4. Margen neto: (net_profit / total_revenue) * 100
+  netMargin = computed(() => {
+    const report = this.latestReport();
+    if (!report || !report.total_revenue || report.total_revenue === 0) return null;
+    return ((report.net_profit || 0) / report.total_revenue) * 100;
+  });
+
+  // 5. Resultado neto YTD: (current_value_result - initial_value_of_the_year) / initial_value_of_the_year
+  netResultYTD = computed(() => {
+    const report = this.latestReport();
+    if (!report || !report.initial_value_of_the_year || report.initial_value_of_the_year === 0) return null;
+    return ((report.current_value_result || 0) - report.initial_value_of_the_year) / report.initial_value_of_the_year;
+  });
+
+  // 6. Variación vs Presupuesto: budgeted_value - executed_value
+  budgetVariance = computed(() => {
+    const report = this.latestReport();
+    if (!report) return null;
+    return (report.budgeted_value || 0) - (report.executed_value || 0);
+  });
+
+  // 7. Caja disponible (runway): current_cash_balance / average_consumption_of_boxes_over_the_last_3_months
+  cashRunway = computed(() => {
+    const report = this.latestReport();
+    if (!report || !report.average_consumption_of_boxes_over_the_last_3_months || 
+        report.average_consumption_of_boxes_over_the_last_3_months === 0) return null;
+    return (report.current_cash_balance || 0) / report.average_consumption_of_boxes_over_the_last_3_months;
   });
 
   // Charts
-  incomeExpensesChart: any = {};
-  profitChart: any = {};
-  monthlyTrendChart: any = {};
-  profitDistributionChart: any = {};
+  netResultYTDChart: any = {};
+  cashRunwayChart: any = {};
 
   ngOnInit() {
     // Get current user
@@ -297,60 +342,28 @@ export class FinancialReportsDashboardComponent implements OnInit {
   updateCharts(): void {
     const reports = this.reports();
 
-    // Group by month
-    const monthlyData = this.groupByMonth(reports);
-    const months = this.sortMonthsByDate(Object.keys(monthlyData));
+    // Sort reports by date for time series
+    const sortedReports = [...reports].sort((a, b) => {
+      const dateA = new Date(a.report_date).getTime();
+      const dateB = new Date(b.report_date).getTime();
+      return dateA - dateB;
+    });
 
-    // Ensure we have at least one month for empty data
-    if (months.length === 0) {
-      const today = new Date();
-      months.push(
-        today.toLocaleDateString('es-ES', { month: 'short', year: 'numeric' })
-      );
-    }
+    // 5. Resultado neto YTD Chart
+    const ytdData = sortedReports.map((report) => {
+      if (!report.initial_value_of_the_year || report.initial_value_of_the_year === 0) return 0;
+      return ((report.current_value_result || 0) - report.initial_value_of_the_year) / report.initial_value_of_the_year;
+    });
+    const ytdDates = sortedReports.map((report) => {
+      const date = new Date(report.report_date);
+      return date.toLocaleDateString('es-ES', { month: 'short', year: 'numeric' });
+    });
 
-    const incomeData = months.map((m: string) => monthlyData[m]?.income || 0);
-    const expensesData = months.map((m: string) => monthlyData[m]?.expenses || 0);
-    const profitData = months.map((m: string) => monthlyData[m]?.profit || 0);
-
-    // Income vs Expenses Chart (Bar)
-    this.incomeExpensesChart = {
-      series: [
-        { name: 'Ingresos', data: incomeData },
-        { name: 'Gastos', data: expensesData },
-      ],
-      chart: {
-        type: 'bar',
-        height: 300,
-        toolbar: { show: false },
-        stacked: false,
-        zoom: { enabled: false },
-        pan: { enabled: false },
-      },
-      colors: ['#10b981', '#ef4444'],
-      plotOptions: {
-        bar: {
-          borderRadius: 8,
-          columnWidth: '60%',
-        },
-      },
-      dataLabels: { enabled: false },
-      xaxis: { categories: months },
-      yaxis: {
-        labels: {
-          formatter: (val: number) => `$${(val / 1000).toFixed(0)}k`,
-        },
-      },
-      legend: { position: 'top' },
-      grid: { borderColor: '#e2e8f0' },
-    };
-
-    // Profit Trend Chart (Line)
-    this.profitChart = {
+    this.netResultYTDChart = {
       series: [
         {
-          name: 'Ganancia',
-          data: profitData,
+          name: 'Resultado Neto YTD',
+          data: ytdData,
         },
       ],
       chart: {
@@ -362,31 +375,42 @@ export class FinancialReportsDashboardComponent implements OnInit {
       },
       colors: ['#3b82f6'],
       stroke: { curve: 'smooth', width: 3 },
-      xaxis: { categories: months },
+      xaxis: { categories: ytdDates },
       yaxis: {
         labels: {
-          formatter: (val: number) => `$${(val / 1000).toFixed(0)}k`,
+          formatter: (val: number) => `${(val * 100).toFixed(1)}%`,
         },
       },
       grid: { borderColor: '#e2e8f0' },
+      dataLabels: { enabled: false },
     };
 
-    // Monthly Trend (Area)
-    this.monthlyTrendChart = {
+    // 7. Caja disponible (runway) Chart
+    const runwayData = sortedReports.map((report) => {
+      if (!report.average_consumption_of_boxes_over_the_last_3_months || 
+          report.average_consumption_of_boxes_over_the_last_3_months === 0) return 0;
+      return (report.current_cash_balance || 0) / report.average_consumption_of_boxes_over_the_last_3_months;
+    });
+    const runwayDates = sortedReports.map((report) => {
+      const date = new Date(report.report_date);
+      return date.toLocaleDateString('es-ES', { month: 'short', year: 'numeric' });
+    });
+
+    this.cashRunwayChart = {
       series: [
-        { name: 'Ingresos', data: incomeData },
-        { name: 'Gastos', data: expensesData },
-        { name: 'Ganancia', data: profitData },
+        {
+          name: 'Meses de Operación',
+          data: runwayData,
+        },
       ],
       chart: {
         type: 'area',
         height: 300,
         toolbar: { show: false },
-        stacked: false,
         zoom: { enabled: false },
         pan: { enabled: false },
       },
-      colors: ['#10b981', '#ef4444', '#3b82f6'],
+      colors: ['#10b981'],
       fill: {
         type: 'gradient',
         gradient: {
@@ -396,94 +420,15 @@ export class FinancialReportsDashboardComponent implements OnInit {
         },
       },
       stroke: { curve: 'smooth', width: 2 },
-      xaxis: { categories: months },
+      xaxis: { categories: runwayDates },
       yaxis: {
         labels: {
-          formatter: (val: number) => `$${(val / 1000).toFixed(0)}k`,
+          formatter: (val: number) => `${val.toFixed(1)} meses`,
         },
       },
-      legend: { position: 'top' },
       grid: { borderColor: '#e2e8f0' },
-    };
-
-    // Profit Distribution (Pie)
-    const positiveMonths = profitData.filter((p: number) => p > 0).length;
-    const negativeMonths = profitData.filter((p: number) => p < 0).length;
-    const neutralMonths = profitData.filter((p: number) => p === 0).length;
-
-    // Ensure we have at least one value for pie chart
-    const hasData =
-      positiveMonths > 0 || negativeMonths > 0 || neutralMonths > 0;
-
-    this.profitDistributionChart = {
-      series: hasData ? [positiveMonths, negativeMonths, neutralMonths] : [1],
-      chart: {
-        type: 'pie',
-        height: 300,
-        zoom: { enabled: false },
-        pan: { enabled: false },
-      },
-      labels: hasData
-        ? ['Meses Positivos', 'Meses Negativos', 'Meses Neutros']
-        : ['Sin datos'],
-      colors: ['#10b981', '#ef4444', '#64748b'],
-      legend: { position: 'bottom' },
-      dataLabels: {
-        enabled: true,
-        formatter: (val: number) => `${val.toFixed(1)}%`,
-      },
+      dataLabels: { enabled: false },
     };
   }
 
-  private groupByMonth(reports: FinancialReport[]): {
-    [key: string]: { income: number; expenses: number; profit: number };
-  } {
-    const grouped: {
-      [key: string]: { income: number; expenses: number; profit: number };
-    } = {};
-
-    reports.forEach((report) => {
-      const date = new Date(report.report_date);
-      const monthKey = date.toLocaleDateString('es-ES', {
-        month: 'short',
-        year: 'numeric',
-      });
-
-      if (!grouped[monthKey]) {
-        grouped[monthKey] = { income: 0, expenses: 0, profit: 0 };
-      }
-
-      grouped[monthKey].income += report.total_revenue || 0;
-      grouped[monthKey].expenses += report.executed_value || 0;
-      grouped[monthKey].profit += report.net_profit || 0;
-    });
-
-    return grouped;
-  }
-
-  private sortMonthsByDate(monthKeys: string[]): string[] {
-    return monthKeys.sort((a, b) => {
-      // Parse month strings like "ene 2020" to dates
-      const dateA = this.parseMonthString(a);
-      const dateB = this.parseMonthString(b);
-      return dateA.getTime() - dateB.getTime();
-    });
-  }
-
-  private parseMonthString(monthStr: string): Date {
-    // Parse Spanish month strings like "ene 2020" or "enero 2020"
-    const monthNames: { [key: string]: number } = {
-      'ene': 0, 'feb': 1, 'mar': 2, 'abr': 3, 'may': 4, 'jun': 5,
-      'jul': 6, 'ago': 7, 'sep': 8, 'oct': 9, 'nov': 10, 'dic': 11,
-      'enero': 0, 'febrero': 1, 'marzo': 2, 'abril': 3, 'mayo': 4, 'junio': 5,
-      'julio': 6, 'agosto': 7, 'septiembre': 8, 'octubre': 9, 'noviembre': 10, 'diciembre': 11
-    };
-
-    const parts = monthStr.toLowerCase().split(' ');
-    const monthName = parts[0];
-    const year = parseInt(parts[1], 10);
-
-    const monthIndex = monthNames[monthName] ?? 0;
-    return new Date(year, monthIndex, 1);
-  }
 }

@@ -36,7 +36,7 @@ import { selectAllCompanies } from '../../../../infrastructure/store/company';
 import { ToastrService } from 'ngx-toastr';
 import * as CompanyActions from '../../../../infrastructure/store/company';
 @Component({
-  selector: 'app-budgets-dashboard',
+  selector: 'app-operation-budgets-dashboard',
   standalone: true,
   imports: [
     CommonModule,
@@ -45,10 +45,10 @@ import * as CompanyActions from '../../../../infrastructure/store/company';
     NgApexchartsModule,
     NgSelectModule,
   ],
-  templateUrl: './budgets-dashboard.component.html',
-  styleUrl: './budgets-dashboard.component.scss',
+  templateUrl: './operation-budgets-dashboard.component.html',
+  styleUrl: './operation-budgets-dashboard.component.scss',
 })
-export class BudgetsDashboardComponent implements OnInit {
+export class OperationBudgetsDashboardComponent implements OnInit {
   private route = inject(ActivatedRoute);
   private budgetService = inject(BudgetService);
   private toastr = inject(ToastrService);
@@ -94,8 +94,10 @@ export class BudgetsDashboardComponent implements OnInit {
   averagePercentage = computed(() => {
     const budgets = this.budgets();
     if (budgets.length === 0) return 0;
-    const total = budgets.reduce((sum, b) => sum + (b.percentage || 0), 0);
-    return total / budgets.length;
+    const totalBudget = this.totalBudget();
+    const totalExecuted = this.totalExecuted();
+    if (totalBudget === 0) return 0;
+    return (totalExecuted / totalBudget) * 100;
   });
 
   // Charts
@@ -457,7 +459,16 @@ export class BudgetsDashboardComponent implements OnInit {
       grouped[monthKey].budget += budget.budget_amount || 0;
       grouped[monthKey].executed += budget.executed_amount || 0;
       grouped[monthKey].difference += budget.difference_amount || 0;
-      grouped[monthKey].percentage = budget.percentage || 0;
+    });
+
+    // Calculate percentage for each month based on totals
+    Object.keys(grouped).forEach((monthKey) => {
+      const monthData = grouped[monthKey];
+      if (monthData.budget > 0) {
+        monthData.percentage = (monthData.executed / monthData.budget) * 100;
+      } else {
+        monthData.percentage = 0;
+      }
     });
 
     return grouped;

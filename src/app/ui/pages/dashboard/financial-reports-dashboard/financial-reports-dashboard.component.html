@@ -69,51 +69,164 @@
     </div>
   </div>
   } @else {
-  <!-- Stats Cards -->
+  <!-- Financial Indicators -->
   <div class="row g-3 mb-4">
+    <!-- 1. Liquidez Corriente -->
     <div class="col-xl-3 col-lg-6 col-md-6">
-      <div class="stat-card">
-        <div class="stat-icon bg-success-light">
-          <lucide-icon [img]="icons.TrendingUp" [size]="20"></lucide-icon>
+      <div class="indicator-card">
+        <div class="indicator-header">
+          <h4 class="indicator-title">Liquidez Corriente</h4>
+          <div class="indicator-traffic-light">
+            @if (currentLiquidity() !== null) {
+              <div class="traffic-light" [class.green]="currentLiquidity()! > 0" [class.red]="currentLiquidity()! <= 0">
+                <div class="light"></div>
+              </div>
+            } @else {
+              <div class="traffic-light gray">
+                <div class="light"></div>
+              </div>
+            }
+          </div>
         </div>
-        <div class="stat-content">
-          <h3 class="stat-value">${{ totalIncome() | number : '1.0-0' }}</h3>
-          <p class="stat-label">Total Ingresos</p>
+        <div class="indicator-value">
+          @if (currentLiquidity() !== null) {
+            <span [class.text-success]="currentLiquidity()! > 0" [class.text-danger]="currentLiquidity()! <= 0">
+              {{ currentLiquidity()! | number : '1.2-2' }}
+            </span>
+          } @else {
+            <span class="text-muted">N/A</span>
+          }
+        </div>
+        <div class="indicator-formula">
+          Activo Corriente / Pasivo Corriente
         </div>
       </div>
     </div>
+
+    <!-- 2. Prueba Ácida -->
     <div class="col-xl-3 col-lg-6 col-md-6">
-      <div class="stat-card">
-        <div class="stat-icon bg-danger-light">
-          <lucide-icon [img]="icons.TrendingDown" [size]="20"></lucide-icon>
+      <div class="indicator-card">
+        <div class="indicator-header">
+          <h4 class="indicator-title">Prueba Ácida</h4>
+          <div class="indicator-traffic-light">
+            @if (acidTest() !== null) {
+              <div class="traffic-light" [class.green]="acidTest()! > 0" [class.red]="acidTest()! <= 0">
+                <div class="light"></div>
+              </div>
+            } @else {
+              <div class="traffic-light gray">
+                <div class="light"></div>
+              </div>
+            }
+          </div>
         </div>
-        <div class="stat-content">
-          <h3 class="stat-value">${{ totalExpenses() | number : '1.0-0' }}</h3>
-          <p class="stat-label">Total Gastos</p>
+        <div class="indicator-value">
+          @if (acidTest() !== null) {
+            <span [class.text-success]="acidTest()! > 0" [class.text-danger]="acidTest()! <= 0">
+              {{ acidTest()! | number : '1.2-2' }}
+            </span>
+          } @else {
+            <span class="text-muted">N/A</span>
+          }
+        </div>
+        <div class="indicator-formula">
+          (Activo Corriente - Inventarios) / Pasivo Corriente
         </div>
       </div>
     </div>
+
+    <!-- 3. Endeudamiento Total -->
     <div class="col-xl-3 col-lg-6 col-md-6">
-      <div class="stat-card">
-        <div class="stat-icon bg-info-light">
-          <lucide-icon [img]="icons.DollarSign" [size]="20"></lucide-icon>
+      <div class="indicator-card">
+        <div class="indicator-header">
+          <h4 class="indicator-title">Endeudamiento Total</h4>
+          <div class="indicator-traffic-light">
+            @if (totalDebt() !== null) {
+              <div class="traffic-light" [class.green]="totalDebt()! > 0" [class.red]="totalDebt()! <= 0">
+                <div class="light"></div>
+              </div>
+            } @else {
+              <div class="traffic-light gray">
+                <div class="light"></div>
+              </div>
+            }
+          </div>
         </div>
-        <div class="stat-content">
-          <h3 class="stat-value" [class.text-success]="totalProfit() > 0" [class.text-danger]="totalProfit() < 0">
-            ${{ totalProfit() | number : '1.0-0' }}
-          </h3>
-          <p class="stat-label">Ganancia Total</p>
+        <div class="indicator-value">
+          @if (totalDebt() !== null) {
+            <span [class.text-success]="totalDebt()! > 0" [class.text-danger]="totalDebt()! <= 0">
+              {{ totalDebt()! | number : '1.2-2' }}
+            </span>
+          } @else {
+            <span class="text-muted">N/A</span>
+          }
+        </div>
+        <div class="indicator-formula">
+          Pasivo Total / Activo Total
         </div>
       </div>
     </div>
+
+    <!-- 4. Margen Neto -->
     <div class="col-xl-3 col-lg-6 col-md-6">
-      <div class="stat-card">
-        <div class="stat-icon bg-warning-light">
-          <lucide-icon [img]="icons.DollarSign" [size]="20"></lucide-icon>
+      <div class="indicator-card">
+        <div class="indicator-header">
+          <h4 class="indicator-title">Margen Neto</h4>
+          <div class="indicator-traffic-light">
+            @if (netMargin() !== null) {
+              <div class="traffic-light" [class.green]="netMargin()! > 0" [class.red]="netMargin()! <= 0">
+                <div class="light"></div>
+              </div>
+            } @else {
+              <div class="traffic-light gray">
+                <div class="light"></div>
+              </div>
+            }
+          </div>
         </div>
-        <div class="stat-content">
-          <h3 class="stat-value">${{ averageProfit() | number : '1.0-0' }}</h3>
-          <p class="stat-label">Ganancia Promedio</p>
+        <div class="indicator-value">
+          @if (netMargin() !== null) {
+            <span [class.text-success]="netMargin()! > 0" [class.text-danger]="netMargin()! <= 0">
+              {{ netMargin()! | number : '1.2-2' }}%
+            </span>
+          } @else {
+            <span class="text-muted">N/A</span>
+          }
+        </div>
+        <div class="indicator-formula">
+          (Utilidad Neta / Ingresos Totales) × 100
+        </div>
+      </div>
+    </div>
+
+    <!-- 6. Variación vs Presupuesto -->
+    <div class="col-xl-3 col-lg-6 col-md-6">
+      <div class="indicator-card">
+        <div class="indicator-header">
+          <h4 class="indicator-title">Variación vs Presupuesto</h4>
+          <div class="indicator-traffic-light">
+            @if (budgetVariance() !== null) {
+              <div class="traffic-light" [class.green]="budgetVariance()! > 0" [class.red]="budgetVariance()! <= 0">
+                <div class="light"></div>
+              </div>
+            } @else {
+              <div class="traffic-light gray">
+                <div class="light"></div>
+              </div>
+            }
+          </div>
+        </div>
+        <div class="indicator-value">
+          @if (budgetVariance() !== null) {
+            <span [class.text-success]="budgetVariance()! > 0" [class.text-danger]="budgetVariance()! <= 0">
+              ${{ budgetVariance()! | number : '1.0-0' }}
+            </span>
+          } @else {
+            <span class="text-muted">N/A</span>
+          }
+        </div>
+        <div class="indicator-formula">
+          Valor Presupuestado - Valor Ejecutado
         </div>
       </div>
     </div>
@@ -121,96 +234,50 @@
 
   <!-- Charts Grid -->
   <div class="row g-3">
-    <!-- Income vs Expenses -->
+    <!-- 5. Resultado Neto YTD -->
     <div class="col-xl-6 col-lg-6 col-12">
       <div class="chart-card">
         <div class="chart-header">
           <h3 class="chart-title">
-            <lucide-icon [img]="icons.DollarSign" [size]="18" class="me-2"></lucide-icon>
-            Ingresos vs Gastos
+            <lucide-icon [img]="icons.BarChart3" [size]="18" class="me-2"></lucide-icon>
+            Resultado Neto YTD
           </h3>
         </div>
         <div class="chart-body">
           <apx-chart
-            [series]="incomeExpensesChart.series"
-            [chart]="incomeExpensesChart.chart"
-            [colors]="incomeExpensesChart.colors"
-            [plotOptions]="incomeExpensesChart.plotOptions"
-            [dataLabels]="incomeExpensesChart.dataLabels"
-            [xaxis]="incomeExpensesChart.xaxis"
-            [yaxis]="incomeExpensesChart.yaxis"
-            [legend]="incomeExpensesChart.legend"
-            [grid]="incomeExpensesChart.grid">
+            [series]="netResultYTDChart.series"
+            [chart]="netResultYTDChart.chart"
+            [colors]="netResultYTDChart.colors"
+            [stroke]="netResultYTDChart.stroke"
+            [xaxis]="netResultYTDChart.xaxis"
+            [yaxis]="netResultYTDChart.yaxis"
+            [grid]="netResultYTDChart.grid"
+            [dataLabels]="netResultYTDChart.dataLabels">
           </apx-chart>
         </div>
       </div>
     </div>
 
-    <!-- Profit Trend -->
+    <!-- 7. Caja Disponible (Runway) -->
     <div class="col-xl-6 col-lg-6 col-12">
       <div class="chart-card">
         <div class="chart-header">
           <h3 class="chart-title">
-            <lucide-icon [img]="icons.TrendingUp" [size]="18" class="me-2"></lucide-icon>
-            Tendencia de Ganancia
+            <lucide-icon [img]="icons.Activity" [size]="18" class="me-2"></lucide-icon>
+            Caja Disponible (Runway)
           </h3>
         </div>
         <div class="chart-body">
           <apx-chart
-            [series]="profitChart.series"
-            [chart]="profitChart.chart"
-            [colors]="profitChart.colors"
-            [stroke]="profitChart.stroke"
-            [xaxis]="profitChart.xaxis"
-            [yaxis]="profitChart.yaxis"
-            [grid]="profitChart.grid">
-          </apx-chart>
-        </div>
-      </div>
-    </div>
-
-    <!-- Monthly Trend -->
-    <div class="col-xl-8 col-lg-12 col-12">
-      <div class="chart-card">
-        <div class="chart-header">
-          <h3 class="chart-title">
-            <lucide-icon [img]="icons.TrendingUp" [size]="18" class="me-2"></lucide-icon>
-            Tendencia Mensual
-          </h3>
-        </div>
-        <div class="chart-body">
-          <apx-chart
-            [series]="monthlyTrendChart.series"
-            [chart]="monthlyTrendChart.chart"
-            [colors]="monthlyTrendChart.colors"
-            [fill]="monthlyTrendChart.fill"
-            [stroke]="monthlyTrendChart.stroke"
-            [xaxis]="monthlyTrendChart.xaxis"
-            [yaxis]="monthlyTrendChart.yaxis"
-            [legend]="monthlyTrendChart.legend"
-            [grid]="monthlyTrendChart.grid">
-          </apx-chart>
-        </div>
-      </div>
-    </div>
-
-    <!-- Profit Distribution -->
-    <div class="col-xl-4 col-lg-12 col-12">
-      <div class="chart-card">
-        <div class="chart-header">
-          <h3 class="chart-title">
-            <lucide-icon [img]="icons.FileText" [size]="18" class="me-2"></lucide-icon>
-            Distribución de Ganancia
-          </h3>
-        </div>
-        <div class="chart-body">
-          <apx-chart
-            [series]="profitDistributionChart.series"
-            [chart]="profitDistributionChart.chart"
-            [labels]="profitDistributionChart.labels"
-            [colors]="profitDistributionChart.colors"
-            [legend]="profitDistributionChart.legend"
-            [dataLabels]="profitDistributionChart.dataLabels">
+            [series]="cashRunwayChart.series"
+            [chart]="cashRunwayChart.chart"
+            [colors]="cashRunwayChart.colors"
+            [fill]="cashRunwayChart.fill"
+            [stroke]="cashRunwayChart.stroke"
+            [xaxis]="cashRunwayChart.xaxis"
+            [yaxis]="cashRunwayChart.yaxis"
+            [grid]="cashRunwayChart.grid"
+            [dataLabels]="cashRunwayChart.dataLabels">
           </apx-chart>
         </div>
       </div>
@@ -218,4 +285,3 @@
   </div>
   }
 </div>
-

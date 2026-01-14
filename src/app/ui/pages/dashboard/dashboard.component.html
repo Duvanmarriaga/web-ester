@@ -26,30 +26,21 @@
         </button>
         <button
           type="button"
-          (click)="setActiveTab('operations')"
-          [class.active]="activeTab() === 'operations'"
-          class="tab-button"
-        >
-          <lucide-icon [img]="icons.TrendingUp" [size]="14"></lucide-icon>
-          <span>Reportes de Operaciones</span>
-        </button>
-        <button
-          type="button"
-          (click)="setActiveTab('budgets')"
-          [class.active]="activeTab() === 'budgets'"
+          (click)="setActiveTab('operation-budgets')"
+          [class.active]="activeTab() === 'operation-budgets'"
           class="tab-button"
         >
           <lucide-icon [img]="icons.DollarSign" [size]="14"></lucide-icon>
-          <span>Presupuestos Financieros</span>
+          <span>Presupuestos de Operaciones</span>
         </button>
         <button
           type="button"
-          (click)="setActiveTab('investments')"
-          [class.active]="activeTab() === 'investments'"
+          (click)="setActiveTab('investment-budgets')"
+          [class.active]="activeTab() === 'investment-budgets'"
           class="tab-button"
         >
           <lucide-icon [img]="icons.TrendingDown" [size]="14"></lucide-icon>
-          <span>Reporte de Inversiones</span>
+          <span>Presupuestos de Inversiones</span>
         </button>
         <button
           type="button"
@@ -65,12 +56,10 @@
       <div class="tabs-content">
         @if (activeTab() === 'financial') {
         <app-financial-reports-dashboard></app-financial-reports-dashboard>
-        } @else if (activeTab() === 'operations') {
-        <app-operations-reports-dashboard></app-operations-reports-dashboard>
-        } @else if (activeTab() === 'budgets') {
-        <app-budgets-dashboard></app-budgets-dashboard>
-        } @else if (activeTab() === 'investments') {
-        <app-investments-dashboard></app-investments-dashboard>
+        } @else if (activeTab() === 'operation-budgets') {
+        <app-operation-budgets-dashboard></app-operation-budgets-dashboard>
+        } @else if (activeTab() === 'investment-budgets') {
+        <app-investment-budgets-dashboard></app-investment-budgets-dashboard>
         } @else if (activeTab() === 'legal') {
         <app-legal-processes-dashboard></app-legal-processes-dashboard>
         }

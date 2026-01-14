@@ -1,8 +1,8 @@
 <div class="dashboard-section">
   <div class="section-header">
     <h3 class="section-title">
-      <lucide-icon [img]="icons.TrendingDown" [size]="18" class="me-2"></lucide-icon>
-      Dashboard de Reporte de Inversiones
+      <lucide-icon [img]="icons.TrendingUp" [size]="18" class="me-2"></lucide-icon>
+      Dashboard de Presupuestos de Inversiones
     </h3>
   </div>
 
@@ -102,89 +102,43 @@
       <div class="chart-card">
         <div class="chart-header">
           <h3 class="chart-title">
-            <lucide-icon [img]="icons.TrendingDown" [size]="18" class="me-2"></lucide-icon>
-            Tendencia de Inversión
-          </h3>
-        </div>
-        <div class="chart-body">
-          <apx-chart
-            [series]="investmentTrendChart.series"
-            [chart]="investmentTrendChart.chart"
-            [colors]="investmentTrendChart.colors"
-            [stroke]="investmentTrendChart.stroke"
-            [xaxis]="investmentTrendChart.xaxis"
-            [yaxis]="investmentTrendChart.yaxis"
-            [grid]="investmentTrendChart.grid">
-          </apx-chart>
-        </div>
-      </div>
-    </div>
-
-    <!-- Total Amount -->
-    <div class="col-xl-6 col-lg-6 col-12">
-      <div class="chart-card">
-        <div class="chart-header">
-          <h3 class="chart-title">
-            <lucide-icon [img]="icons.DollarSign" [size]="18" class="me-2"></lucide-icon>
-            Monto Total por Categoría
-          </h3>
-        </div>
-        <div class="chart-body">
-          <apx-chart
-            [series]="totalAmountChart.series"
-            [chart]="totalAmountChart.chart"
-            [colors]="totalAmountChart.colors"
-            [stroke]="totalAmountChart.stroke"
-            [xaxis]="totalAmountChart.xaxis"
-            [yaxis]="totalAmountChart.yaxis"
-            [grid]="totalAmountChart.grid">
-          </apx-chart>
-        </div>
-      </div>
-    </div>
-
-    <!-- Category Distribution -->
-    <div class="col-xl-6 col-lg-6 col-12">
-      <div class="chart-card">
-        <div class="chart-header">
-          <h3 class="chart-title">
-            <lucide-icon [img]="icons.Package" [size]="18" class="me-2"></lucide-icon>
-            Distribución por Categoría
-          </h3>
-        </div>
-        <div class="chart-body">
-          <apx-chart
-            [series]="categoryChart.series"
-            [chart]="categoryChart.chart"
-            [labels]="categoryChart.labels"
-            [colors]="categoryChart.colors"
-            [legend]="categoryChart.legend"
-            [dataLabels]="categoryChart.dataLabels">
-          </apx-chart>
-        </div>
-      </div>
-    </div>
-
-    <!-- Monthly Investment -->
-    <div class="col-12">
-      <div class="chart-card">
-        <div class="chart-header">
-          <h3 class="chart-title">
-            <lucide-icon [img]="icons.BarChart3" [size]="18" class="me-2"></lucide-icon>
+            <lucide-icon [img]="icons.TrendingUp" [size]="18" class="me-2"></lucide-icon>
             Inversión por Categoría
           </h3>
         </div>
         <div class="chart-body">
           <apx-chart
-            [series]="monthlyInvestmentChart.series"
-            [chart]="monthlyInvestmentChart.chart"
-            [colors]="monthlyInvestmentChart.colors"
-            [fill]="monthlyInvestmentChart.fill"
-            [stroke]="monthlyInvestmentChart.stroke"
-            [xaxis]="monthlyInvestmentChart.xaxis"
-            [yaxis]="monthlyInvestmentChart.yaxis"
-            [legend]="monthlyInvestmentChart.legend"
-            [grid]="monthlyInvestmentChart.grid">
+            [series]="investmentByCategoryChart.series"
+            [chart]="investmentByCategoryChart.chart"
+            [colors]="investmentByCategoryChart.colors"
+            [plotOptions]="investmentByCategoryChart.plotOptions"
+            [dataLabels]="investmentByCategoryChart.dataLabels"
+            [xaxis]="investmentByCategoryChart.xaxis"
+            [yaxis]="investmentByCategoryChart.yaxis"
+            [grid]="investmentByCategoryChart.grid">
+          </apx-chart>
+        </div>
+      </div>
+    </div>
+
+    <!-- Monthly Investment Trend -->
+    <div class="col-xl-6 col-lg-6 col-12">
+      <div class="chart-card">
+        <div class="chart-header">
+          <h3 class="chart-title">
+            <lucide-icon [img]="icons.TrendingUp" [size]="18" class="me-2"></lucide-icon>
+            Tendencia Mensual de Inversión
+          </h3>
+        </div>
+        <div class="chart-body">
+          <apx-chart
+            [series]="monthlyInvestmentTrendChart.series"
+            [chart]="monthlyInvestmentTrendChart.chart"
+            [colors]="monthlyInvestmentTrendChart.colors"
+            [stroke]="monthlyInvestmentTrendChart.stroke"
+            [xaxis]="monthlyInvestmentTrendChart.xaxis"
+            [yaxis]="monthlyInvestmentTrendChart.yaxis"
+            [grid]="monthlyInvestmentTrendChart.grid">
           </apx-chart>
         </div>
       </div>

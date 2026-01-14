@@ -17,26 +17,35 @@ import {
 import { Store } from '@ngrx/store';
 import {
   LucideAngularModule,
+  TrendingDown,
   TrendingUp,
   DollarSign,
-  Calendar,
-  Filter,
-  AlertCircle,
+  Package,
   BarChart3,
+  Filter,
+  Calendar,
 } from 'lucide-angular';
 import { NgApexchartsModule } from 'ng-apexcharts';
 import { NgSelectModule } from '@ng-select/ng-select';
 import {
-  OperationReportService,
-  OperationReport,
-} from '../../../../infrastructure/services/operation-report.service';
+  InvestmentService,
+  Investment,
+} from '../../../../infrastructure/services/investment.service';
+import {
+  InvestmentCategoryService,
+  InvestmentCategory,
+} from '../../../../infrastructure/services/investment-category.service';
+import {
+  InvestmentBudgetYearService,
+  InvestmentBudgetYear,
+} from '../../../../infrastructure/services/investment-budget-year.service';
 import { Company, UserType } from '../../../../entities/interfaces';
 import { selectUser } from '../../../../infrastructure/store/auth';
 import { selectAllCompanies } from '../../../../infrastructure/store/company';
 import { ToastrService } from 'ngx-toastr';
-
+import * as CompanyActions from '../../../../infrastructure/store/company';
 @Component({
-  selector: 'app-operations-reports-dashboard',
+  selector: 'app-investment-budgets-dashboard',
   standalone: true,
   imports: [
     CommonModule,
@@ -45,53 +54,59 @@ import { ToastrService } from 'ngx-toastr';
     NgApexchartsModule,
     NgSelectModule,
   ],
-  templateUrl: './operations-reports-dashboard.component.html',
-  styleUrl: './operations-reports-dashboard.component.scss',
+  templateUrl: './investment-budgets-dashboard.component.html',
+  styleUrl: './investment-budgets-dashboard.component.scss',
 })
-export class OperationsReportsDashboardComponent implements OnInit {
+export class InvestmentBudgetsDashboardComponent implements OnInit {
   private route = inject(ActivatedRoute);
-  private operationReportService = inject(OperationReportService);
+  private investmentService = inject(InvestmentService);
+  private investmentCategoryService = inject(InvestmentCategoryService);
+  private budgetYearService = inject(InvestmentBudgetYearService);
   private toastr = inject(ToastrService);
   private fb = inject(FormBuilder);
   private store = inject(Store);
 
-  readonly icons = { TrendingUp, DollarSign, Calendar, Filter, AlertCircle, BarChart3 };
+  readonly icons = {
+    TrendingDown,
+    TrendingUp,
+    DollarSign,
+    Package,
+    BarChart3,
+    Filter,
+    Calendar,
+  };
 
   companyIdInput = input<number | null>(null);
   companyId = signal<number | null>(null);
   isLoading = signal(false);
   isLoadingCompanies = signal(false);
-  reports = signal<OperationReport[]>([]);
+  investments = signal<Investment[]>([]);
   companies = signal<Company[]>([]);
+  categories = signal<InvestmentCategory[]>([]);
+  budgetYears = signal<InvestmentBudgetYear[]>([]);
   currentUser = signal<any>(null);
   isAdmin = computed(() => this.currentUser()?.type === UserType.CLIENT);
 
   filterForm!: FormGroup;
 
   // Stats computed
-  totalBudget = computed(() => {
-    return this.reports().reduce((sum, r) => sum + (r.budget_amount || 0), 0);
+  totalInvestment = computed(() => {
+    return this.investments().reduce((sum, i) => sum + (i.amount || 0), 0);
   });
 
-  totalExecuted = computed(() => {
-    return this.reports().reduce((sum, r) => sum + (r.executed_amount || 0), 0);
+  totalCount = computed(() => {
+    return this.investments().length;
   });
 
-  totalDifference = computed(() => {
-    return this.reports().reduce((sum, r) => sum + (r.difference_amount || 0), 0);
-  });
-
-  averageBudget = computed(() => {
-    const reports = this.reports();
-    if (reports.length === 0) return 0;
-    return this.totalBudget() / reports.length;
+  averageAmount = computed(() => {
+    const investments = this.investments();
+    if (investments.length === 0) return 0;
+    return this.totalInvestment() / investments.length;
   });
 
   // Charts
-  budgetChart: any = {};
-  executedChart: any = {};
-  costComparisonChart: any = {};
-  monthlyTrendChart: any = {};
+  investmentByCategoryChart: any = {};
+  monthlyInvestmentTrendChart: any = {};
 
   ngOnInit() {
     // Get current user
@@ -144,17 +159,18 @@ export class OperationsReportsDashboardComponent implements OnInit {
 
     this.filterForm.valueChanges.subscribe(() => {
       if (this.filterForm.valid) {
-        this.loadReports();
+        this.loadInvestments();
       }
     });
 
     // Load initial data if form is valid
     if (this.filterForm.valid) {
-      this.loadReports();
+      this.loadInvestments();
     }
   }
 
   loadCompanies(): void {
+    this.store.dispatch(CompanyActions.loadCompanies());
     // This method is only called for ADMIN users
     // Get companies from store
     this.store.select(selectAllCompanies).subscribe((companies) => {
@@ -170,8 +186,8 @@ export class OperationsReportsDashboardComponent implements OnInit {
   }
 
   applyFilters(): void {
-    // Filters are now applied server-side in loadReports()
-    this.loadReports();
+    // Filters are now applied server-side in loadInvestments()
+    this.loadInvestments();
   }
 
   resetFilters(): void {
@@ -210,11 +226,11 @@ export class OperationsReportsDashboardComponent implements OnInit {
 
     // Load data after resetting filters
     if (this.filterForm.valid) {
-      this.loadReports();
+      this.loadInvestments();
     }
   }
 
-  loadReports(): void {
+  loadInvestments(): void {
     if (!this.filterForm.valid) {
       return;
     }
@@ -223,15 +239,19 @@ export class OperationsReportsDashboardComponent implements OnInit {
     const companyId = filters.company_id;
 
     if (!companyId) {
-      this.reports.set([]);
+      this.investments.set([]);
       this.updateCharts();
       return;
     }
 
     this.isLoading.set(true);
 
-    // Load reports with filters applied server-side
-    this.operationReportService
+    // Load categories and budget years first
+    this.loadCategories(companyId);
+    this.loadBudgetYears(companyId);
+
+    // Load investments with filters applied server-side
+    this.investmentService
       .getAll(
         1,
         1000,
@@ -241,13 +261,11 @@ export class OperationsReportsDashboardComponent implements OnInit {
       )
       .subscribe({
         next: (response) => {
-          // Sort reports by budget_date (oldest first)
+          // Sort investments by id (oldest first)
           const sortedData = (response.data || []).sort((a, b) => {
-            const dateA = new Date(a.budget_date).getTime();
-            const dateB = new Date(b.budget_date).getTime();
-            return dateA - dateB;
+            return (a.id || 0) - (b.id || 0);
           });
-          this.reports.set(sortedData);
+          this.investments.set(sortedData);
           this.updateCharts();
           this.isLoading.set(false);
         },
@@ -256,39 +274,69 @@ export class OperationsReportsDashboardComponent implements OnInit {
             (error as { error?: { message?: string }; message?: string })?.error
               ?.message ||
             (error as { message?: string })?.message ||
-            'Error al cargar los reportes de operaciones';
+            'Error al cargar las inversiones';
           this.toastr.error(errorMessage, 'Error');
-          this.reports.set([]);
+          this.investments.set([]);
           this.updateCharts();
           this.isLoading.set(false);
         },
       });
   }
 
+  loadCategories(companyId: number): void {
+    this.investmentCategoryService.getByCompany(companyId).subscribe({
+      next: (categories) => {
+        this.categories.set(categories || []);
+      },
+      error: () => {
+        this.categories.set([]);
+      },
+    });
+  }
+
+  loadBudgetYears(companyId: number): void {
+    this.budgetYearService.getAll(companyId).subscribe({
+      next: (years) => {
+        this.budgetYears.set(years || []);
+      },
+      error: () => {
+        this.budgetYears.set([]);
+      },
+    });
+  }
+
+  getCategoryName(categoryId: number): string {
+    const category = this.categories().find((c) => c.id === categoryId);
+    return category?.name || `Categoría ${categoryId}`;
+  }
+
+  getYearFromAnnualId(annualId: number | null | undefined): number | null {
+    if (!annualId) return null;
+    const year = this.budgetYears().find((y) => y.id === annualId);
+    return year?.year || null;
+  }
+
   updateCharts(): void {
-    const reports = this.reports();
+    const investments = this.investments();
 
-    // Group by month
-    const monthlyData = this.groupByMonth(reports);
-    const months = this.sortMonthsByDate(Object.keys(monthlyData));
+    // Group by category
+    const categoryData = this.groupByCategory(investments);
+    const categories = Object.keys(categoryData).sort();
 
-    // Ensure we have at least one month for empty data
-    if (months.length === 0) {
-      const today = new Date();
-      months.push(
-        today.toLocaleDateString('es-ES', { month: 'short', year: 'numeric' })
-      );
+    // Ensure we have at least one category for empty data
+    if (categories.length === 0) {
+      categories.push('Sin categoría');
+      categoryData['Sin categoría'] = 0;
     }
 
-    const budgetData = months.map((m: string) => monthlyData[m]?.budget || 0);
-    const executedData = months.map((m: string) => monthlyData[m]?.executed || 0);
+    const amountData = categories.map((c: string) => categoryData[c] || 0);
 
-    // Budget Chart (Bar)
-    this.budgetChart = {
+    // Investment by Category Chart (Bar)
+    this.investmentByCategoryChart = {
       series: [
         {
-          name: 'Presupuestado',
-          data: budgetData,
+          name: 'Monto',
+          data: amountData,
         },
       ],
       chart: {
@@ -302,11 +350,12 @@ export class OperationsReportsDashboardComponent implements OnInit {
       plotOptions: {
         bar: {
           borderRadius: 8,
-          columnWidth: '60%',
+          horizontal: false,
+          columnWidth: '55%',
         },
       },
       dataLabels: { enabled: false },
-      xaxis: { categories: months },
+      xaxis: { categories: categories },
       yaxis: {
         labels: {
           formatter: (val: number) => `$${(val / 1000).toFixed(0)}k`,
@@ -315,12 +364,17 @@ export class OperationsReportsDashboardComponent implements OnInit {
       grid: { borderColor: '#e2e8f0' },
     };
 
-    // Executed Chart (Line)
-    this.executedChart = {
+    // Group by year for monthly trend
+    const monthlyData = this.groupByYear(investments);
+    const years = Object.keys(monthlyData).sort();
+    const monthlyAmounts = years.map((y: string) => monthlyData[y] || 0);
+
+    // Monthly Investment Trend (Line)
+    this.monthlyInvestmentTrendChart = {
       series: [
         {
-          name: 'Ejecutado',
-          data: executedData,
+          name: 'Monto',
+          data: monthlyAmounts,
         },
       ],
       chart: {
@@ -332,76 +386,7 @@ export class OperationsReportsDashboardComponent implements OnInit {
       },
       colors: ['#10b981'],
       stroke: { curve: 'smooth', width: 3 },
-      xaxis: { categories: months },
-      yaxis: {
-        labels: {
-          formatter: (val: number) => `$${(val / 1000).toFixed(0)}k`,
-        },
-      },
-      grid: { borderColor: '#e2e8f0' },
-    };
-
-    // Cost Comparison (Bar)
-    this.costComparisonChart = {
-      series: [
-        { name: 'Presupuestado', data: budgetData },
-        { name: 'Ejecutado', data: executedData },
-      ],
-      chart: {
-        type: 'bar',
-        height: 300,
-        toolbar: { show: false },
-        zoom: { enabled: false },
-        pan: { enabled: false },
-      },
-      colors: ['#3b82f6', '#10b981'],
-      plotOptions: {
-        bar: {
-          borderRadius: 8,
-          columnWidth: '55%',
-        },
-      },
-      dataLabels: { enabled: false },
-      xaxis: { categories: months },
-      yaxis: {
-        labels: {
-          formatter: (val: number) => `$${(val / 1000).toFixed(0)}k`,
-        },
-      },
-      legend: { position: 'top' },
-      grid: { borderColor: '#e2e8f0' },
-    };
-
-    // Monthly Trend (Area)
-    this.monthlyTrendChart = {
-      series: [
-        {
-          name: 'Presupuestado',
-          data: budgetData,
-        },
-        {
-          name: 'Ejecutado',
-          data: executedData,
-        },
-      ],
-      chart: {
-        type: 'area',
-        height: 300,
-        toolbar: { show: false },
-        zoom: { enabled: false },
-        pan: { enabled: false },
-      },
-      colors: ['#8b5cf6'],
-      fill: {
-        type: 'gradient',
-        gradient: {
-          shadeIntensity: 1,
-          opacityFrom: 0.7,
-          opacityTo: 0.2,
-        },
-      },
-      stroke: { curve: 'smooth', width: 2 },
-      xaxis: { categories: months },
+      xaxis: { categories: years },
       yaxis: {
         labels: {
           formatter: (val: number) => `$${(val / 1000).toFixed(0)}k`,
@@ -411,26 +396,42 @@ export class OperationsReportsDashboardComponent implements OnInit {
     };
   }
 
-  private groupByMonth(reports: OperationReport[]): {
-    [key: string]: { budget: number; executed: number };
+  private groupByYear(investments: Investment[]): {
+    [key: string]: number;
   } {
     const grouped: {
-      [key: string]: { budget: number; executed: number };
+      [key: string]: number;
     } = {};
 
-    reports.forEach((report) => {
-      const date = new Date(report.budget_date);
-      const monthKey = date.toLocaleDateString('es-ES', {
-        month: 'short',
-        year: 'numeric',
-      });
+    investments.forEach((investment) => {
+      const year = this.getYearFromAnnualId(investment.investment_budget_annual_id);
+      const yearKey = year ? year.toString() : 'Sin año';
 
-      if (!grouped[monthKey]) {
-        grouped[monthKey] = { budget: 0, executed: 0 };
+      if (!grouped[yearKey]) {
+        grouped[yearKey] = 0;
       }
 
-      grouped[monthKey].budget += report.budget_amount || 0;
-      grouped[monthKey].executed += report.executed_amount || 0;
+      grouped[yearKey] += investment.amount || 0;
+    });
+
+    return grouped;
+  }
+
+  private groupByCategory(investments: Investment[]): {
+    [key: string]: number;
+  } {
+    const grouped: {
+      [key: string]: number;
+    } = {};
+
+    investments.forEach((investment) => {
+      const categoryName = this.getCategoryName(investment.investment_budget_category_id);
+
+      if (!grouped[categoryName]) {
+        grouped[categoryName] = 0;
+      }
+
+      grouped[categoryName] += investment.amount || 0;
     });
 
     return grouped;

@@ -490,6 +490,7 @@ export class InvestmentBudgetsComponent implements OnInit {
     this.investmentCategoryService.getByCompany(companyId).subscribe({
       next: (categories) => {
         this.categories.set(categories);
+        console.log(categories);
       },
       error: () => {
         this.toastr.error('Error al cargar las categorías', 'Error');
@@ -498,6 +499,7 @@ export class InvestmentBudgetsComponent implements OnInit {
   }
 
   getCategoryName(categoryId: number): string {
+    console.log(categoryId);
     const category = this.categories().find((c) => c.id === categoryId);
     return category?.name || 'Sin categoría';
   }

@@ -13,9 +13,8 @@ import {
   Scale,
 } from 'lucide-angular';
 import { FinancialReportsDashboardComponent } from './financial-reports-dashboard/financial-reports-dashboard.component';
-import { OperationsReportsDashboardComponent } from './operations-reports-dashboard/operations-reports-dashboard.component';
-import { BudgetsDashboardComponent } from './budgets-dashboard/budgets-dashboard.component';
-import { InvestmentsDashboardComponent } from './investments-dashboard/investments-dashboard.component';
+import { OperationBudgetsDashboardComponent } from './operation-budgets-dashboard/operation-budgets-dashboard.component';
+import { InvestmentBudgetsDashboardComponent } from './investment-budgets-dashboard/investment-budgets-dashboard.component';
 import { LegalProcessesDashboardComponent } from './legal-processes-dashboard/legal-processes-dashboard.component';
 
 @Component({
@@ -25,9 +24,8 @@ import { LegalProcessesDashboardComponent } from './legal-processes-dashboard/le
     CommonModule,
     LucideAngularModule,
     FinancialReportsDashboardComponent,
-    OperationsReportsDashboardComponent,
-    BudgetsDashboardComponent,
-    InvestmentsDashboardComponent,
+    OperationBudgetsDashboardComponent,
+    InvestmentBudgetsDashboardComponent,
     LegalProcessesDashboardComponent,
   ],
   templateUrl: './dashboard.component.html',
@@ -38,7 +36,7 @@ export class DashboardComponent implements OnInit {
 
   userName = signal('');
   activeTab = signal<
-    'financial' | 'operations' | 'budgets' | 'investments' | 'legal'
+    'financial' | 'operation-budgets' | 'investment-budgets' | 'legal'
   >('financial');
 
   // Lucide icons
@@ -53,7 +51,7 @@ export class DashboardComponent implements OnInit {
   }
 
   setActiveTab(
-    tab: 'financial' | 'operations' | 'budgets' | 'investments' | 'legal'
+    tab: 'financial' | 'operation-budgets' | 'investment-budgets' | 'legal'
   ): void {
     this.activeTab.set(tab);
   }

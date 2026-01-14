@@ -2,11 +2,11 @@
   <div class="section-header">
     <h3 class="section-title">
       <lucide-icon
-        [img]="icons.TrendingUp"
+        [img]="icons.DollarSign"
         [size]="18"
         class="me-2"
       ></lucide-icon>
-      Dashboard de Reportes de Operaciones
+      Dashboard de Presupuestos de Operaciones
     </h3>
   </div>
 
@@ -91,12 +91,10 @@
     <div class="col-xl-3 col-lg-6 col-md-6">
       <div class="stat-card">
         <div class="stat-icon bg-info-light">
-          <lucide-icon [img]="icons.DollarSign" [size]="20"></lucide-icon>
+          <lucide-icon [img]="icons.Target" [size]="20"></lucide-icon>
         </div>
         <div class="stat-content">
-          <h3 class="stat-value">
-            ${{ totalBudget() | number : "1.0-0" }}
-          </h3>
+          <h3 class="stat-value">${{ totalBudget() | number : "1.0-0" }}</h3>
           <p class="stat-label">Presupuesto Total</p>
         </div>
       </div>
@@ -107,20 +105,19 @@
           <lucide-icon [img]="icons.TrendingUp" [size]="20"></lucide-icon>
         </div>
         <div class="stat-content">
-          <h3 class="stat-value">
-            ${{ totalExecuted() | number : "1.0-0" }}
-          </h3>
+          <h3 class="stat-value">${{ totalExecuted() | number : "1.0-0" }}</h3>
           <p class="stat-label">Ejecutado Total</p>
         </div>
       </div>
     </div>
     <div class="col-xl-3 col-lg-6 col-md-6">
       <div class="stat-card">
-        <div class="stat-icon bg-warning-light">
-          <lucide-icon [img]="icons.AlertCircle" [size]="20"></lucide-icon>
-        </div>
         <div class="stat-content">
-          <h3 class="stat-value">
+          <h3
+            class="stat-value"
+            [class.text-success]="totalDifference() > 0"
+            [class.text-danger]="totalDifference() < 0"
+          >
             ${{ totalDifference() | number : "1.0-0" }}
           </h3>
           <p class="stat-label">Diferencia Total</p>
@@ -129,14 +126,14 @@
     </div>
     <div class="col-xl-3 col-lg-6 col-md-6">
       <div class="stat-card">
-        <div class="stat-icon bg-primary-light">
-          <lucide-icon [img]="icons.BarChart3" [size]="20"></lucide-icon>
+        <div class="stat-icon bg-warning-light">
+          <lucide-icon [img]="icons.Percent" [size]="20"></lucide-icon>
         </div>
         <div class="stat-content">
           <h3 class="stat-value">
-            ${{ averageBudget() | number : "1.0-0" }}
+            {{ averagePercentage() | number : "1.1-1" }}%
           </h3>
-          <p class="stat-label">Presupuesto Promedio</p>
+          <p class="stat-label">Porcentaje Promedio</p>
         </div>
       </div>
     </div>
@@ -144,7 +141,7 @@
 
   <!-- Charts Grid -->
   <div class="row g-3">
-    <!-- Budget Chart -->
+    <!-- Budget vs Executed -->
     <div class="col-xl-6 col-lg-6 col-12">
       <div class="chart-card">
         <div class="chart-header">
@@ -154,26 +151,27 @@
               [size]="18"
               class="me-2"
             ></lucide-icon>
-            Presupuesto por Categoría
+            Presupuesto vs Ejecutado
           </h3>
         </div>
         <div class="chart-body">
           <apx-chart
-            [series]="budgetChart.series"
-            [chart]="budgetChart.chart"
-            [colors]="budgetChart.colors"
-            [plotOptions]="budgetChart.plotOptions"
-            [dataLabels]="budgetChart.dataLabels"
-            [xaxis]="budgetChart.xaxis"
-            [yaxis]="budgetChart.yaxis"
-            [grid]="budgetChart.grid"
+            [series]="budgetVsExecutedChart.series"
+            [chart]="budgetVsExecutedChart.chart"
+            [colors]="budgetVsExecutedChart.colors"
+            [plotOptions]="budgetVsExecutedChart.plotOptions"
+            [dataLabels]="budgetVsExecutedChart.dataLabels"
+            [xaxis]="budgetVsExecutedChart.xaxis"
+            [yaxis]="budgetVsExecutedChart.yaxis"
+            [legend]="budgetVsExecutedChart.legend"
+            [grid]="budgetVsExecutedChart.grid"
           >
           </apx-chart>
         </div>
       </div>
     </div>
 
-    <!-- Monthly Trend Chart -->
+    <!-- Difference -->
     <div class="col-xl-6 col-lg-6 col-12">
       <div class="chart-card">
         <div class="chart-header">
@@ -183,54 +181,82 @@
               [size]="18"
               class="me-2"
             ></lucide-icon>
-            Tendencia Mensual de Presupuesto
+            Diferencia por Mes
           </h3>
         </div>
         <div class="chart-body">
           <apx-chart
-            [series]="monthlyTrendChart.series"
-            [chart]="monthlyTrendChart.chart"
-            [colors]="monthlyTrendChart.colors"
-            [stroke]="monthlyTrendChart.stroke"
-            [xaxis]="monthlyTrendChart.xaxis"
-            [yaxis]="monthlyTrendChart.yaxis"
-            [grid]="monthlyTrendChart.grid"
+            [series]="differenceChart.series"
+            [chart]="differenceChart.chart"
+            [colors]="differenceChart.colors"
+            [stroke]="differenceChart.stroke"
+            [xaxis]="differenceChart.xaxis"
+            [yaxis]="differenceChart.yaxis"
+            [grid]="differenceChart.grid"
           >
           </apx-chart>
         </div>
       </div>
     </div>
 
-    <!-- Cost Comparison Chart -->
-    <div class="col-xl-12 col-lg-12 col-12">
+    <!-- Monthly Comparison -->
+    <div class="col-xl-8 col-lg-12 col-12">
       <div class="chart-card">
         <div class="chart-header">
           <h3 class="chart-title">
             <lucide-icon
-              [img]="icons.BarChart3"
+              [img]="icons.Target"
               [size]="18"
               class="me-2"
             ></lucide-icon>
-            Presupuestado vs Ejecutado
+            Comparación Mensual
           </h3>
         </div>
         <div class="chart-body">
           <apx-chart
-            [series]="costComparisonChart.series"
-            [chart]="costComparisonChart.chart"
-            [colors]="costComparisonChart.colors"
-            [plotOptions]="costComparisonChart.plotOptions"
-            [dataLabels]="costComparisonChart.dataLabels"
-            [xaxis]="costComparisonChart.xaxis"
-            [yaxis]="costComparisonChart.yaxis"
-            [legend]="costComparisonChart.legend"
-            [grid]="costComparisonChart.grid"
+            [series]="monthlyComparisonChart.series"
+            [chart]="monthlyComparisonChart.chart"
+            [colors]="monthlyComparisonChart.colors"
+            [fill]="monthlyComparisonChart.fill"
+            [stroke]="monthlyComparisonChart.stroke"
+            [xaxis]="monthlyComparisonChart.xaxis"
+            [yaxis]="monthlyComparisonChart.yaxis"
+            [legend]="monthlyComparisonChart.legend"
+            [grid]="monthlyComparisonChart.grid"
           >
           </apx-chart>
         </div>
       </div>
     </div>
 
+    <!-- Percentage -->
+    <div class="col-xl-4 col-lg-12 col-12">
+      <div class="chart-card">
+        <div class="chart-header">
+          <h3 class="chart-title">
+            <lucide-icon
+              [img]="icons.Percent"
+              [size]="18"
+              class="me-2"
+            ></lucide-icon>
+            Porcentaje de Ejecución
+          </h3>
+        </div>
+        <div class="chart-body">
+          <apx-chart
+            [series]="percentageChart.series"
+            [chart]="percentageChart.chart"
+            [colors]="percentageChart.colors"
+            [plotOptions]="percentageChart.plotOptions"
+            [dataLabels]="percentageChart.dataLabels"
+            [xaxis]="percentageChart.xaxis"
+            [yaxis]="percentageChart.yaxis"
+            [grid]="percentageChart.grid"
+          >
+          </apx-chart>
+        </div>
+      </div>
+    </div>
   </div>
   }
 </div>
