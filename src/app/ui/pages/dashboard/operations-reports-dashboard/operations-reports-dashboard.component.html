@@ -43,7 +43,7 @@
           }
         </div>
         }
-        <div [class]="isAdmin() ? 'col-md-3' : 'col-md-4'">
+        <div [class]="isAdmin() ? 'col-md-4' : 'col-md-6'">
           <label for="filter_date_from" class="form-label">
             <lucide-icon
               [img]="icons.Calendar"
@@ -59,7 +59,7 @@
             formControlName="date_from"
           />
         </div>
-        <div [class]="isAdmin() ? 'col-md-3' : 'col-md-4'">
+        <div [class]="isAdmin() ? 'col-md-4' : 'col-md-6'">
           <label for="filter_date_to" class="form-label">
             <lucide-icon
               [img]="icons.Calendar"
@@ -75,19 +75,6 @@
             formControlName="date_to"
           />
         </div>
-        <div
-          [class]="
-            isAdmin() ? 'col-md-2' : 'col-md-4' + ' d-flex align-items-end'
-          "
-        >
-          <button
-            type="button"
-            class="btn btn-primary w-100 search-btn"
-            (click)="applyFilters()"
-          >
-            Buscar
-          </button>
-        </div>
       </div>
     </form>
   </div>
@@ -101,42 +88,55 @@
   } @else {
   <!-- Stats Cards -->
   <div class="row g-3 mb-4">
-    <div class="col-xl-4 col-lg-6 col-md-6">
+    <div class="col-xl-3 col-lg-6 col-md-6">
       <div class="stat-card">
         <div class="stat-icon bg-info-light">
           <lucide-icon [img]="icons.DollarSign" [size]="20"></lucide-icon>
         </div>
         <div class="stat-content">
           <h3 class="stat-value">
-            ${{ totalMonthlyCost() | number : "1.0-0" }}
+            ${{ totalBudget() | number : "1.0-0" }}
           </h3>
-          <p class="stat-label">Costo Mensual Total</p>
+          <p class="stat-label">Presupuesto Total</p>
         </div>
       </div>
     </div>
-    <div class="col-xl-4 col-lg-6 col-md-6">
+    <div class="col-xl-3 col-lg-6 col-md-6">
       <div class="stat-card">
         <div class="stat-icon bg-success-light">
-          <lucide-icon [img]="icons.DollarSign" [size]="20"></lucide-icon>
+          <lucide-icon [img]="icons.TrendingUp" [size]="20"></lucide-icon>
         </div>
         <div class="stat-content">
           <h3 class="stat-value">
-            ${{ totalAnnualCost() | number : "1.0-0" }}
+            ${{ totalExecuted() | number : "1.0-0" }}
           </h3>
-          <p class="stat-label">Costo Anual Total</p>
+          <p class="stat-label">Ejecutado Total</p>
         </div>
       </div>
     </div>
-    <div class="col-xl-4 col-lg-6 col-md-6">
+    <div class="col-xl-3 col-lg-6 col-md-6">
       <div class="stat-card">
         <div class="stat-icon bg-warning-light">
-          <lucide-icon [img]="icons.Calendar" [size]="20"></lucide-icon>
+          <lucide-icon [img]="icons.AlertCircle" [size]="20"></lucide-icon>
         </div>
         <div class="stat-content">
           <h3 class="stat-value">
-            ${{ averageMonthlyCost() | number : "1.0-0" }}
+            ${{ totalDifference() | number : "1.0-0" }}
           </h3>
-          <p class="stat-label">Costo Mensual Promedio</p>
+          <p class="stat-label">Diferencia Total</p>
+        </div>
+      </div>
+    </div>
+    <div class="col-xl-3 col-lg-6 col-md-6">
+      <div class="stat-card">
+        <div class="stat-icon bg-primary-light">
+          <lucide-icon [img]="icons.BarChart3" [size]="20"></lucide-icon>
+        </div>
+        <div class="stat-content">
+          <h3 class="stat-value">
+            ${{ averageBudget() | number : "1.0-0" }}
+          </h3>
+          <p class="stat-label">Presupuesto Promedio</p>
         </div>
       </div>
     </div>
@@ -144,7 +144,7 @@
 
   <!-- Charts Grid -->
   <div class="row g-3">
-    <!-- Monthly Cost -->
+    <!-- Budget Chart -->
     <div class="col-xl-6 col-lg-6 col-12">
       <div class="chart-card">
         <div class="chart-header">
@@ -154,26 +154,26 @@
               [size]="18"
               class="me-2"
             ></lucide-icon>
-            Costo Mensual por Mes
+            Presupuesto por Categoría
           </h3>
         </div>
         <div class="chart-body">
           <apx-chart
-            [series]="monthlyCostChart.series"
-            [chart]="monthlyCostChart.chart"
-            [colors]="monthlyCostChart.colors"
-            [plotOptions]="monthlyCostChart.plotOptions"
-            [dataLabels]="monthlyCostChart.dataLabels"
-            [xaxis]="monthlyCostChart.xaxis"
-            [yaxis]="monthlyCostChart.yaxis"
-            [grid]="monthlyCostChart.grid"
+            [series]="budgetChart.series"
+            [chart]="budgetChart.chart"
+            [colors]="budgetChart.colors"
+            [plotOptions]="budgetChart.plotOptions"
+            [dataLabels]="budgetChart.dataLabels"
+            [xaxis]="budgetChart.xaxis"
+            [yaxis]="budgetChart.yaxis"
+            [grid]="budgetChart.grid"
           >
           </apx-chart>
         </div>
       </div>
     </div>
 
-    <!-- Annual Cost -->
+    <!-- Monthly Trend Chart -->
     <div class="col-xl-6 col-lg-6 col-12">
       <div class="chart-card">
         <div class="chart-header">
@@ -183,35 +183,35 @@
               [size]="18"
               class="me-2"
             ></lucide-icon>
-            Costo Anual por Mes
+            Tendencia Mensual de Presupuesto
           </h3>
         </div>
         <div class="chart-body">
           <apx-chart
-            [series]="annualCostChart.series"
-            [chart]="annualCostChart.chart"
-            [colors]="annualCostChart.colors"
-            [stroke]="annualCostChart.stroke"
-            [xaxis]="annualCostChart.xaxis"
-            [yaxis]="annualCostChart.yaxis"
-            [grid]="annualCostChart.grid"
+            [series]="monthlyTrendChart.series"
+            [chart]="monthlyTrendChart.chart"
+            [colors]="monthlyTrendChart.colors"
+            [stroke]="monthlyTrendChart.stroke"
+            [xaxis]="monthlyTrendChart.xaxis"
+            [yaxis]="monthlyTrendChart.yaxis"
+            [grid]="monthlyTrendChart.grid"
           >
           </apx-chart>
         </div>
       </div>
     </div>
 
-    <!-- Cost Comparison -->
-    <div class="col-xl-8 col-lg-12 col-12">
+    <!-- Cost Comparison Chart -->
+    <div class="col-xl-12 col-lg-12 col-12">
       <div class="chart-card">
         <div class="chart-header">
           <h3 class="chart-title">
             <lucide-icon
-              [img]="icons.TrendingUp"
+              [img]="icons.BarChart3"
               [size]="18"
               class="me-2"
             ></lucide-icon>
-            Comparación Mensual vs Anual
+            Presupuestado vs Ejecutado
           </h3>
         </div>
         <div class="chart-body">
@@ -231,34 +231,6 @@
       </div>
     </div>
 
-    <!-- Monthly Trend -->
-    <div class="col-xl-4 col-lg-12 col-12">
-      <div class="chart-card">
-        <div class="chart-header">
-          <h3 class="chart-title">
-            <lucide-icon
-              [img]="icons.Calendar"
-              [size]="18"
-              class="me-2"
-            ></lucide-icon>
-            Tendencia Mensual
-          </h3>
-        </div>
-        <div class="chart-body">
-          <apx-chart
-            [series]="monthlyTrendChart.series"
-            [chart]="monthlyTrendChart.chart"
-            [colors]="monthlyTrendChart.colors"
-            [fill]="monthlyTrendChart.fill"
-            [stroke]="monthlyTrendChart.stroke"
-            [xaxis]="monthlyTrendChart.xaxis"
-            [yaxis]="monthlyTrendChart.yaxis"
-            [grid]="monthlyTrendChart.grid"
-          >
-          </apx-chart>
-        </div>
-      </div>
-    </div>
   </div>
   }
 </div>

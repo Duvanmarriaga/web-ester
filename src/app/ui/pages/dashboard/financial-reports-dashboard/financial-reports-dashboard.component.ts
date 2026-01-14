@@ -71,21 +71,21 @@ export class FinancialReportsDashboardComponent implements OnInit {
   reports = signal<FinancialReport[]>([]);
   companies = signal<Company[]>([]);
   currentUser = signal<any>(null);
-  isAdmin = computed(() => this.currentUser()?.type === UserType.ADMIN);
+  isAdmin = computed(() => this.currentUser()?.type === UserType.CLIENT);
 
   filterForm!: FormGroup;
 
   // Stats computed
   totalIncome = computed(() => {
-    return this.reports().reduce((sum, r) => sum + (r.income || 0), 0);
+    return this.reports().reduce((sum, r) => sum + (r.total_revenue || 0), 0);
   });
 
   totalExpenses = computed(() => {
-    return this.reports().reduce((sum, r) => sum + (r.expenses || 0), 0);
+    return this.reports().reduce((sum, r) => sum + (r.executed_value || 0), 0);
   });
 
   totalProfit = computed(() => {
-    return this.reports().reduce((sum, r) => sum + (r.profit || 0), 0);
+    return this.reports().reduce((sum, r) => sum + (r.net_profit || 0), 0);
   });
 
   averageProfit = computed(() => {
@@ -107,7 +107,7 @@ export class FinancialReportsDashboardComponent implements OnInit {
       if (user) {
         this.initFilterForm();
         // Only load companies if user is ADMIN
-        if (user.type === UserType.ADMIN) {
+        if (user.type === UserType.CLIENT) {
           this.loadCompanies();
         }
       }
@@ -129,7 +129,7 @@ export class FinancialReportsDashboardComponent implements OnInit {
     let defaultCompanyId: number | null = null;
     if (
       user &&
-      user.type === UserType.CLIENT &&
+      user.type === UserType.COMPANY &&
       user.companies &&
       user.companies.length > 0
     ) {
@@ -174,7 +174,7 @@ export class FinancialReportsDashboardComponent implements OnInit {
     });
 
     // Load initial data if form is valid (for clients with company from token)
-    if (this.filterForm.valid && user && user.type === UserType.CLIENT) {
+    if (this.filterForm.valid && user && user.type === UserType.COMPANY) {
       this.loadReports();
     }
   }
@@ -216,13 +216,13 @@ export class FinancialReportsDashboardComponent implements OnInit {
     let defaultCompanyId: number | Company | null = null;
     if (
       user &&
-      user.type === UserType.CLIENT &&
+      user.type === UserType.COMPANY &&
       user.companies &&
       user.companies.length > 0
     ) {
       // If client, use company from role
       defaultCompanyId = user.companies[0];
-    } else if (user && user.type === UserType.ADMIN) {
+    } else if (user && user.type === UserType.CLIENT) {
       const firstCompany = this.companies()[0];
       defaultCompanyId = firstCompany || null;
     }
@@ -453,9 +453,9 @@ export class FinancialReportsDashboardComponent implements OnInit {
         grouped[monthKey] = { income: 0, expenses: 0, profit: 0 };
       }
 
-      grouped[monthKey].income += report.income || 0;
-      grouped[monthKey].expenses += report.expenses || 0;
-      grouped[monthKey].profit += report.profit || 0;
+      grouped[monthKey].income += report.total_revenue || 0;
+      grouped[monthKey].expenses += report.executed_value || 0;
+      grouped[monthKey].profit += report.net_profit || 0;
     });
 
     return grouped;

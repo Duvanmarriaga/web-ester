@@ -44,14 +44,12 @@
                 <span
                   class="badge-role"
                   [ngClass]="{
-                    'badge-role--admin': user.type === 'admin',
-                    'badge-role--client': user.type === 'client'
+                    'badge-role--admin': user.type === userType.CLIENT,
+                    'badge-role--client': user.type === userType.COMPANY
                   }"
                 >
                   {{
-                    user.type === "admin"
-                      ? "Administrador"
-                      : "Cliente"
+                    user.type === userType.COMPANY ? "Cliente" : "Administrador"
                   }}
                 </span>
               </td>

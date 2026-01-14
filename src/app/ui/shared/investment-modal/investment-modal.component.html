@@ -23,16 +23,16 @@
         <form [formGroup]="investmentForm" (ngSubmit)="onSubmit()">
           <div class="row g-3">
             <div class="col-12">
-              <label for="investment_category_id" class="form-label"
+              <label for="investment_budget_category_id" class="form-label"
                 >Categoría</label
               >
               <ng-select
-                id="investment_category_id"
+                id="investment_budget_category_id"
                 [items]="categoriesList()"
                 bindLabel="name"
                 [compareWith]="compareCategories"
                 placeholder="Escribe para buscar o presiona Enter para crear..."
-                formControlName="investment_category_id"
+                formControlName="investment_budget_category_id"
                 [searchable]="true"
                 [clearable]="true"
                 [loading]="isLoadingCategories()"
@@ -43,82 +43,30 @@
                 appendTo="body"
               >
               </ng-select>
-              @if (investmentForm.get('investment_category_id')?.invalid &&
-              investmentForm.get('investment_category_id')?.touched) {
+              @if (investmentForm.get('investment_budget_category_id')?.invalid &&
+              investmentForm.get('investment_budget_category_id')?.touched) {
               <small class="form-error">Categoría requerida</small>
               }
             </div>
             <div class="col-12">
-              <label for="investment_date" class="form-label">Fecha de Inversión</label>
-              <input
-                type="date"
-                class="form-control"
-                id="investment_date"
-                formControlName="investment_date"
-              />
-              @if (investmentForm.get('investment_date')?.invalid &&
-              investmentForm.get('investment_date')?.touched) {
-              <small class="form-error">Fecha de inversión requerida</small>
-              }
-            </div>
-            <div class="col-12">
-              <label for="unit_cost" class="form-label">Costo Unitario</label>
+              <label for="amount" class="form-label">Monto</label>
               <div class="input-group">
                 <span class="input-group-text">$</span>
                 <input
                   type="text"
                   class="form-control"
-                  id="unit_cost"
-                  formControlName="unit_cost"
+                  id="amount"
+                  formControlName="amount"
                   placeholder="000"
-                  (input)="formatCurrency($event, 'unit_cost')"
-                  (blur)="formatCurrencyOnBlur('unit_cost')"
+                  (input)="formatCurrency($event, 'amount')"
+                  (blur)="formatCurrencyOnBlur('amount')"
                 />
               </div>
-              @if (investmentForm.get('unit_cost')?.invalid &&
-              investmentForm.get('unit_cost')?.touched) {
+              @if (investmentForm.get('amount')?.invalid &&
+              investmentForm.get('amount')?.touched) {
               <small class="form-error"
-                >Costo unitario requerido (mínimo 0)</small
+                >Monto requerido (mínimo 0)</small
               >
-              }
-            </div>
-            <div class="col-12">
-              <label for="quantity" class="form-label">Cantidad</label>
-              <input
-                type="text"
-                class="form-control"
-                id="quantity"
-                formControlName="quantity"
-                placeholder="0"
-                (input)="formatNumber($event, 'quantity')"
-                (blur)="formatNumberOnBlur('quantity')"
-              />
-              @if (investmentForm.get('quantity')?.invalid &&
-              investmentForm.get('quantity')?.touched) {
-              <small class="form-error">Cantidad requerida (mínimo 0)</small>
-              }
-            </div>
-            <div class="col-12">
-              <label for="total_cost" class="form-label">Costo Total</label>
-              <div class="input-group">
-                <span class="input-group-text">$</span>
-                <input
-                  type="text"
-                  class="form-control"
-                  id="total_cost"
-                  formControlName="total_cost"
-                  placeholder="000"
-                  (input)="formatCurrency($event, 'total_cost')"
-                  (blur)="formatCurrencyOnBlur('total_cost')"
-                  readonly
-                />
-              </div>
-              <small class="form-text text-muted"
-                >Se calcula automáticamente (Costo Unitario × Cantidad)</small
-              >
-              @if (investmentForm.get('total_cost')?.invalid &&
-              investmentForm.get('total_cost')?.touched) {
-              <small class="form-error">Costo total requerido (mínimo 0)</small>
               }
             </div>
           </div>

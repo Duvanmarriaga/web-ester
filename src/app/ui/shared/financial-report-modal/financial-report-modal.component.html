@@ -64,58 +64,61 @@
               }
             </div>
             <div class="col-12">
-              <label for="income" class="form-label">Ingresos</label>
+              <label for="total_revenue" class="form-label">Ingresos Totales</label>
               <div class="input-group">
                 <span class="input-group-text">$</span>
                 <input
                   type="text"
                   class="form-control"
-                  id="income"
-                  formControlName="income"
+                  id="total_revenue"
+                  formControlName="total_revenue"
                   placeholder="000"
-                  (input)="formatCurrency($event, 'income')"
-                  (blur)="formatCurrencyOnBlur('income')"
+                  (input)="formatCurrency($event, 'total_revenue')"
+                  (blur)="formatCurrencyOnBlur('total_revenue')"
                 />
               </div>
-              @if (reportForm.get('income')?.invalid &&
-              reportForm.get('income')?.touched) {
-              <small class="form-error">Ingresos requeridos (mínimo 0)</small>
+              @if (reportForm.get('total_revenue')?.invalid &&
+              reportForm.get('total_revenue')?.touched) {
+              <small class="form-error">Ingresos totales requeridos (mínimo 0)</small>
               }
             </div>
             <div class="col-12">
-              <label for="expenses" class="form-label">Gastos</label>
+              <label for="executed_value" class="form-label">Valor Ejecutado</label>
               <div class="input-group">
                 <span class="input-group-text">$</span>
                 <input
                   type="text"
                   class="form-control"
-                  id="expenses"
-                  formControlName="expenses"
+                  id="executed_value"
+                  formControlName="executed_value"
                   placeholder="000"
-                  (input)="formatCurrency($event, 'expenses')"
-                  (blur)="formatCurrencyOnBlur('expenses')"
+                  (input)="formatCurrency($event, 'executed_value')"
+                  (blur)="formatCurrencyOnBlur('executed_value')"
                 />
               </div>
-              @if (reportForm.get('expenses')?.invalid &&
-              reportForm.get('expenses')?.touched) {
-              <small class="form-error">Gastos requeridos (mínimo 0)</small>
+              @if (reportForm.get('executed_value')?.invalid &&
+              reportForm.get('executed_value')?.touched) {
+              <small class="form-error">Valor ejecutado requerido (mínimo 0)</small>
               }
             </div>
             <div class="col-12">
-              <label class="form-label">Ganancia</label>
-              <div
-                class="profit-display"
-                [class.profit-positive]="reportForm.get('profit')?.value > 0"
-                [class.profit-negative]="reportForm.get('profit')?.value < 0"
-              >
-                <span class="profit-label">Ganancia calculada:</span>
-                <span class="profit-value">
-                  ${{ reportForm.get("profit")?.value | number }}
-                </span>
+              <label for="net_profit" class="form-label">Ganancia Neta</label>
+              <div class="input-group">
+                <span class="input-group-text">$</span>
+                <input
+                  type="text"
+                  class="form-control"
+                  id="net_profit"
+                  formControlName="net_profit"
+                  placeholder="000"
+                  (input)="formatCurrency($event, 'net_profit')"
+                  (blur)="formatCurrencyOnBlur('net_profit')"
+                />
               </div>
-              <small class="form-text text-muted"
-                >Se calcula automáticamente (Ingresos - Gastos)</small
-              >
+              @if (reportForm.get('net_profit')?.invalid &&
+              reportForm.get('net_profit')?.touched) {
+              <small class="form-error">Ganancia neta requerida</small>
+              }
             </div>
           </div>
           <div class="d-flex gap-2 justify-content-end mt-4">

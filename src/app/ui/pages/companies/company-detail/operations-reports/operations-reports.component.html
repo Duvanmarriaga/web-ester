@@ -64,10 +64,11 @@
           <thead class="table-light">
             <tr>
               <th class="table-header">Fecha</th>
-              <th class="table-header">Descripción</th>
-              <th class="table-header">Costo Mensual</th>
-              <th class="table-header">Costo Anual</th>
-              <th class="table-header">Origen Documento</th>
+              <th class="table-header">Categoría</th>
+              <th class="table-header">Monto Presupuestado</th>
+              <th class="table-header">Monto Ejecutado</th>
+              <th class="table-header">Diferencia</th>
+              <th class="table-header">Porcentaje</th>
               <th class="table-header text-end">Acciones</th>
             </tr>
           </thead>
@@ -75,16 +76,23 @@
             @for (report of reports(); track report.id) {
             <tr>
               <td class="table-cell">
-                {{ report.operation_date | date : "dd/MM/yyyy" }}
-              </td>
-              <td class="table-cell fw-medium">{{ report.description }}</td>
-              <td class="table-cell">
-                ${{ report.monthly_cost | number : "1.2-2" }}
+                {{ report.budget_date | date : "dd/MM/yyyy" }}
               </td>
               <td class="table-cell fw-medium">
-                ${{ report.annual_cost | number : "1.2-2" }}
+                {{ getCategoryName(report.operation_budget_category_id) }}
               </td>
-              <td class="table-cell">{{ report.document_origin || "-" }}</td>
+              <td class="table-cell">
+                ${{ report.budget_amount | number : "1.2-2" }}
+              </td>
+              <td class="table-cell">
+                ${{ report.executed_amount | number : "1.2-2" }}
+              </td>
+              <td class="table-cell fw-medium">
+                ${{ report.difference_amount | number : "1.2-2" }}
+              </td>
+              <td class="table-cell">
+                {{ report.percentage | number : "1.2-2" }}%
+              </td>
               <td class="text-end">
                 <div class="d-flex gap-2 justify-content-end">
                   <button

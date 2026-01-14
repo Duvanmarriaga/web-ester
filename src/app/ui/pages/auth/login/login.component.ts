@@ -1,8 +1,8 @@
-import { Component, OnInit, inject, signal } from '@angular/core';
+import { Component, OnInit, OnDestroy, inject, signal } from '@angular/core';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { Store } from '@ngrx/store';
-import { CommonModule } from '@angular/common';
+import { CommonModule, DOCUMENT } from '@angular/common';
 import { LucideAngularModule, Eye, EyeOff } from 'lucide-angular';
 import * as AuthActions from '../../../../infrastructure/store/auth/auth.actions';
 import { selectIsLoading, selectError } from '../../../../infrastructure/store/auth';
@@ -13,10 +13,11 @@ import { selectIsLoading, selectError } from '../../../../infrastructure/store/a
   templateUrl: './login.component.html',
   styleUrl: './login.component.scss'
 })
-export class LoginComponent implements OnInit {
+export class LoginComponent implements OnInit, OnDestroy {
   private fb = inject(FormBuilder);
   private store = inject(Store);
   private router = inject(Router);
+  private document = inject(DOCUMENT);
 
   loginForm!: FormGroup;
   isLoading = signal(false);
@@ -27,6 +28,9 @@ export class LoginComponent implements OnInit {
   readonly icons = { Eye, EyeOff };
 
   ngOnInit() {
+    // Prevenir scroll en el body cuando estamos en la página de login
+    this.document.body.style.overflow = 'hidden';
+
     this.loginForm = this.fb.group({
       email: ['', [Validators.required, Validators.email]],
       password: ['', [Validators.required]]
@@ -39,6 +43,11 @@ export class LoginComponent implements OnInit {
     this.store.select(selectError).subscribe(error => {
       this.error.set(error);
     });
+  }
+
+  ngOnDestroy() {
+    // Restaurar scroll cuando salimos de la página de login
+    this.document.body.style.overflow = '';
   }
 
   togglePasswordVisibility() {

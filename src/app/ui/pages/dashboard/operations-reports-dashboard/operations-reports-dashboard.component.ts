@@ -21,6 +21,8 @@ import {
   DollarSign,
   Calendar,
   Filter,
+  AlertCircle,
+  BarChart3,
 } from 'lucide-angular';
 import { NgApexchartsModule } from 'ng-apexcharts';
 import { NgSelectModule } from '@ng-select/ng-select';
@@ -53,7 +55,7 @@ export class OperationsReportsDashboardComponent implements OnInit {
   private fb = inject(FormBuilder);
   private store = inject(Store);
 
-  readonly icons = { TrendingUp, DollarSign, Calendar, Filter };
+  readonly icons = { TrendingUp, DollarSign, Calendar, Filter, AlertCircle, BarChart3 };
 
   companyIdInput = input<number | null>(null);
   companyId = signal<number | null>(null);
@@ -62,28 +64,32 @@ export class OperationsReportsDashboardComponent implements OnInit {
   reports = signal<OperationReport[]>([]);
   companies = signal<Company[]>([]);
   currentUser = signal<any>(null);
-  isAdmin = computed(() => this.currentUser()?.type === UserType.ADMIN);
+  isAdmin = computed(() => this.currentUser()?.type === UserType.CLIENT);
 
   filterForm!: FormGroup;
 
   // Stats computed
-  totalMonthlyCost = computed(() => {
-    return this.reports().reduce((sum, r) => sum + (r.monthly_cost || 0), 0);
+  totalBudget = computed(() => {
+    return this.reports().reduce((sum, r) => sum + (r.budget_amount || 0), 0);
   });
 
-  totalAnnualCost = computed(() => {
-    return this.reports().reduce((sum, r) => sum + (r.annual_cost || 0), 0);
+  totalExecuted = computed(() => {
+    return this.reports().reduce((sum, r) => sum + (r.executed_amount || 0), 0);
   });
 
-  averageMonthlyCost = computed(() => {
+  totalDifference = computed(() => {
+    return this.reports().reduce((sum, r) => sum + (r.difference_amount || 0), 0);
+  });
+
+  averageBudget = computed(() => {
     const reports = this.reports();
     if (reports.length === 0) return 0;
-    return this.totalMonthlyCost() / reports.length;
+    return this.totalBudget() / reports.length;
   });
 
   // Charts
-  monthlyCostChart: any = {};
-  annualCostChart: any = {};
+  budgetChart: any = {};
+  executedChart: any = {};
   costComparisonChart: any = {};
   monthlyTrendChart: any = {};
 
@@ -94,7 +100,7 @@ export class OperationsReportsDashboardComponent implements OnInit {
       if (user) {
         this.initFilterForm();
         // Only load companies if user is ADMIN
-        if (user.type === UserType.ADMIN) {
+        if (user.type === UserType.CLIENT) {
           this.loadCompanies();
         }
       }
@@ -116,7 +122,7 @@ export class OperationsReportsDashboardComponent implements OnInit {
     let defaultCompanyId: number | null = null;
     if (
       user &&
-      user.type === UserType.CLIENT &&
+      user.type === UserType.COMPANY &&
       user.companies &&
       user.companies.length > 0
     ) {
@@ -182,13 +188,13 @@ export class OperationsReportsDashboardComponent implements OnInit {
     let defaultCompanyId: number | Company | null = null;
     if (
       user &&
-      user.type === UserType.CLIENT &&
+      user.type === UserType.COMPANY &&
       user.companies &&
       user.companies.length > 0
     ) {
       // If client, use company from role
       defaultCompanyId = user.companies[0];
-    } else if (user && user.type === UserType.ADMIN) {
+    } else if (user && user.type === UserType.CLIENT) {
       const firstCompany = this.companies()[0];
       defaultCompanyId = firstCompany || null;
     }
@@ -235,10 +241,10 @@ export class OperationsReportsDashboardComponent implements OnInit {
       )
       .subscribe({
         next: (response) => {
-          // Sort reports by date (oldest first)
+          // Sort reports by budget_date (oldest first)
           const sortedData = (response.data || []).sort((a, b) => {
-            const dateA = new Date(a.operation_date).getTime();
-            const dateB = new Date(b.operation_date).getTime();
+            const dateA = new Date(a.budget_date).getTime();
+            const dateB = new Date(b.budget_date).getTime();
             return dateA - dateB;
           });
           this.reports.set(sortedData);
@@ -274,15 +280,15 @@ export class OperationsReportsDashboardComponent implements OnInit {
       );
     }
 
-    const monthlyCostData = months.map((m: string) => monthlyData[m]?.monthlyCost || 0);
-    const annualCostData = months.map((m: string) => monthlyData[m]?.annualCost || 0);
+    const budgetData = months.map((m: string) => monthlyData[m]?.budget || 0);
+    const executedData = months.map((m: string) => monthlyData[m]?.executed || 0);
 
-    // Monthly Cost Chart (Bar)
-    this.monthlyCostChart = {
+    // Budget Chart (Bar)
+    this.budgetChart = {
       series: [
         {
-          name: 'Costo Mensual',
-          data: monthlyCostData,
+          name: 'Presupuestado',
+          data: budgetData,
         },
       ],
       chart: {
@@ -309,12 +315,12 @@ export class OperationsReportsDashboardComponent implements OnInit {
       grid: { borderColor: '#e2e8f0' },
     };
 
-    // Annual Cost Chart (Line)
-    this.annualCostChart = {
+    // Executed Chart (Line)
+    this.executedChart = {
       series: [
         {
-          name: 'Costo Anual',
-          data: annualCostData,
+          name: 'Ejecutado',
+          data: executedData,
         },
       ],
       chart: {
@@ -338,8 +344,8 @@ export class OperationsReportsDashboardComponent implements OnInit {
     // Cost Comparison (Bar)
     this.costComparisonChart = {
       series: [
-        { name: 'Costo Mensual', data: monthlyCostData },
-        { name: 'Costo Anual', data: annualCostData },
+        { name: 'Presupuestado', data: budgetData },
+        { name: 'Ejecutado', data: executedData },
       ],
       chart: {
         type: 'bar',
@@ -370,8 +376,12 @@ export class OperationsReportsDashboardComponent implements OnInit {
     this.monthlyTrendChart = {
       series: [
         {
-          name: 'Costo Mensual',
-          data: monthlyCostData,
+          name: 'Presupuestado',
+          data: budgetData,
+        },
+        {
+          name: 'Ejecutado',
+          data: executedData,
         },
       ],
       chart: {
@@ -402,25 +412,25 @@ export class OperationsReportsDashboardComponent implements OnInit {
   }
 
   private groupByMonth(reports: OperationReport[]): {
-    [key: string]: { monthlyCost: number; annualCost: number };
+    [key: string]: { budget: number; executed: number };
   } {
     const grouped: {
-      [key: string]: { monthlyCost: number; annualCost: number };
+      [key: string]: { budget: number; executed: number };
     } = {};
 
     reports.forEach((report) => {
-      const date = new Date(report.operation_date);
+      const date = new Date(report.budget_date);
       const monthKey = date.toLocaleDateString('es-ES', {
         month: 'short',
         year: 'numeric',
       });
 
       if (!grouped[monthKey]) {
-        grouped[monthKey] = { monthlyCost: 0, annualCost: 0 };
+        grouped[monthKey] = { budget: 0, executed: 0 };
       }
 
-      grouped[monthKey].monthlyCost += report.monthly_cost || 0;
-      grouped[monthKey].annualCost += report.annual_cost || 0;
+      grouped[monthKey].budget += report.budget_amount || 0;
+      grouped[monthKey].executed += report.executed_amount || 0;
     });
 
     return grouped;

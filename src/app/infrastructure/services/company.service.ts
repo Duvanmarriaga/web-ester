@@ -17,57 +17,57 @@ export class CompanyService {
   private apiUrl = environment.apiUrl;
 
   getAll(): Observable<Company[]> {
-    return this.http.get<Company[]>(`${this.apiUrl}/admin/companies`);
+    return this.http.get<Company[]>(`${this.apiUrl}/companies`);
   }
 
   getById(id: string): Observable<Company> {
-    return this.http.get<Company>(`${this.apiUrl}/admin/companies/${id}`);
+    return this.http.get<Company>(`${this.apiUrl}/companies/${id}`);
   }
 
   create(companyData: CompanyCreate): Observable<Company> {
     return this.http.post<Company>(
-      `${this.apiUrl}/admin/companies`,
+      `${this.apiUrl}/companies`,
       companyData
     );
   }
 
   update(companyData: CompanyUpdate): Observable<Company> {
     return this.http.put<Company>(
-      `${this.apiUrl}/admin/companies/${companyData.id}`,
+      `${this.apiUrl}/companies/${companyData.id}`,
       companyData
     );
   }
 
   downloadTemplate(): Observable<any> {
     return this.http.get(
-      `${this.apiUrl}/admin/reports/budgets/template/download`,
+      `${this.apiUrl}/operation-budgets/template/download`,
       { responseType: 'arraybuffer' as const }
     );
   }
 
   delete(id: number): Observable<void> {
-    return this.http.delete<void>(`${this.apiUrl}/admin/companies/${id}`);
+    return this.http.delete<void>(`${this.apiUrl}/companies/${id}`);
   }
 
   search(query: string): Observable<Company[]> {
     const params = new HttpParams().set('q', query);
-    return this.http.get<Company[]>(`${this.apiUrl}/admin/companies/search`, { params });
+    return this.http.get<Company[]>(`${this.apiUrl}/companies/search`, { params });
   }
 
   getCompanyUsers(companyId: number): Observable<any[]> {
-    return this.http.get<any[]>(`${this.apiUrl}/admin/companies/${companyId}/users`);
+    return this.http.get<any[]>(`${this.apiUrl}/companies/${companyId}/users`);
   }
 
   syncCompanyUsers(companyId: number, userIds: number[]): Observable<any> {
     return this.http.put<any>(
-      `${this.apiUrl}/admin/companies/${companyId}/users`,
+      `${this.apiUrl}/companies/${companyId}/users`,
       { user_ids: userIds }
     );
   }
 
   assignCompanyUsers(companyId: number, userIds: number[]): Observable<any> {
     return this.http.post<any>(
-      `${this.apiUrl}/admin/companies/${companyId}/users`,
+      `${this.apiUrl}/companies/${companyId}/users`,
       { user_ids: userIds }
     );
   }
@@ -75,7 +75,7 @@ export class CompanyService {
   removeCompanyUsers(companyId: number, userIds: number[]): Observable<any> {
     return this.http.request<any>(
       'DELETE',
-      `${this.apiUrl}/admin/companies/${companyId}/users`,
+      `${this.apiUrl}/companies/${companyId}/users`,
       { body: { user_ids: userIds } }
     );
   }

@@ -2,55 +2,106 @@
 // ESTER - Variables del Sistema de Diseño
 // ==================================================
 
-// Paleta de colores Ester - Nueva paleta
-// Color principal oscuro
-$ester-primary: #343434;
-$ester-primary-dark: #2a2a2a;
-$ester-primary-light: #4a4a4a;
-$ester-primary-lightest: #5a5a5a;
+// Paleta de colores Ester - Nueva paleta basada en TailPanel
+// Color principal - Azul (Primary)
+$ester-primary: #3b82f6; // primary-500
+$ester-primary-dark: #2563eb; // primary-600
+$ester-primary-light: #60a5fa; // primary-400
+$ester-primary-lightest: #93c5fd; // primary-300
+$ester-primary-50: #eff6ff;
+$ester-primary-100: #dbeafe;
+$ester-primary-200: #bfdbfe;
+$ester-primary-300: #93c5fd;
+$ester-primary-400: #60a5fa;
+$ester-primary-500: #3b82f6;
+$ester-primary-600: #2563eb;
+$ester-primary-700: #1d4ed8;
+$ester-primary-800: #1e40af;
+$ester-primary-900: #1e3a8a;
 
-// Color secundario gris
-$ester-secondary: #AEADB3;
-$ester-secondary-dark: #8d8c92;
-$ester-secondary-light: #c9c8cd;
-$ester-secondary-lightest: #e4e4e7;
+// Color secundario - Gris (Secondary)
+$ester-secondary: #64748b; // secondary-500
+$ester-secondary-dark: #475569; // secondary-600
+$ester-secondary-light: #94a3b8; // secondary-400
+$ester-secondary-lightest: #cbd5e1; // secondary-300
+$ester-secondary-50: #f8fafc;
+$ester-secondary-100: #f1f5f9;
+$ester-secondary-200: #e2e8f0;
+$ester-secondary-300: #cbd5e1;
+$ester-secondary-400: #94a3b8;
+$ester-secondary-500: #64748b;
+$ester-secondary-600: #475569;
+$ester-secondary-700: #334155;
+$ester-secondary-800: #1e293b;
+$ester-secondary-900: #0f172a;
+$ester-secondary-950: #020617;
 
-// Colores de estado (mantener para funcionalidad)
-$ester-success: #10b981;
-$ester-success-dark: #059669;
-$ester-success-light: #d1fae5;
+// Colores de estado
+$ester-success: #22c55e; // success-500
+$ester-success-dark: #16a34a; // success-600
+$ester-success-light: #dcfce7; // success-100
+$ester-success-50: #f0fdf4;
+$ester-success-100: #dcfce7;
+$ester-success-200: #bbf7d0;
+$ester-success-300: #86efac;
+$ester-success-400: #4ade80;
+$ester-success-500: #22c55e;
+$ester-success-600: #16a34a;
+$ester-success-700: #15803d;
+$ester-success-800: #166534;
+$ester-success-900: #14532d;
 
-$ester-warning: #f59e0b;
-$ester-warning-dark: #d97706;
-$ester-warning-light: #fef3c7;
+$ester-warning: #f59e0b; // warning-500
+$ester-warning-dark: #d97706; // warning-600
+$ester-warning-light: #fef3c7; // warning-100
+$ester-warning-50: #fffbeb;
+$ester-warning-100: #fef3c7;
+$ester-warning-200: #fde68a;
+$ester-warning-300: #fcd34d;
+$ester-warning-400: #fbbf24;
+$ester-warning-500: #f59e0b;
+$ester-warning-600: #d97706;
+$ester-warning-700: #b45309;
+$ester-warning-800: #92400e;
+$ester-warning-900: #78350f;
 
-$ester-danger: #ef4444;
-$ester-danger-dark: #dc2626;
-$ester-danger-light: #fee2e2;
+$ester-danger: #ef4444; // danger-500
+$ester-danger-dark: #dc2626; // danger-600
+$ester-danger-light: #fee2e2; // danger-100
+$ester-danger-50: #fef2f2;
+$ester-danger-100: #fee2e2;
+$ester-danger-200: #fecaca;
+$ester-danger-300: #fca5a5;
+$ester-danger-400: #f87171;
+$ester-danger-500: #ef4444;
+$ester-danger-600: #dc2626;
+$ester-danger-700: #b91c1c;
+$ester-danger-800: #991b1b;
+$ester-danger-900: #7f1d1d;
 
-$ester-info: #3b82f6;
+$ester-info: #3b82f6; // info usa primary
 $ester-info-dark: #2563eb;
 $ester-info-light: #dbeafe;
 
-// Colores de texto - Escala de grises basada en la paleta
-$ester-text-primary: #211915;
-$ester-text-secondary: #5a5049;
-$ester-text-tertiary: #AEADB3;
+// Colores de texto - Escala de grises
+$ester-text-primary: #0f172a; // secondary-900
+$ester-text-secondary: #475569; // secondary-600
+$ester-text-tertiary: #64748b; // secondary-500
 $ester-text-inverse: #ffffff;
-$ester-text-muted: #c9c8cd;
+$ester-text-muted: #94a3b8; // secondary-400
 
-// Colores de fondo - Escala de grises basada en la paleta
+// Colores de fondo
 $ester-bg-primary: #ffffff;
-$ester-bg-secondary: #f8f8f9;
-$ester-bg-tertiary: #f0f0f1;
-$ester-bg-dark: #211915;
-$ester-bg-light: #fafafa;
+$ester-bg-secondary: #f8fafc; // secondary-50
+$ester-bg-tertiary: #f1f5f9; // secondary-100
+$ester-bg-dark: #0f172a; // secondary-900
+$ester-bg-light: #ffffff;
 
-// Colores de borde - Escala de grises basada en la paleta
-$ester-border-primary: #e4e4e7; // Gris claro para bordes principales
-$ester-border-secondary: #c9c8cd; // Gris medio para bordes secundarios
-$ester-border-tertiary: #AEADB3; // Gris más oscuro para bordes terciarios
-$ester-border-dark: #5a5049; // Borde oscuro
+// Colores de borde
+$ester-border-primary: #e2e8f0; // secondary-200
+$ester-border-secondary: #cbd5e1; // secondary-300
+$ester-border-tertiary: #94a3b8; // secondary-400
+$ester-border-dark: #475569; // secondary-600
 
 // Sombras
 $ester-shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
@@ -135,18 +186,18 @@ $breakpoint-xl: 1200px;
 $breakpoint-xxl: 1400px;
 
 // Layout
-$sidebar-width: 240px;
+$sidebar-width: 255px;
 $sidebar-collapsed-width: 70px;
 $toolbar-height: 56px;
 
 // Componentes
 $input-height: 36px;
 $input-height-sm: 32px;
-$input-height-lg: 40px;
+$input-height-lg: 48px;
 
-$button-height: 36px;
+$button-height: 32px;
 $button-height-sm: 28px;
-$button-height-lg: 40px;
+$button-height-lg: 48px;
 
 $card-padding: 1rem;
 $card-padding-sm: 0.75rem;

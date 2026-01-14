@@ -91,6 +91,45 @@ export class BudgetModalComponent implements OnInit {
     return Array.isArray(cats) ? cats : [];
   });
 
+  // Computed signal to get the selected year from budget input or form
+  selectedYear = computed(() => {
+    // First, try to get the year from the budget input (when editing or when year is pre-selected)
+    const currentBudget = this.budget();
+    if (currentBudget?.operation_budget_annual_id) {
+      const budgetYear = this.budgetYears().find(by => by.id === currentBudget.operation_budget_annual_id);
+      if (budgetYear) {
+        return budgetYear.year;
+      }
+    }
+    
+    // If not in budget input, try to get it from the form
+    const annualId = this.budgetForm?.get('operation_budget_annual_id')?.value;
+    if (annualId) {
+      const budgetYear = this.budgetYears().find(by => by.id === annualId);
+      if (budgetYear) {
+        return budgetYear.year;
+      }
+    }
+    
+    return null;
+  });
+
+  // Months array for selector
+  months = [
+    { value: 1, label: 'Enero' },
+    { value: 2, label: 'Febrero' },
+    { value: 3, label: 'Marzo' },
+    { value: 4, label: 'Abril' },
+    { value: 5, label: 'Mayo' },
+    { value: 6, label: 'Junio' },
+    { value: 7, label: 'Julio' },
+    { value: 8, label: 'Agosto' },
+    { value: 9, label: 'Septiembre' },
+    { value: 10, label: 'Octubre' },
+    { value: 11, label: 'Noviembre' },
+    { value: 12, label: 'Diciembre' },
+  ];
+
   constructor() {
     effect(() => {
       const currentBudget = this.budget();
@@ -107,17 +146,22 @@ export class BudgetModalComponent implements OnInit {
         this.isEditMode.set(false);
         setTimeout(() => {
           if (this.budgetForm) {
-            // Si el budget input tiene budget_year_id, mantenerlo
+            // Si el budget input tiene operation_budget_annual_id (año viene por parámetros), mantenerlo
             const budgetInput = this.budget();
+            const annualId = budgetInput?.operation_budget_annual_id || null;
             this.budgetForm.reset({
-              budget_category_id: '',
-              budget_year_id: budgetInput?.budget_year_id || null,
-              budget_date: '',
+              operation_budget_category_id: '',
+              operation_budget_annual_id: annualId,
+              budget_month: '',
               budget_amount: '0',
               executed_amount: '0',
               difference_amount: 0,
               percentage: 0,
             });
+            // Si hay annualId, establecerlo en el formulario para que el validador funcione
+            if (annualId) {
+              this.budgetForm.patchValue({ operation_budget_annual_id: annualId });
+            }
           }
         }, 0);
       }
@@ -128,9 +172,9 @@ export class BudgetModalComponent implements OnInit {
     this.setupTypeahead();
     
     this.budgetForm = this.fb.group({
-      budget_category_id: ['', [Validators.required]],
-      budget_year_id: [null],
-      budget_date: [
+      operation_budget_category_id: ['', [Validators.required]],
+      operation_budget_annual_id: [null],
+      budget_month: [
         '',
         [Validators.required],
         [this.dateExistsValidator.bind(this)],
@@ -139,6 +183,12 @@ export class BudgetModalComponent implements OnInit {
       executed_amount: ['0', [Validators.required, this.currencyValidator]],
       difference_amount: [{ value: 0, disabled: true }],
       percentage: [{ value: 0, disabled: true }],
+    });
+
+    // Watch for operation_budget_annual_id changes to update date validator
+    this.budgetForm.get('operation_budget_annual_id')?.valueChanges.subscribe(() => {
+      // Trigger date validation when year changes
+      this.budgetForm.get('budget_month')?.updateValueAndValidity();
     });
 
     // Calculate difference and percentage when amounts change
@@ -150,9 +200,9 @@ export class BudgetModalComponent implements OnInit {
       this.calculateDifferenceAndPercentage();
     });
 
-    // Watch for date validation errors
-    this.budgetForm.get('budget_date')?.statusChanges.subscribe(() => {
-      const control = this.budgetForm.get('budget_date');
+    // Watch for month validation errors
+    this.budgetForm.get('budget_month')?.statusChanges.subscribe(() => {
+      const control = this.budgetForm.get('budget_month');
       if (control?.hasError('dateExists')) {
         this.dateExistsError.set('Ya existe un presupuesto para esta fecha');
       } else {
@@ -277,7 +327,7 @@ export class BudgetModalComponent implements OnInit {
     if (existingCategory) {
       // If exists, select it instead of creating
       this.budgetForm.patchValue({
-        budget_category_id: existingCategory.id,
+        operation_budget_category_id: existingCategory.id,
       });
       return;
     }
@@ -289,7 +339,7 @@ export class BudgetModalComponent implements OnInit {
   onCategoryBlur(): void {
     // When blur, check if we need to create a category
     const searchTerm = this.currentSearchTerm();
-    const selectedId = this.budgetForm.get('budget_category_id')?.value;
+    const selectedId = this.budgetForm.get('operation_budget_category_id')?.value;
 
     // If there's a search term but no selected category, and we're not already creating
     if (
@@ -345,7 +395,7 @@ export class BudgetModalComponent implements OnInit {
         const currentCategories = this.categories();
         this.categories.set([...currentCategories, newCategory]);
         // Set the form value to the new category
-        this.budgetForm.patchValue({ budget_category_id: newCategory.id });
+        this.budgetForm.patchValue({ operation_budget_category_id: newCategory.id });
         this.toastr.success('Categoría creada exitosamente', 'Éxito');
         this.isLoadingCategories.set(false);
         this.isCreatingCategory.set(false);
@@ -357,7 +407,7 @@ export class BudgetModalComponent implements OnInit {
         this.isLoadingCategories.set(false);
         this.isCreatingCategory.set(false);
         // Reset the form control if creation failed
-        this.budgetForm.patchValue({ budget_category_id: '' });
+        this.budgetForm.patchValue({ operation_budget_category_id: '' });
       },
     });
   }
@@ -367,8 +417,16 @@ export class BudgetModalComponent implements OnInit {
       return of(null);
     }
 
-    const dateValue = control.value;
-    const budgetDate = `${dateValue}-01`;
+    const month = control.value;
+    const year = this.selectedYear();
+    
+    if (!year) {
+      return of(null);
+    }
+
+    // Create date string in format YYYY-MM-DD
+    const monthStr = month.toString().padStart(2, '0');
+    const budgetDate = `${year}-${monthStr}-01`;
 
     return of(null).pipe(
       debounceTime(500),
@@ -488,9 +546,14 @@ export class BudgetModalComponent implements OnInit {
   }
 
   populateForm(budget: Budget): void {
-    const budgetDate = budget.budget_date
-      ? budget.budget_date.substring(0, 7)
-      : '';
+    // Extract month from budget_date (format: YYYY-MM-DD)
+    let budgetMonth = '';
+    if (budget.budget_date) {
+      const dateParts = budget.budget_date.split('-');
+      if (dateParts.length >= 2) {
+        budgetMonth = parseInt(dateParts[1], 10).toString();
+      }
+    }
 
     const budgetAmount =
       typeof budget.budget_amount === 'number'
@@ -502,7 +565,7 @@ export class BudgetModalComponent implements OnInit {
         : parseFloat(budget.executed_amount) || 0;
 
     // Buscar la categoría por ID para obtener el nombre
-    const categoryId = budget.budget_category_id;
+    const categoryId = budget.operation_budget_category_id;
     this.budgetCategoryService.getById(categoryId).subscribe({
       next: (category) => {
         // Agregar la categoría a la lista si no está presente
@@ -517,9 +580,9 @@ export class BudgetModalComponent implements OnInit {
         // Establecer el valor del formulario como objeto con name (formato solicitado)
         this.budgetForm.patchValue(
           {
-            budget_category_id: { name: category.name },
-            budget_year_id: budget.budget_year_id || null,
-            budget_date: budgetDate,
+            operation_budget_category_id: { name: category.name },
+            operation_budget_annual_id: budget.operation_budget_annual_id || null,
+            budget_month: budgetMonth,
             budget_amount: this.formatNumberWithCommas(budgetAmount),
             executed_amount: this.formatNumberWithCommas(executedAmount),
             difference_amount:
@@ -538,9 +601,9 @@ export class BudgetModalComponent implements OnInit {
         // Si falla la búsqueda, establecer solo con el ID como fallback
     this.budgetForm.patchValue(
       {
-        budget_category_id: budget.budget_category_id.toString(),
-            budget_year_id: budget.budget_year_id || null,
-        budget_date: budgetDate,
+        operation_budget_category_id: budget.operation_budget_category_id.toString(),
+            operation_budget_annual_id: budget.operation_budget_annual_id || null,
+        budget_month: budgetMonth,
         budget_amount: this.formatNumberWithCommas(budgetAmount),
         executed_amount: this.formatNumberWithCommas(executedAmount),
         difference_amount:
@@ -568,24 +631,24 @@ export class BudgetModalComponent implements OnInit {
 
     let formValue = { ...this.budgetForm.value };
 
-    // Si budget_category_id es un objeto, extraer el ID o buscar/crear la categoría
+    // Si operation_budget_category_id es un objeto, extraer el ID o buscar/crear la categoría
     if (
-      formValue.budget_category_id &&
-      typeof formValue.budget_category_id === 'object'
+      formValue.operation_budget_category_id &&
+      typeof formValue.operation_budget_category_id === 'object'
     ) {
       // Si tiene id, usar el id directamente
-      if (formValue.budget_category_id.id) {
-        formValue.budget_category_id = formValue.budget_category_id.id;
-      } else if (formValue.budget_category_id.name) {
+      if (formValue.operation_budget_category_id.id) {
+        formValue.operation_budget_category_id = formValue.operation_budget_category_id.id;
+      } else if (formValue.operation_budget_category_id.name) {
         // Si solo tiene name, buscar o crear la categoría
-        const categoryName = formValue.budget_category_id.name;
+        const categoryName = formValue.operation_budget_category_id.name;
         const foundCategory = this.categoriesList().find(
           (cat) => cat.name === categoryName
         );
 
         if (foundCategory) {
           // Si encontramos la categoría, usar su ID
-          formValue.budget_category_id = foundCategory.id;
+          formValue.operation_budget_category_id = foundCategory.id;
         } else {
           // Si no encontramos la categoría, crear una nueva
           const code = categoryName
@@ -607,14 +670,20 @@ export class BudgetModalComponent implements OnInit {
           const newCategory = await firstValueFrom(
             this.budgetCategoryService.create(categoryData)
           );
-          formValue.budget_category_id = newCategory.id;
+          formValue.operation_budget_category_id = newCategory.id;
         }
       }
     }
 
-    const budgetDate = formValue.budget_date
-      ? `${formValue.budget_date}-01`
-      : '';
+    // Combine selected month with year from operation_budget_annual_id
+    const month = formValue.budget_month;
+    const year = this.selectedYear();
+    let budgetDate = '';
+    
+    if (month && year) {
+      const monthStr = month.toString().padStart(2, '0');
+      budgetDate = `${year}-${monthStr}-01`;
+    }
 
     const budgetAmountValue =
       formValue.budget_amount?.toString().replace(/[^0-9.]/g, '') || '0';
@@ -627,16 +696,14 @@ export class BudgetModalComponent implements OnInit {
     const percentage = budgetAmount > 0 ? (executedAmount / budgetAmount) * 100 : 0;
 
     const budgetData: BudgetCreate = {
-      budget_category_id: parseInt(formValue.budget_category_id.toString(), 10),
+      operation_budget_category_id: parseInt(formValue.operation_budget_category_id.toString(), 10),
       company_id: this.companyId(),
-      budget_year_id: formValue.budget_year_id || null,
+      operation_budget_annual_id: formValue.operation_budget_annual_id || null,
       budget_date: budgetDate,
       budget_amount: budgetAmount,
       executed_amount: executedAmount,
       difference_amount: difference,
       percentage: percentage,
-      user_id: this.userId(),
-      document_origin: '',
     };
 
     if (this.isEditMode() && this.budget()?.id) {

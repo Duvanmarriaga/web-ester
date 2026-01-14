@@ -7,6 +7,7 @@ import { PaginatedResponse } from '../../entities/interfaces/pagination.interfac
 export interface Process {
   id?: number;
   company_id: number;
+  contact_id?: number | null;
   docket_number: string;
   type: 'penal' | 'juridico';
   start_date: string;
@@ -27,6 +28,7 @@ export interface Process {
 
 export interface ProcessCreate {
   company_id: number;
+  contact_id?: number | null;
   docket_number: string;
   type: 'penal' | 'juridico';
   start_date: string;
@@ -67,31 +69,31 @@ export class ProcessService {
     }
     
     return this.http.get<PaginatedResponse<Process>>(
-      `${this.apiUrl}/admin/reports/processes`,
+      `${this.apiUrl}/processes`,
       { params }
     );
   }
 
   getById(id: number): Observable<Process> {
-    return this.http.get<Process>(`${this.apiUrl}/admin/reports/processes/${id}`);
+    return this.http.get<Process>(`${this.apiUrl}/processes/${id}`);
   }
 
   create(processData: ProcessCreate): Observable<Process> {
     return this.http.post<Process>(
-      `${this.apiUrl}/admin/reports/processes`,
+      `${this.apiUrl}/processes`,
       processData
     );
   }
 
   update(id: number, processData: Partial<ProcessCreate>): Observable<Process> {
     return this.http.put<Process>(
-      `${this.apiUrl}/admin/reports/processes/${id}`,
+      `${this.apiUrl}/processes/${id}`,
       processData
     );
   }
 
   delete(id: number): Observable<void> {
-    return this.http.delete<void>(`${this.apiUrl}/admin/reports/processes/${id}`);
+    return this.http.delete<void>(`${this.apiUrl}/processes/${id}`);
   }
 }
 

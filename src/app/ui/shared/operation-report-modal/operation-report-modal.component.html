@@ -23,16 +23,16 @@
         <form [formGroup]="reportForm" (ngSubmit)="onSubmit()">
           <div class="row g-3">
             <div class="col-12">
-              <label for="operation_category_id" class="form-label"
+              <label for="operation_budget_category_id" class="form-label"
                 >Categoría</label
               >
               <ng-select
-                id="operation_category_id"
+                id="operation_budget_category_id"
                 [items]="categoriesList()"
                 bindLabel="name"
                 [compareWith]="compareCategories"
                 placeholder="Escribe para buscar o presiona Enter para crear..."
-                formControlName="operation_category_id"
+                formControlName="operation_budget_category_id"
                 [searchable]="true"
                 [clearable]="true"
                 [loading]="isLoadingCategories()"
@@ -43,21 +43,21 @@
                 appendTo="body"
               >
               </ng-select>
-              @if (reportForm.get('operation_category_id')?.invalid &&
-              reportForm.get('operation_category_id')?.touched) {
+              @if (reportForm.get('operation_budget_category_id')?.invalid &&
+              reportForm.get('operation_budget_category_id')?.touched) {
               <small class="form-error">Categoría requerida</small>
               }
             </div>
             <div class="col-12">
-              <label for="operation_date" class="form-label">Mes y Año</label>
+              <label for="budget_date" class="form-label">Mes y Año</label>
               <input
                 type="month"
                 class="form-control"
-                id="operation_date"
-                formControlName="operation_date"
+                id="budget_date"
+                formControlName="budget_date"
               />
-              @if (reportForm.get('operation_date')?.invalid &&
-              reportForm.get('operation_date')?.touched) { @if
+              @if (reportForm.get('budget_date')?.invalid &&
+              reportForm.get('budget_date')?.touched) { @if
               (dateExistsError()) {
               <small class="form-error">{{ dateExistsError() }}</small>
               } @else {
@@ -65,61 +65,75 @@
               } }
             </div>
             <div class="col-12">
-              <label for="description" class="form-label">Descripción</label>
-              <textarea
-                class="form-control"
-                id="description"
-                formControlName="description"
-                rows="3"
-                placeholder="Descripción de la operación"
-              ></textarea>
-              @if (reportForm.get('description')?.invalid &&
-              reportForm.get('description')?.touched) {
-              <small class="form-error">Descripción requerida</small>
-              }
-            </div>
-            <div class="col-12">
-              <label for="monthly_cost" class="form-label">Costo Mensual</label>
+              <label for="budget_amount" class="form-label">Monto Presupuestado</label>
               <div class="input-group">
                 <span class="input-group-text">$</span>
                 <input
                   type="text"
                   class="form-control"
-                  id="monthly_cost"
-                  formControlName="monthly_cost"
+                  id="budget_amount"
+                  formControlName="budget_amount"
                   placeholder="000"
-                  (input)="formatCurrency($event, 'monthly_cost')"
-                  (blur)="formatCurrencyOnBlur('monthly_cost')"
+                  (input)="formatCurrency($event, 'budget_amount')"
+                  (blur)="formatCurrencyOnBlur('budget_amount')"
                 />
               </div>
-              @if (reportForm.get('monthly_cost')?.invalid &&
-              reportForm.get('monthly_cost')?.touched) {
+              @if (reportForm.get('budget_amount')?.invalid &&
+              reportForm.get('budget_amount')?.touched) {
               <small class="form-error"
-                >Costo mensual requerido (mínimo 0)</small
+                >Monto presupuestado requerido (mínimo 0)</small
               >
               }
             </div>
             <div class="col-12">
-              <label for="annual_cost" class="form-label">Costo Anual</label>
+              <label for="executed_amount" class="form-label">Monto Ejecutado</label>
               <div class="input-group">
                 <span class="input-group-text">$</span>
                 <input
                   type="text"
                   class="form-control"
-                  id="annual_cost"
-                  formControlName="annual_cost"
+                  id="executed_amount"
+                  formControlName="executed_amount"
                   placeholder="000"
-                  (input)="formatCurrency($event, 'annual_cost')"
-                  (blur)="formatCurrencyOnBlur('annual_cost')"
+                  (input)="formatCurrency($event, 'executed_amount')"
+                  (blur)="formatCurrencyOnBlur('executed_amount')"
+                />
+              </div>
+              @if (reportForm.get('executed_amount')?.invalid &&
+              reportForm.get('executed_amount')?.touched) {
+              <small class="form-error">Monto ejecutado requerido (mínimo 0)</small>
+              }
+            </div>
+            <div class="col-12">
+              <label for="difference_amount" class="form-label">Diferencia</label>
+              <div class="input-group">
+                <span class="input-group-text">$</span>
+                <input
+                  type="text"
+                  class="form-control"
+                  id="difference_amount"
+                  formControlName="difference_amount"
+                  placeholder="000"
+                  readonly
                 />
               </div>
               <small class="form-text text-muted"
-                >Se calcula automáticamente (Costo Mensual × 12)</small
+                >Se calcula automáticamente (Presupuestado - Ejecutado)</small
               >
-              @if (reportForm.get('annual_cost')?.invalid &&
-              reportForm.get('annual_cost')?.touched) {
-              <small class="form-error">Costo anual requerido (mínimo 0)</small>
-              }
+            </div>
+            <div class="col-12">
+              <label for="percentage" class="form-label">Porcentaje (%)</label>
+              <input
+                type="text"
+                class="form-control"
+                id="percentage"
+                formControlName="percentage"
+                placeholder="0.00"
+                readonly
+              />
+              <small class="form-text text-muted"
+                >Se calcula automáticamente ((Ejecutado / Presupuestado) × 100)</small
+              >
             </div>
           </div>
           <div class="d-flex gap-2 justify-content-end mt-4">

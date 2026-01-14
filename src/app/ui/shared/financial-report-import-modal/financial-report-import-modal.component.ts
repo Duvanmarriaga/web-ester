@@ -410,12 +410,10 @@ export class FinancialReportImportModalComponent implements OnInit {
 
       reports.push({
         company_id: this.companyId(),
+        financial_report_category_id: null,
         report_date: reportDate,
-        income,
-        expenses,
-        profit,
-        user_id: this.userId(),
-        document_origin: '',
+        total_revenue: income,
+        net_profit: profit,
       });
     });
 

@@ -31,7 +31,7 @@ function getUserFromToken(token: string): User | null {
       name: payload.user.name || '',
       email: payload.user.email,
       email_verified_at: null,
-      type: (payload.user.type as UserType) || UserType.CLIENT,
+      type: (payload.user.type as UserType) || UserType.COMPANY,
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
       deleted_at: null,

@@ -7,15 +7,20 @@
   <div class="sidebar__header">
     <div class="sidebar__brand">
       <div class="sidebar__brand-logo">
-        <img src="/assets/logo.jpg" alt="Ester Logo" class="sidebar__logo-img" />
+        <img
+          src="/assets/logo.jpg"
+          alt="Ester Logo"
+          class="sidebar__logo-img"
+        />
       </div>
       <div class="sidebar__brand-text">
         <h6 class="sidebar__brand-name">Ester</h6>
         <small class="sidebar__brand-subtitle">Software Contable</small>
       </div>
-      </div>
+    </div>
 
     <!-- Toggle Button -->
+    @if (!isMobile() || isMobileOpen()) {
     <button
       class="sidebar__toggle"
       (click)="isMobile() ? closeMobileMenu() : toggleSidebar()"
@@ -24,12 +29,13 @@
     >
       @if (isMobile()) {
       <!-- X para mobile -->
-      <lucide-icon [img]="icons.X" [size]="20"></lucide-icon>
-          } @else {
+      <lucide-icon [img]="icons.ChevronLeft" [size]="20"></lucide-icon>
+      } @else {
       <!-- ChevronLeft para desktop -->
       <lucide-icon [img]="icons.ChevronLeft" [size]="20"></lucide-icon>
-                }
-              </button>
+      }
+    </button>
+    }
   </div>
 
   <!-- Navigation Menu -->
@@ -37,7 +43,7 @@
     <ul class="sidebar__menu">
       @for (item of menuItems(); track item.route) {
       <li class="sidebar__menu-item">
-                    <a
+        <a
           [routerLink]="item.route"
           routerLinkActive="sidebar__menu-link--active"
           class="sidebar__menu-link"
@@ -52,11 +58,11 @@
           @if (item.badge) {
           <span class="sidebar__menu-badge">{{ item.badge }}</span>
           }
-                    </a>
+        </a>
       </li>
-              }
+      }
     </ul>
-      </nav>
+  </nav>
 
   <!-- Footer -->
   <div class="sidebar__footer">
@@ -69,7 +75,7 @@
       <small class="sidebar__footer-text">V {{ version }}</small>
     </div>
   </div>
-    </aside>
+</aside>
 
 <!-- Mobile overlay (backdrop) -->
 @if (isMobileOpen()) {

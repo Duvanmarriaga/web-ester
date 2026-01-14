@@ -101,11 +101,13 @@ export class OperationReportModalComponent implements OnInit {
         setTimeout(() => {
           if (this.reportForm) {
             this.reportForm.reset({
-              operation_category_id: '',
-              operation_date: '',
-              description: '',
-              monthly_cost: '0',
-              annual_cost: '0',
+              operation_budget_category_id: '',
+              operation_budget_annual_id: null,
+              budget_date: '',
+              budget_amount: '0',
+              executed_amount: '0',
+              difference_amount: '0',
+              percentage: '0',
             });
           }
         }, 0);
@@ -117,25 +119,30 @@ export class OperationReportModalComponent implements OnInit {
     this.setupTypeahead();
 
     this.reportForm = this.fb.group({
-      operation_category_id: ['', [Validators.required]],
-      operation_date: [
+      operation_budget_category_id: ['', [Validators.required]],
+      operation_budget_annual_id: [null],
+      budget_date: [
         '',
         [Validators.required],
         [this.dateExistsValidator.bind(this)],
       ],
-      description: ['', [Validators.required]],
-      monthly_cost: ['0', [Validators.required, this.currencyValidator]],
-      annual_cost: ['0', [Validators.required, this.currencyValidator]],
+      budget_amount: ['0', [Validators.required, this.currencyValidator]],
+      executed_amount: ['0', [Validators.required, this.currencyValidator]],
+      difference_amount: ['0', [Validators.required, this.currencyValidator]],
+      percentage: ['0', [Validators.required]],
     });
 
-    // Calculate annual cost when monthly cost changes
-    this.reportForm.get('monthly_cost')?.valueChanges.subscribe(() => {
-      this.calculateAnnualCost();
+    // Calculate difference and percentage when budget or executed amounts change
+    this.reportForm.get('budget_amount')?.valueChanges.subscribe(() => {
+      this.calculateDifference();
+    });
+    this.reportForm.get('executed_amount')?.valueChanges.subscribe(() => {
+      this.calculateDifference();
     });
 
     // Watch for date validation errors
-    this.reportForm.get('operation_date')?.statusChanges.subscribe(() => {
-      const control = this.reportForm.get('operation_date');
+    this.reportForm.get('budget_date')?.statusChanges.subscribe(() => {
+      const control = this.reportForm.get('budget_date');
       if (control?.hasError('dateExists')) {
         this.dateExistsError.set(
           'Ya existe un reporte de operación para esta fecha'
@@ -387,7 +394,7 @@ export class OperationReportModalComponent implements OnInit {
 
   formatCurrency(
     event: Event,
-    fieldName: 'monthly_cost' | 'annual_cost'
+    fieldName: 'budget_amount' | 'executed_amount' | 'difference_amount'
   ): void {
     const input = event.target as HTMLInputElement;
     let value = input.value.replace(/[^0-9.]/g, '');
@@ -412,7 +419,7 @@ export class OperationReportModalComponent implements OnInit {
     );
   }
 
-  formatCurrencyOnBlur(fieldName: 'monthly_cost' | 'annual_cost'): void {
+  formatCurrencyOnBlur(fieldName: 'budget_amount' | 'executed_amount' | 'difference_amount'): void {
     const control = this.reportForm.get(fieldName);
     if (!control) return;
 
@@ -445,36 +452,56 @@ export class OperationReportModalComponent implements OnInit {
     return `${formattedInteger}.${decimalPart}`;
   }
 
-  calculateAnnualCost() {
-    const monthlyValue =
+  calculateDifference() {
+    const budgetValue =
       this.reportForm
-        .get('monthly_cost')
+        .get('budget_amount')
         ?.value?.toString()
         .replace(/[^0-9.]/g, '') || '0';
-    const monthly = parseFloat(monthlyValue) || 0;
-    const annual = monthly * 12;
+    const executedValue =
+      this.reportForm
+        .get('executed_amount')
+        ?.value?.toString()
+        .replace(/[^0-9.]/g, '') || '0';
+    
+    const budget = parseFloat(budgetValue) || 0;
+    const executed = parseFloat(executedValue) || 0;
+    const difference = budget - executed;
+    const percentage = budget > 0 ? ((executed / budget) * 100) : 0;
+    
     this.reportForm.patchValue(
-      { annual_cost: this.formatNumberWithCommas(annual) },
+      {
+        difference_amount: this.formatNumberWithCommas(difference),
+        percentage: percentage.toFixed(2)
+      },
       { emitEvent: false }
     );
   }
 
   populateForm(report: OperationReport): void {
-    const operationDate = report.operation_date
-      ? report.operation_date.substring(0, 7)
+    const budgetDate = report.budget_date
+      ? report.budget_date.substring(0, 7)
       : '';
 
-    const monthlyCost =
-      typeof report.monthly_cost === 'number'
-        ? report.monthly_cost
-        : parseFloat(report.monthly_cost) || 0;
-    const annualCost =
-      typeof report.annual_cost === 'number'
-        ? report.annual_cost
-        : parseFloat(report.annual_cost) || 0;
+    const budgetAmount =
+      typeof report.budget_amount === 'number'
+        ? report.budget_amount
+        : parseFloat(report.budget_amount as any) || 0;
+    const executedAmount =
+      typeof report.executed_amount === 'number'
+        ? report.executed_amount
+        : parseFloat(report.executed_amount as any) || 0;
+    const differenceAmount =
+      typeof report.difference_amount === 'number'
+        ? report.difference_amount
+        : parseFloat(report.difference_amount as any) || 0;
+    const percentage =
+      typeof report.percentage === 'number'
+        ? report.percentage
+        : parseFloat(report.percentage as any) || 0;
 
     // Buscar la categoría por ID para obtener el nombre
-    const categoryId = report.operation_category_id;
+    const categoryId = report.operation_budget_category_id;
     this.operationCategoryService.getById(categoryId).subscribe({
       next: (category) => {
         // Agregar la categoría a la lista si no está presente
@@ -490,27 +517,31 @@ export class OperationReportModalComponent implements OnInit {
         // Usamos solo {name: ...} para que ng-select pueda mostrarlo correctamente
         this.reportForm.patchValue(
           {
-            operation_category_id: { name: category.name },
-            operation_date: operationDate,
-            description: report.description,
-            monthly_cost: this.formatNumberWithCommas(monthlyCost),
-            annual_cost: this.formatNumberWithCommas(annualCost),
+            operation_budget_category_id: { name: category.name },
+            operation_budget_annual_id: report.operation_budget_annual_id || null,
+            budget_date: budgetDate,
+            budget_amount: this.formatNumberWithCommas(budgetAmount),
+            executed_amount: this.formatNumberWithCommas(executedAmount),
+            difference_amount: this.formatNumberWithCommas(differenceAmount),
+            percentage: percentage.toFixed(2),
           },
           { emitEvent: false }
         );
       },
       error: () => {
         // Si falla la búsqueda, establecer solo con el ID como fallback
-    this.reportForm.patchValue(
-      {
-        operation_category_id: report.operation_category_id.toString(),
-        operation_date: operationDate,
-        description: report.description,
-        monthly_cost: this.formatNumberWithCommas(monthlyCost),
-        annual_cost: this.formatNumberWithCommas(annualCost),
-      },
-      { emitEvent: false }
-    );
+        this.reportForm.patchValue(
+          {
+            operation_budget_category_id: report.operation_budget_category_id.toString(),
+            operation_budget_annual_id: report.operation_budget_annual_id || null,
+            budget_date: budgetDate,
+            budget_amount: this.formatNumberWithCommas(budgetAmount),
+            executed_amount: this.formatNumberWithCommas(executedAmount),
+            difference_amount: this.formatNumberWithCommas(differenceAmount),
+            percentage: percentage.toFixed(2),
+          },
+          { emitEvent: false }
+        );
       },
     });
   }
@@ -565,30 +596,34 @@ export class OperationReportModalComponent implements OnInit {
       const newCategory = await firstValueFrom(
         this.operationCategoryService.create(categoryData)
       );
-      formValue.operation_category_id = {
+      formValue.operation_budget_category_id = {
         id: newCategory.id,
         name: newCategory.name,
       };
       }
     }
-    const operationDate = formValue.operation_date
-      ? `${formValue.operation_date}-01`
+    const budgetDate = formValue.budget_date
+      ? `${formValue.budget_date}-01`
       : '';
 
-    const monthlyCostValue =
-      formValue.monthly_cost?.toString().replace(/[^0-9.]/g, '') || '0';
-    const annualCostValue =
-      formValue.annual_cost?.toString().replace(/[^0-9.]/g, '') || '0';
+    const budgetAmountValue =
+      formValue.budget_amount?.toString().replace(/[^0-9.]/g, '') || '0';
+    const executedAmountValue =
+      formValue.executed_amount?.toString().replace(/[^0-9.]/g, '') || '0';
+    const differenceAmountValue =
+      formValue.difference_amount?.toString().replace(/[^0-9.]/g, '') || '0';
+    const percentageValue =
+      formValue.percentage?.toString().replace(/[^0-9.]/g, '') || '0';
 
     const reportData: OperationReportCreate = {
-      operation_category_id: parseInt(formValue.operation_category_id.id, 10),
+      operation_budget_category_id: parseInt(formValue.operation_budget_category_id.id, 10),
+      operation_budget_annual_id: formValue.operation_budget_annual_id || null,
       company_id: this.companyId(),
-      operation_date: operationDate,
-      description: formValue.description,
-      monthly_cost: parseFloat(monthlyCostValue) || 0,
-      annual_cost: parseFloat(annualCostValue) || 0,
-      user_id: this.userId(),
-      document_origin: '',
+      budget_date: budgetDate,
+      budget_amount: parseFloat(budgetAmountValue) || 0,
+      executed_amount: parseFloat(executedAmountValue) || 0,
+      difference_amount: parseFloat(differenceAmountValue) || 0,
+      percentage: parseFloat(percentageValue) || 0,
     };
 
     if (this.isEditMode() && this.report()?.id) {

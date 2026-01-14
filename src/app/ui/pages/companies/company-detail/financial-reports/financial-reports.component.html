@@ -64,9 +64,9 @@
           <thead class="table-light">
             <tr>
               <th class="table-header">Mes/Año</th>
-              <th class="table-header">Ingresos</th>
-              <th class="table-header">Gastos</th>
-              <th class="table-header">Ganancia</th>
+              <th class="table-header">Categoría</th>
+              <th class="table-header">Ingresos Totales</th>
+              <th class="table-header">Ganancia Neta</th>
               <th class="table-header text-end">Acciones</th>
             </tr>
           </thead>
@@ -76,16 +76,18 @@
               <td class="table-cell">
                 {{ report.report_date | date : "MM/yyyy" }}
               </td>
-              <td class="table-cell fw-medium">
-                ${{ report.income | number }}
+              <td class="table-cell">
+                {{ getCategoryName(report.financial_report_category_id) }}
               </td>
-              <td class="table-cell">${{ report.expenses | number }}</td>
+              <td class="table-cell fw-medium">
+                ${{ report.total_revenue | number }}
+              </td>
               <td
                 class="table-cell fw-medium"
-                [class.text-success]="report.profit > 0"
-                [class.text-danger]="report.profit < 0"
+                [class.text-success]="(report.net_profit || 0) > 0"
+                [class.text-danger]="(report.net_profit || 0) < 0"
               >
-                ${{ report.profit | number }}
+                ${{ report.net_profit | number }}
               </td>
               <td class="text-end">
                 <div class="d-flex gap-2 justify-content-end">

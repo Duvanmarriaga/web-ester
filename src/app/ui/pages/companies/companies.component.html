@@ -114,118 +114,13 @@
   </div>
   }
 
-  <!-- Modal -->
-  @if (showModal()) {
-  <div class="modal show d-block">
-    <div class="modal-dialog modal-dialog-centered">
-      <div class="modal-content">
-        <div class="modal-header">
-          <h5 class="modal-title">
-            {{ editingCompany() ? "Editar Compañía" : "Nueva Compañía" }}
-          </h5>
-          <button
-            type="button"
-            class="btn-close"
-            (click)="closeModal()"
-            aria-label="Close"
-          ></button>
-        </div>
-        <div class="modal-body">
-          <form [formGroup]="companyForm" (ngSubmit)="onSubmit()">
-            <div class="mb-3">
-              <label for="name" class="form-label">Nombre de la Compañía</label>
-              <input
-                type="text"
-                class="form-control"
-                id="name"
-                formControlName="name"
-                placeholder="Empresa S.A."
-              />
-              @if (companyForm.get('name')?.invalid &&
-              companyForm.get('name')?.touched) {
-              <small class="form-error">Nombre requerido</small>
-              }
-            </div>
-            <div class="mb-3">
-              <label for="identification_number" class="form-label"
-                >Número de Identificación</label
-              >
-              <input
-                type="text"
-                class="form-control"
-                id="identification_number"
-                formControlName="identification_number"
-                placeholder="123456789"
-              />
-              @if (companyForm.get('identification_number')?.invalid &&
-              companyForm.get('identification_number')?.touched) {
-              <small class="form-error"
-                >Número de identificación requerido</small
-              >
-              }
-            </div>
-            <div class="mb-3">
-              <label for="email" class="form-label">Email</label>
-              <input
-                type="email"
-                class="form-control"
-                id="email"
-                formControlName="email"
-                placeholder="contacto@empresa.com"
-              />
-              @if (companyForm.get('email')?.invalid &&
-              companyForm.get('email')?.touched) {
-              <small class="form-error">Email válido requerido</small>
-              }
-            </div>
-            <div class="mb-3">
-              <label for="phone" class="form-label"
-                >Teléfono <span class="text-muted">(Opcional)</span></label
-              >
-              <input
-                type="tel"
-                class="form-control"
-                id="phone"
-                formControlName="phone"
-                placeholder="+57 300 123 4567"
-              />
-            </div>
-            <div class="mb-3">
-              <label for="address" class="form-label">Dirección</label>
-              <textarea
-                class="form-control"
-                id="address"
-                formControlName="address"
-                rows="2"
-                placeholder="Calle 123 #45-67"
-              ></textarea>
-              @if (companyForm.get('address')?.invalid &&
-              companyForm.get('address')?.touched) {
-              <small class="form-error">Dirección requerida</small>
-              }
-            </div>
-            <div class="d-flex gap-2 justify-content-end mt-4">
-              <button
-                type="button"
-                class="btn btn-sm btn-outline-secondary"
-                (click)="closeModal()"
-              >
-                Cancelar
-              </button>
-              <button
-                type="submit"
-                class="btn btn-sm btn-primary"
-                [disabled]="companyForm.invalid"
-              >
-                {{ editingCompany() ? "Actualizar" : "Crear" }}
-              </button>
-            </div>
-          </form>
-        </div>
-      </div>
-    </div>
-  </div>
-  }
+  <!-- Company Modal -->
+  <app-company-modal
+    [isVisible]="showModal()"
+    [company]="editingCompany()"
+    (close)="closeModal()"
+    (save)="onSaveCompany($event)"
+  />
 
   <!-- Confirm Dialog -->
   <app-confirm-dialog

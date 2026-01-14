@@ -48,42 +48,37 @@
               <small class="form-error">Categoría requerida</small>
               }
             </div>
+            
             <div class="col-12">
-              <label for="budget_year_id" class="form-label"
-                >Presupuesto Anual (Opcional)</label
+              <label for="budget_month" class="form-label"
+                >Mes</label
               >
-              <ng-select
-                id="budget_year_id"
-                [items]="budgetYears()"
-                bindLabel="year"
-                bindValue="id"
-                placeholder="Seleccionar año..."
-                formControlName="budget_year_id"
-                [searchable]="false"
-                [clearable]="true"
-                [loading]="isLoadingBudgetYears()"
-                appendTo="body"
+              <select
+                class="form-select"
+                id="budget_month"
+                formControlName="budget_month"
               >
-                <ng-option [value]="null">Sin presupuesto anual</ng-option>
-              </ng-select>
-            </div>
-            <div class="col-12">
-              <label for="budget_date" class="form-label"
-                >Mes y Año</label
-              >
-              <input
-                type="month"
-                class="form-control"
-                id="budget_date"
-                formControlName="budget_date"
-              />
-              @if (budgetForm.get('budget_date')?.invalid &&
-              budgetForm.get('budget_date')?.touched) {
+                <option value="">Seleccione un mes</option>
+                @for (month of months; track month.value) {
+                  <option [value]="month.value">{{ month.label }}</option>
+                }
+              </select>
+              @if (budgetForm.get('budget_month')?.invalid &&
+              budgetForm.get('budget_month')?.touched) {
                 @if (dateExistsError()) {
                   <small class="form-error">{{ dateExistsError() }}</small>
                 } @else {
-                  <small class="form-error">Mes y año requeridos</small>
+                  <small class="form-error">Mes requerido</small>
                 }
+              }
+              @if (selectedYear()) {
+                <small class="form-text text-muted">
+                  Año seleccionado: {{ selectedYear() }}
+                </small>
+              } @else {
+                <small class="form-text text-muted text-warning">
+                  Debe seleccionar un año primero
+                </small>
               }
             </div>
             <div class="col-12">

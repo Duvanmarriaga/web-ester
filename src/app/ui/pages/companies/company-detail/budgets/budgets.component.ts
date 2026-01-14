@@ -153,16 +153,16 @@ export class BudgetsComponent implements OnInit {
     const budgets = this.budgets();
     const budgetYears = this.budgetYears();
 
-    // Agrupar budgets por budget_year_id
+    // Agrupar budgets por operation_budget_annual_id
     const budgetsByYear = new Map<number, Budget[]>();
     const budgetsWithoutYear: Budget[] = [];
 
     budgets.forEach((budget) => {
-      if (budget.budget_year_id) {
-        if (!budgetsByYear.has(budget.budget_year_id)) {
-          budgetsByYear.set(budget.budget_year_id, []);
+      if (budget.operation_budget_annual_id) {
+        if (!budgetsByYear.has(budget.operation_budget_annual_id)) {
+          budgetsByYear.set(budget.operation_budget_annual_id, []);
         }
-        budgetsByYear.get(budget.budget_year_id)!.push(budget);
+        budgetsByYear.get(budget.operation_budget_annual_id)!.push(budget);
       } else {
         budgetsWithoutYear.push(budget);
       }
@@ -444,8 +444,8 @@ export class BudgetsComponent implements OnInit {
     if (budgetYearId) {
       // Si se pasa budgetYearId, crear un budget temporal con ese año para pre-seleccionarlo
       const tempBudget: Budget = {
-        budget_year_id: budgetYearId,
-        budget_category_id: 0,
+        operation_budget_annual_id: budgetYearId,
+        operation_budget_category_id: 0,
         company_id: this.companyId()!,
         budget_date: '',
         budget_amount: 0,
@@ -690,10 +690,7 @@ export class BudgetsComponent implements OnInit {
       return;
     }
 
-    // Remove user_id from each budget as createMultiple expects Omit<BudgetCreate, 'user_id'>[]
-    const budgetsWithoutUserId = budgets.map(({ user_id, ...budget }) => budget);
-
-    this.budgetService.createMultiple(budgetsWithoutUserId).subscribe({
+    this.budgetService.createMultiple(budgets).subscribe({
       next: () => {
         this.toastr.success(
           `${budgets.length} presupuesto(s) importado(s) correctamente`,

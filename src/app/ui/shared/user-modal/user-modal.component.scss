@@ -33,8 +33,8 @@
   .form-control,
   .form-select {
     width: 100%;
-    height: 28px;
-    padding: 4px 10px;
+    height: 36px;
+    padding: 0px 12px;
     font-size: map.get($font-sizes, sm);
     background-color: $ester-bg-primary;
     border: 1px solid $ester-border-primary;
@@ -128,7 +128,7 @@
   :host ::ng-deep {
     .ng-select {
       .ng-select-container {
-        min-height: 28px;
+        min-height: 36px;
         height: auto;
         border: 1px solid $ester-border-primary;
         border-radius: $border-radius-md;
@@ -148,8 +148,8 @@
         }
 
         .ng-value-container {
-          padding: 6.5px 10px;
-          min-height: 32px;
+          padding: 0px 12px;
+          min-height: 36px;
           gap: 4px;
           align-items: center;
 
@@ -211,12 +211,68 @@
             }
           }
         }
+      }
 
-        .ng-arrow-wrapper {
-          .ng-arrow {
-            border-color: $ester-text-tertiary transparent transparent;
-            border-width: 5px 5px 0;
+      // Estilos específicos para múltiple (tags/chips)
+      &.ng-select-multiple {
+        .ng-select-container {
+          .ng-value-container {
+            padding: 4px 12px;
+            flex-wrap: wrap;
+            align-items: flex-start;
           }
+
+          .ng-value {
+            background-color: var(--color-primary-50);
+            color: var(--color-primary-700);
+            border: 1px solid var(--color-primary-200);
+            border-radius: $border-radius-md;
+            font-size: map.get($font-sizes, xs);
+            font-weight: map.get($font-weights, medium);
+            padding: 4px 8px;
+            margin: 2px 4px 2px 0;
+            display: inline-flex;
+            align-items: center;
+            line-height: 1.4;
+            box-shadow: none;
+            white-space: nowrap;
+
+            .ng-value-label {
+              color: var(--color-primary-700);
+              padding: 0;
+              margin: 0;
+            }
+
+            .ng-value-icon {
+              color: var(--color-primary-600);
+              opacity: 0.8;
+              cursor: pointer;
+              @include transition(all, $transition-fast);
+              padding: 0;
+              margin-left: 6px;
+              display: inline-flex;
+              align-items: center;
+              justify-content: center;
+              width: 16px;
+              height: 16px;
+              border-radius: 50%;
+              background-color: transparent;
+              flex-shrink: 0;
+
+              &:hover {
+                opacity: 1;
+                color: var(--color-primary-800);
+                background-color: var(--color-primary-100);
+              }
+            }
+          }
+        }
+      }
+
+      .ng-arrow-wrapper {
+        .ng-arrow {
+          border-color: $ester-text-tertiary transparent transparent;
+          border-width: 5px 5px 0;
         }
       }
 

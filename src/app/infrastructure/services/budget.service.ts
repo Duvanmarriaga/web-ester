@@ -7,29 +7,26 @@ import { PaginatedResponse } from '../../entities/interfaces/pagination.interfac
 
 export interface Budget {
   id?: number;
-  budget_category_id: number;
+  operation_budget_category_id: number;
   company_id: number;
-  budget_year_id?: number | null;
+  operation_budget_annual_id?: number | null;
   budget_date: string;
   budget_amount: number;
   executed_amount: number;
   difference_amount: number;
   percentage: number;
-  user_id: number;
-  document_origin?: string | null;
+  user_id?: number;
 }
 
 export interface BudgetCreate {
-  budget_category_id: number;
+  operation_budget_category_id: number;
   company_id: number;
-  budget_year_id?: number | null;
+  operation_budget_annual_id?: number | null;
   budget_date: string;
   budget_amount: number;
   executed_amount: number;
   difference_amount: number;
   percentage: number;
-  user_id: number;
-  document_origin?: string | null;
 }
 
 @Injectable({
@@ -63,52 +60,52 @@ export class BudgetService {
     }
     
     return this.http.get<PaginatedResponse<Budget>>(
-      `${this.apiUrl}/admin/reports/budgets`,
+      `${this.apiUrl}/operation-budgets`,
       { params }
     );
   }
 
   getById(id: number): Observable<Budget> {
-    return this.http.get<Budget>(`${this.apiUrl}/admin/reports/budgets/${id}`);
+    return this.http.get<Budget>(`${this.apiUrl}/operation-budgets/${id}`);
   }
 
   create(budgetData: BudgetCreate): Observable<Budget> {
     return this.http.post<Budget>(
-      `${this.apiUrl}/admin/reports/budgets`,
+      `${this.apiUrl}/operation-budgets`,
       budgetData
     );
   }
 
   update(id: number, budgetData: Partial<BudgetCreate>): Observable<Budget> {
     return this.http.put<Budget>(
-      `${this.apiUrl}/admin/reports/budgets/${id}`,
+      `${this.apiUrl}/operation-budgets/${id}`,
       budgetData
     );
   }
 
   delete(id: number): Observable<void> {
-    return this.http.delete<void>(`${this.apiUrl}/admin/reports/budgets/${id}`);
+    return this.http.delete<void>(`${this.apiUrl}/operation-budgets/${id}`);
   }
 
   downloadTemplate(): Observable<Blob> {
     return this.http.get(
-      `${this.apiUrl}/admin/reports/budgets/template/download`,
+      `${this.apiUrl}/operation-budgets/template/download`,
       { responseType: 'blob' }
     );
   }
 
-  import(file: File, budgetYearId?: number): Observable<{ message?: string }> {
+  import(file: File, annualId?: number): Observable<{ message?: string }> {
     const formData = new FormData();
     formData.append('file', file);
-    if (budgetYearId) {
-      formData.append('budget_year_id', budgetYearId.toString());
+    if (annualId) {
+      formData.append('operation_budget_annual_id', annualId.toString());
     }
-    return this.http.post<{ message?: string }>(`${this.apiUrl}/admin/reports/budgets/import`, formData);
+    return this.http.post<{ message?: string }>(`${this.apiUrl}/operation-budgets/import`, formData);
   }
 
-  createMultiple(budgets: Omit<BudgetCreate, 'user_id'>[]): Observable<Budget[]> {
+  createMultiple(budgets: BudgetCreate[]): Observable<Budget[]> {
     return this.http.post<Budget[]>(
-      `${this.apiUrl}/admin/reports/budgets/multiple`,
+      `${this.apiUrl}/operation-budgets/multiple`,
       { budgets }
     );
   }
@@ -121,7 +118,7 @@ export class BudgetService {
       .set('per_page', '100');
     
     return this.http.get<PaginatedResponse<Budget>>(
-      `${this.apiUrl}/admin/reports/budgets`,
+      `${this.apiUrl}/operation-budgets`,
       { params }
     ).pipe(
       map((response) => {

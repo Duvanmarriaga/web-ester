@@ -94,9 +94,9 @@ export class UserModalComponent implements OnInit {
     this.userForm = this.fb.group({
       name: ['', Validators.required],
       email: ['', [Validators.required, Validators.email]],
-      password: ['', Validators.required],
+      password: ['', [Validators.required, this.passwordValidator]],
       confirmPassword: ['', [Validators.required]],
-      type: [UserType.CLIENT, Validators.required],
+      type: [UserType.COMPANY, Validators.required],
       companies_ids: [[]], // Array de IDs de compañías
     }, { validators: this.passwordMatchValidator });
     
@@ -173,6 +173,7 @@ export class UserModalComponent implements OnInit {
             password: formValue.password,
             type: formValue.type,
             companies_ids: companyIds,
+            clients_ids: [],
           } as UserCreate,
         });
       }
@@ -217,5 +218,48 @@ export class UserModalComponent implements OnInit {
   get passwordsDoNotMatch(): boolean {
     const confirmPassword = this.userForm.get('confirmPassword');
     return !!(confirmPassword?.hasError('passwordMismatch') && confirmPassword.touched);
+  }
+
+  // Validador personalizado para contraseña
+  passwordValidator(control: FormControl): { [key: string]: boolean } | null {
+    if (!control.value) {
+      return null; // Dejar que Validators.required maneje el caso vacío
+    }
+
+    const password = control.value;
+    const errors: { [key: string]: boolean } = {};
+
+    // Mínimo 6 caracteres
+    if (password.length < 6) {
+      errors['passwordMinLength'] = true;
+    }
+
+    // Debe tener al menos una mayúscula
+    if (!/[A-Z]/.test(password)) {
+      errors['passwordUppercase'] = true;
+    }
+
+    // Debe tener al menos una minúscula
+    if (!/[a-z]/.test(password)) {
+      errors['passwordLowercase'] = true;
+    }
+
+    // Debe tener al menos un carácter especial
+    if (!/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(password)) {
+      errors['passwordSpecialChar'] = true;
+    }
+
+    return Object.keys(errors).length > 0 ? errors : null;
+  }
+
+  // Getters para verificar errores específicos de contraseña
+  get passwordErrors(): { minLength: boolean; uppercase: boolean; lowercase: boolean; specialChar: boolean } {
+    const passwordControl = this.userForm.get('password');
+    return {
+      minLength: !!(passwordControl?.hasError('passwordMinLength') && passwordControl.touched),
+      uppercase: !!(passwordControl?.hasError('passwordUppercase') && passwordControl.touched),
+      lowercase: !!(passwordControl?.hasError('passwordLowercase') && passwordControl.touched),
+      specialChar: !!(passwordControl?.hasError('passwordSpecialChar') && passwordControl.touched),
+    };
   }
 }

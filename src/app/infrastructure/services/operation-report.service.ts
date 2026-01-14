@@ -7,25 +7,26 @@ import { PaginatedResponse } from '../../entities/interfaces/pagination.interfac
 
 export interface OperationReport {
   id?: number;
-  operation_category_id: number;
+  operation_budget_category_id: number;
   company_id: number;
-  operation_date: string;
-  description: string;
-  monthly_cost: number;
-  annual_cost: number;
-  user_id: number;
-  document_origin?: string | null;
+  operation_budget_annual_id?: number | null;
+  budget_date: string;
+  budget_amount: number;
+  executed_amount: number;
+  difference_amount: number;
+  percentage: number;
+  user_id?: number;
 }
 
 export interface OperationReportCreate {
-  operation_category_id: number;
+  operation_budget_category_id: number;
   company_id: number;
-  operation_date: string;
-  description: string;
-  monthly_cost: number;
-  annual_cost: number;
-  user_id: number;
-  document_origin?: string | null;
+  operation_budget_annual_id?: number | null;
+  budget_date: string;
+  budget_amount: number;
+  executed_amount: number;
+  difference_amount: number;
+  percentage: number;
 }
 
 @Injectable({
@@ -59,36 +60,36 @@ export class OperationReportService {
     }
     
     return this.http.get<PaginatedResponse<OperationReport>>(
-      `${this.apiUrl}/admin/reports/operations`,
+      `${this.apiUrl}/operation-budgets`,
       { params }
     );
   }
 
   getById(id: number): Observable<OperationReport> {
-    return this.http.get<OperationReport>(`${this.apiUrl}/admin/reports/operations/${id}`);
+    return this.http.get<OperationReport>(`${this.apiUrl}/operation-budgets/${id}`);
   }
 
   create(reportData: OperationReportCreate): Observable<OperationReport> {
     return this.http.post<OperationReport>(
-      `${this.apiUrl}/admin/reports/operations`,
+      `${this.apiUrl}/operation-budgets`,
       reportData
     );
   }
 
   update(id: number, reportData: Partial<OperationReportCreate>): Observable<OperationReport> {
     return this.http.put<OperationReport>(
-      `${this.apiUrl}/admin/reports/operations/${id}`,
+      `${this.apiUrl}/operation-budgets/${id}`,
       reportData
     );
   }
 
   delete(id: number): Observable<void> {
-    return this.http.delete<void>(`${this.apiUrl}/admin/reports/operations/${id}`);
+    return this.http.delete<void>(`${this.apiUrl}/operation-budgets/${id}`);
   }
 
   downloadTemplate(): Observable<Blob> {
     return this.http.get(
-      `${this.apiUrl}/admin/reports/operations/template/download`,
+      `${this.apiUrl}/operation-budgets/template/download`,
       { responseType: 'blob' }
     );
   }
@@ -96,25 +97,25 @@ export class OperationReportService {
   import(file: File): Observable<{ message?: string }> {
     const formData = new FormData();
     formData.append('file', file);
-    return this.http.post<{ message?: string }>(`${this.apiUrl}/admin/reports/operations/import`, formData);
+    return this.http.post<{ message?: string }>(`${this.apiUrl}/operation-budgets/import`, formData);
   }
 
-  checkDateExists(companyId: number, operationDate: string, excludeId?: number): Observable<boolean> {
+  checkDateExists(companyId: number, budgetDate: string, excludeId?: number): Observable<boolean> {
     let params = new HttpParams()
       .set('company_id', companyId.toString())
-      .set('date_from', operationDate)
-      .set('date_to', operationDate)
+      .set('date_from', budgetDate)
+      .set('date_to', budgetDate)
       .set('per_page', '100');
     
     return this.http.get<PaginatedResponse<OperationReport>>(
-      `${this.apiUrl}/admin/reports/operations`,
+      `${this.apiUrl}/operation-budgets`,
       { params }
     ).pipe(
       map((response) => {
         if (excludeId) {
-          return response.data.some(report => report.id !== excludeId && report.operation_date.startsWith(operationDate.substring(0, 7)));
+          return response.data.some(report => report.id !== excludeId && report.budget_date.startsWith(budgetDate.substring(0, 7)));
         }
-        return response.data.some(report => report.operation_date.startsWith(operationDate.substring(0, 7)));
+        return response.data.some(report => report.budget_date.startsWith(budgetDate.substring(0, 7)));
       })
     );
   }

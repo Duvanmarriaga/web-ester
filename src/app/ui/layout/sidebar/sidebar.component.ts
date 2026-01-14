@@ -68,7 +68,7 @@ export class SidebarComponent implements OnInit {
 
   menuItems = computed(() => {
     const currentUser = this.user();
-    if (!currentUser || currentUser.type !== UserType.ADMIN) {
+    if (!currentUser || currentUser.type !== UserType.CLIENT) {
       // Si no es admin, solo mostrar Dashboard
       return this.allMenuItems.filter(item => item.route === '/dashboard');
     }

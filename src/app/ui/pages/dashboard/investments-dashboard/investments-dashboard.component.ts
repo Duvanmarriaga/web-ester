@@ -18,6 +18,7 @@ import { Store } from '@ngrx/store';
 import {
   LucideAngularModule,
   TrendingDown,
+  TrendingUp,
   DollarSign,
   Package,
   BarChart3,
@@ -57,6 +58,7 @@ export class InvestmentsDashboardComponent implements OnInit {
 
   readonly icons = {
     TrendingDown,
+    TrendingUp,
     DollarSign,
     Package,
     BarChart3,
@@ -71,30 +73,29 @@ export class InvestmentsDashboardComponent implements OnInit {
   investments = signal<Investment[]>([]);
   companies = signal<Company[]>([]);
   currentUser = signal<any>(null);
-  isAdmin = computed(() => this.currentUser()?.type === UserType.ADMIN);
+  isAdmin = computed(() => this.currentUser()?.type === UserType.CLIENT);
 
   filterForm!: FormGroup;
 
   // Stats computed
   totalInvestment = computed(() => {
-    return this.investments().reduce((sum, i) => sum + (i.total_cost || 0), 0);
+    return this.investments().reduce((sum, i) => sum + (i.amount || 0), 0);
   });
 
-  totalQuantity = computed(() => {
-    return this.investments().reduce((sum, i) => sum + (i.quantity || 0), 0);
+  totalCount = computed(() => {
+    return this.investments().length;
   });
 
-  averageUnitCost = computed(() => {
+  averageAmount = computed(() => {
     const investments = this.investments();
     if (investments.length === 0) return 0;
-    const total = investments.reduce((sum, i) => sum + (i.unit_cost || 0), 0);
-    return total / investments.length;
+    return this.totalInvestment() / investments.length;
   });
 
   // Charts
   investmentTrendChart: any = {};
-  totalCostChart: any = {};
-  quantityChart: any = {};
+  totalAmountChart: any = {};
+  categoryChart: any = {};
   monthlyInvestmentChart: any = {};
 
   ngOnInit() {
@@ -104,7 +105,7 @@ export class InvestmentsDashboardComponent implements OnInit {
       if (user) {
         this.initFilterForm();
         // Only load companies if user is ADMIN
-        if (user.type === UserType.ADMIN) {
+        if (user.type === UserType.CLIENT) {
           this.loadCompanies();
         }
       }
@@ -126,7 +127,7 @@ export class InvestmentsDashboardComponent implements OnInit {
     let defaultCompanyId: number | null = null;
     if (
       user &&
-      user.type === UserType.CLIENT &&
+      user.type === UserType.COMPANY &&
       user.companies &&
       user.companies.length > 0
     ) {
@@ -193,13 +194,13 @@ export class InvestmentsDashboardComponent implements OnInit {
     let defaultCompanyId: number | Company | null = null;
     if (
       user &&
-      user.type === UserType.CLIENT &&
+      user.type === UserType.COMPANY &&
       user.companies &&
       user.companies.length > 0
     ) {
       // If client, use company from role
       defaultCompanyId = user.companies[0];
-    } else if (user && user.type === UserType.ADMIN) {
+    } else if (user && user.type === UserType.CLIENT) {
       const firstCompany = this.companies()[0];
       defaultCompanyId = firstCompany || null;
     }
@@ -246,11 +247,9 @@ export class InvestmentsDashboardComponent implements OnInit {
       )
       .subscribe({
         next: (response) => {
-          // Sort investments by date (oldest first)
+          // Sort investments by id (oldest first)
           const sortedData = (response.data || []).sort((a, b) => {
-            const dateA = new Date(a.investment_date).getTime();
-            const dateB = new Date(b.investment_date).getTime();
-            return dateA - dateB;
+            return (a.id || 0) - (b.id || 0);
           });
           this.investments.set(sortedData);
           this.updateCharts();
@@ -273,28 +272,56 @@ export class InvestmentsDashboardComponent implements OnInit {
   updateCharts(): void {
     const investments = this.investments();
 
-    // Group by month
-    const monthlyData = this.groupByMonth(investments);
-    const months = this.sortMonthsByDate(Object.keys(monthlyData));
+    // Group by category
+    const categoryData = this.groupByCategory(investments);
+    const categories = Object.keys(categoryData);
 
-    // Ensure we have at least one month for empty data
-    if (months.length === 0) {
-      const today = new Date();
-      months.push(
-        today.toLocaleDateString('es-ES', { month: 'short', year: 'numeric' })
-      );
+    // Ensure we have at least one category for empty data
+    if (categories.length === 0) {
+      categories.push('Sin categoría');
+      categoryData['Sin categoría'] = 0;
     }
 
-    const totalCostData = months.map((m: string) => monthlyData[m]?.totalCost || 0);
-    const quantityData = months.map((m: string) => monthlyData[m]?.quantity || 0);
-    const unitCostData = months.map((m: string) => monthlyData[m]?.unitCost || 0);
+    const amountData = categories.map((c: string) => categoryData[c] || 0);
 
-    // Investment Trend Chart (Line)
+    // Investment by Category Chart (Bar)
     this.investmentTrendChart = {
       series: [
         {
-          name: 'Costo Total',
-          data: totalCostData,
+          name: 'Monto',
+          data: amountData,
+        },
+      ],
+      chart: {
+        type: 'bar',
+        height: 300,
+        toolbar: { show: false },
+        zoom: { enabled: false },
+        pan: { enabled: false },
+      },
+      colors: ['#3b82f6'],
+      plotOptions: {
+        bar: {
+          borderRadius: 8,
+          horizontal: false,
+        },
+      },
+      dataLabels: { enabled: false },
+      xaxis: { categories: categories },
+      yaxis: {
+        labels: {
+          formatter: (val: number) => `$${(val / 1000).toFixed(0)}k`,
+        },
+      },
+      grid: { borderColor: '#e2e8f0' },
+    };
+
+    // Total Amount Chart (Line)
+    this.totalAmountChart = {
+      series: [
+        {
+          name: 'Monto Total',
+          data: amountData,
         },
       ],
       chart: {
@@ -304,41 +331,9 @@ export class InvestmentsDashboardComponent implements OnInit {
         zoom: { enabled: false },
         pan: { enabled: false },
       },
-      colors: ['#3b82f6'],
-      stroke: { curve: 'smooth', width: 3 },
-      xaxis: { categories: months },
-      yaxis: {
-        labels: {
-          formatter: (val: number) => `$${(val / 1000).toFixed(0)}k`,
-        },
-      },
-      grid: { borderColor: '#e2e8f0' },
-    };
-
-    // Total Cost Chart (Bar)
-    this.totalCostChart = {
-      series: [
-        {
-          name: 'Costo Total',
-          data: totalCostData,
-        },
-      ],
-      chart: {
-        type: 'bar',
-        height: 300,
-        toolbar: { show: false },
-        zoom: { enabled: false },
-        pan: { enabled: false },
-      },
       colors: ['#10b981'],
-      plotOptions: {
-        bar: {
-          borderRadius: 8,
-          columnWidth: '60%',
-        },
-      },
-      dataLabels: { enabled: false },
-      xaxis: { categories: months },
+      stroke: { curve: 'smooth', width: 3 },
+      xaxis: { categories: categories },
       yaxis: {
         labels: {
           formatter: (val: number) => `$${(val / 1000).toFixed(0)}k`,
@@ -347,43 +342,28 @@ export class InvestmentsDashboardComponent implements OnInit {
       grid: { borderColor: '#e2e8f0' },
     };
 
-    // Quantity Chart (Bar)
-    this.quantityChart = {
-      series: [
-        {
-          name: 'Cantidad',
-          data: quantityData,
-        },
-      ],
+    // Category Distribution (Pie)
+    this.categoryChart = {
+      series: amountData,
       chart: {
-        type: 'bar',
+        type: 'pie',
         height: 300,
-        toolbar: { show: false },
         zoom: { enabled: false },
         pan: { enabled: false },
       },
-      colors: ['#8b5cf6'],
-      plotOptions: {
-        bar: {
-          borderRadius: 8,
-          columnWidth: '60%',
-        },
+      labels: categories,
+      colors: ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6'],
+      legend: { position: 'bottom' },
+      dataLabels: {
+        enabled: true,
+        formatter: (val: number) => `${val.toFixed(1)}%`,
       },
-      dataLabels: { enabled: false },
-      xaxis: { categories: months },
-      yaxis: {
-        labels: {
-          formatter: (val: number) => val.toFixed(0),
-        },
-      },
-      grid: { borderColor: '#e2e8f0' },
     };
 
-    // Monthly Investment (Area)
+    // Monthly Investment Trend (Area)
     this.monthlyInvestmentChart = {
       series: [
-        { name: 'Costo Total', data: totalCostData },
-        { name: 'Cantidad', data: quantityData.map((q: number) => q * 1000) }, // Scale for visibility
+        { name: 'Monto', data: amountData },
       ],
       chart: {
         type: 'area',
@@ -393,7 +373,7 @@ export class InvestmentsDashboardComponent implements OnInit {
         zoom: { enabled: false },
         pan: { enabled: false },
       },
-      colors: ['#3b82f6', '#8b5cf6'],
+      colors: ['#3b82f6'],
       fill: {
         type: 'gradient',
         gradient: {
@@ -403,7 +383,7 @@ export class InvestmentsDashboardComponent implements OnInit {
         },
       },
       stroke: { curve: 'smooth', width: 2 },
-      xaxis: { categories: months },
+      xaxis: { categories: categories },
       yaxis: {
         labels: {
           formatter: (val: number) => `$${(val / 1000).toFixed(0)}k`,
@@ -414,27 +394,21 @@ export class InvestmentsDashboardComponent implements OnInit {
     };
   }
 
-  private groupByMonth(investments: Investment[]): {
-    [key: string]: { totalCost: number; quantity: number; unitCost: number };
+  private groupByCategory(investments: Investment[]): {
+    [key: string]: number;
   } {
     const grouped: {
-      [key: string]: { totalCost: number; quantity: number; unitCost: number };
+      [key: string]: number;
     } = {};
 
     investments.forEach((investment) => {
-      const date = new Date(investment.investment_date);
-      const monthKey = date.toLocaleDateString('es-ES', {
-        month: 'short',
-        year: 'numeric',
-      });
+      const categoryKey = `Categoría ${investment.investment_budget_category_id || 'N/A'}`;
 
-      if (!grouped[monthKey]) {
-        grouped[monthKey] = { totalCost: 0, quantity: 0, unitCost: 0 };
+      if (!grouped[categoryKey]) {
+        grouped[categoryKey] = 0;
       }
 
-      grouped[monthKey].totalCost += investment.total_cost || 0;
-      grouped[monthKey].quantity += investment.quantity || 0;
-      grouped[monthKey].unitCost += investment.unit_cost || 0;
+      grouped[categoryKey] += investment.amount || 0;
     });
 
     return grouped;

@@ -282,15 +282,14 @@ export class BudgetImportModalComponent implements OnInit {
       }
 
       budgets.push({
-        budget_category_id: defaultCategoryId,
+        operation_budget_category_id: defaultCategoryId,
         company_id: this.companyId(),
-        budget_year_id: this.budgetYearId(),
+        operation_budget_annual_id: this.budgetYearId() || null,
         budget_date: budgetDate,
         budget_amount: budgetAmount,
         executed_amount: executedAmount,
         difference_amount: differenceAmount,
         percentage: percentage,
-        user_id: this.userId(),
       });
     });
 

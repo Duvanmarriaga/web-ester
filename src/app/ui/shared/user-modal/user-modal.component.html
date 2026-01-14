@@ -73,7 +73,19 @@
                 </div>
                 @if (userForm.get('password')?.invalid &&
                 userForm.get('password')?.touched) {
-                <small class="form-error">Contraseña requerida</small>
+                <small class="form-error">
+                  @if (passwordErrors.minLength) {
+                    La contraseña debe tener mínimo 6 caracteres
+                  } @else if (passwordErrors.uppercase) {
+                    La contraseña debe contener al menos una mayúscula
+                  } @else if (passwordErrors.lowercase) {
+                    La contraseña debe contener al menos una minúscula
+                  } @else if (passwordErrors.specialChar) {
+                    La contraseña debe contener al menos un carácter especial
+                  } @else {
+                    Contraseña requerida
+                  }
+                </small>
                 }
               </div>
               <div class="col-12">

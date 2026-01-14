@@ -40,14 +40,14 @@ export class ProcessStatusHistoryService {
     }
 
     return this.http.get<ProcessStatusHistory[]>(
-      `${this.apiUrl}/admin/reports/process-status-history`,
+      `${this.apiUrl}/process-status-histories`,
       { params: httpParams }
     );
   }
 
   getById(id: number): Observable<ProcessStatusHistory> {
     return this.http.get<ProcessStatusHistory>(
-      `${this.apiUrl}/admin/reports/process-status-history/${id}`
+      `${this.apiUrl}/process-status-histories/${id}`
     );
   }
 }

@@ -38,21 +38,21 @@ export class BudgetYearService {
     }
     
     return this.http.get<BudgetYear[]>(
-      `${this.apiUrl}/admin/reports/budget-years`,
+      `${this.apiUrl}/operation-budget-annuals`,
       { params }
     );
   }
 
   create(budgetYearData: BudgetYearCreate): Observable<BudgetYear> {
     return this.http.post<BudgetYear>(
-      `${this.apiUrl}/admin/reports/budget-years`,
+      `${this.apiUrl}/operation-budget-annuals`,
       budgetYearData
     );
   }
 
   update(id: number, budgetYearData: BudgetYearUpdate): Observable<BudgetYear> {
     return this.http.put<BudgetYear>(
-      `${this.apiUrl}/admin/reports/budget-years/${id}`,
+      `${this.apiUrl}/operation-budget-annuals/${id}`,
       budgetYearData
     );
   }

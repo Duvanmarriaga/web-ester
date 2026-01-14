@@ -21,6 +21,7 @@ export interface UserCreate {
   password: string;
   type: string;
   companies_ids?: number[]; // IDs de compañías a asignar
+  clients_ids?: number[]; // IDs de clientes a asignar
 }
 
 export interface UserUpdate {
@@ -32,8 +33,8 @@ export interface UserUpdate {
 }
 
 export enum UserType {
-  ADMIN = 'admin',
   CLIENT = 'client',
+  COMPANY = 'company',
 }
 
 // Tipo para las opciones del selector de tipo de usuario
@@ -45,5 +46,5 @@ export interface UserTypeOption {
 // Constante con los tipos de usuario y sus nombres en español
 export const USER_TYPES: UserTypeOption[] = [
   { id: UserType.CLIENT, name: 'Cliente' },
-  { id: UserType.ADMIN, name: 'Administrador' },
+  { id: UserType.COMPANY, name: 'Compañía' },
 ];

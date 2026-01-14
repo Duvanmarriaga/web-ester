@@ -98,11 +98,9 @@ export class InvestmentModalComponent implements OnInit {
         setTimeout(() => {
           if (this.investmentForm) {
             this.investmentForm.reset({
-              investment_category_id: '',
-              investment_date: '',
-              unit_cost: '0',
-              quantity: '0',
-              total_cost: '0',
+              investment_budget_category_id: '',
+              investment_budget_annual_id: null,
+              amount: '0',
             });
           }
         }, 0);
@@ -114,20 +112,9 @@ export class InvestmentModalComponent implements OnInit {
     this.setupTypeahead();
 
     this.investmentForm = this.fb.group({
-      investment_category_id: ['', [Validators.required]],
-      investment_date: ['', [Validators.required]],
-      unit_cost: ['0', [Validators.required, this.currencyValidator]],
-      quantity: ['0', [Validators.required, this.numberValidator]],
-      total_cost: ['0', [Validators.required, this.currencyValidator]],
-    });
-
-    // Calculate total cost when unit cost or quantity changes
-    this.investmentForm.get('unit_cost')?.valueChanges.subscribe(() => {
-      this.calculateTotalCost();
-    });
-
-    this.investmentForm.get('quantity')?.valueChanges.subscribe(() => {
-      this.calculateTotalCost();
+      investment_budget_category_id: ['', [Validators.required]],
+      investment_budget_annual_id: [null],
+      amount: ['0', [Validators.required, this.currencyValidator]],
     });
 
     // Load initial categories
@@ -222,7 +209,7 @@ export class InvestmentModalComponent implements OnInit {
 
     if (existingCategory) {
       this.investmentForm.patchValue({
-        investment_category_id: existingCategory.id,
+        investment_budget_category_id: existingCategory.id,
       });
       return;
     }
@@ -264,7 +251,7 @@ export class InvestmentModalComponent implements OnInit {
       next: (newCategory) => {
         const currentCategories = this.categories();
         this.categories.set([...currentCategories, newCategory]);
-        this.investmentForm.patchValue({ investment_category_id: newCategory.id });
+        this.investmentForm.patchValue({ investment_budget_category_id: newCategory.id });
         this.toastr.success('Categoría creada exitosamente', 'Éxito');
         this.isLoadingCategories.set(false);
         this.isCreatingCategory.set(false);
@@ -274,7 +261,7 @@ export class InvestmentModalComponent implements OnInit {
         this.toastr.error('Error al crear la categoría', 'Error');
         this.isLoadingCategories.set(false);
         this.isCreatingCategory.set(false);
-        this.investmentForm.patchValue({ investment_category_id: '' });
+        this.investmentForm.patchValue({ investment_budget_category_id: '' });
       },
     });
   }
@@ -299,7 +286,7 @@ export class InvestmentModalComponent implements OnInit {
 
   formatCurrency(
     event: Event,
-    fieldName: 'unit_cost' | 'total_cost'
+    fieldName: 'amount'
   ): void {
     const input = event.target as HTMLInputElement;
     let value = input.value.replace(/[^0-9.]/g, '');
@@ -326,7 +313,7 @@ export class InvestmentModalComponent implements OnInit {
 
   formatNumber(
     event: Event,
-    fieldName: 'quantity'
+    fieldName: 'amount'
   ): void {
     const input = event.target as HTMLInputElement;
     let value = input.value.replace(/[^0-9.]/g, '');
@@ -342,18 +329,7 @@ export class InvestmentModalComponent implements OnInit {
     );
   }
 
-  formatCurrencyOnBlur(fieldName: 'unit_cost' | 'total_cost'): void {
-    const control = this.investmentForm.get(fieldName);
-    if (!control) return;
-
-    let value = control.value?.toString().replace(/[^0-9.]/g, '') || '0';
-    const numValue = parseFloat(value) || 0;
-
-    const formatted = this.formatNumberWithCommas(numValue);
-    control.setValue(formatted, { emitEvent: true });
-  }
-
-  formatNumberOnBlur(fieldName: 'quantity'): void {
+  formatCurrencyOnBlur(fieldName: 'amount'): void {
     const control = this.investmentForm.get(fieldName);
     if (!control) return;
 
@@ -386,46 +362,15 @@ export class InvestmentModalComponent implements OnInit {
     return `${formattedInteger}.${decimalPart}`;
   }
 
-  calculateTotalCost() {
-    const unitCostValue =
-      this.investmentForm
-        .get('unit_cost')
-        ?.value?.toString()
-        .replace(/[^0-9.]/g, '') || '0';
-    const quantityValue =
-      this.investmentForm
-        .get('quantity')
-        ?.value?.toString()
-        .replace(/[^0-9.]/g, '') || '0';
-    const unitCost = parseFloat(unitCostValue) || 0;
-    const quantity = parseFloat(quantityValue) || 0;
-    const totalCost = unitCost * quantity;
-    this.investmentForm.patchValue(
-      { total_cost: this.formatNumberWithCommas(totalCost) },
-      { emitEvent: false }
-    );
-  }
 
   populateForm(investment: Investment): void {
-    const investmentDate = investment.investment_date
-      ? investment.investment_date.substring(0, 10)
-      : '';
-
-    const unitCost =
-      typeof investment.unit_cost === 'number'
-        ? investment.unit_cost
-        : parseFloat(investment.unit_cost) || 0;
-    const quantity =
-      typeof investment.quantity === 'number'
-        ? investment.quantity
-        : parseFloat(investment.quantity) || 0;
-    const totalCost =
-      typeof investment.total_cost === 'number'
-        ? investment.total_cost
-        : parseFloat(investment.total_cost) || 0;
+    const amount =
+      typeof investment.amount === 'number'
+        ? investment.amount
+        : parseFloat(investment.amount as any) || 0;
 
     // Buscar la categoría por ID para obtener el nombre
-    const categoryId = investment.investment_category_id;
+    const categoryId = investment.investment_budget_category_id;
     this.investmentCategoryService.getById(categoryId).subscribe({
       next: (category) => {
         // Agregar la categoría a la lista si no está presente
@@ -440,11 +385,9 @@ export class InvestmentModalComponent implements OnInit {
         // Establecer el valor del formulario como objeto con name
         this.investmentForm.patchValue(
           {
-            investment_category_id: { name: category.name },
-            investment_date: investmentDate,
-            unit_cost: this.formatNumberWithCommas(unitCost),
-            quantity: this.formatNumberWithCommas(quantity),
-            total_cost: this.formatNumberWithCommas(totalCost),
+            investment_budget_category_id: { name: category.name },
+            investment_budget_annual_id: investment.investment_budget_annual_id || null,
+            amount: this.formatNumberWithCommas(amount),
           },
           { emitEvent: false }
         );
@@ -453,11 +396,9 @@ export class InvestmentModalComponent implements OnInit {
         // Si falla la búsqueda, establecer solo con el ID como fallback
         this.investmentForm.patchValue(
           {
-            investment_category_id: investment.investment_category_id.toString(),
-            investment_date: investmentDate,
-            unit_cost: this.formatNumberWithCommas(unitCost),
-            quantity: this.formatNumberWithCommas(quantity),
-            total_cost: this.formatNumberWithCommas(totalCost),
+            investment_budget_category_id: investment.investment_budget_category_id.toString(),
+            investment_budget_annual_id: investment.investment_budget_annual_id || null,
+            amount: this.formatNumberWithCommas(amount),
           },
           { emitEvent: false }
         );
@@ -475,20 +416,20 @@ export class InvestmentModalComponent implements OnInit {
 
     let formValue = { ...this.investmentForm.value };
 
-    // Si investment_category_id es un objeto con name pero sin id, buscar la categoría en la lista
+    // Si investment_budget_category_id es un objeto con name pero sin id, buscar la categoría en la lista
     if (
-      formValue.investment_category_id &&
-      typeof formValue.investment_category_id === 'object' &&
-      formValue.investment_category_id.name &&
-      !formValue.investment_category_id.id
+      formValue.investment_budget_category_id &&
+      typeof formValue.investment_budget_category_id === 'object' &&
+      formValue.investment_budget_category_id.name &&
+      !formValue.investment_budget_category_id.id
     ) {
-      const categoryName = formValue.investment_category_id.name;
+      const categoryName = formValue.investment_budget_category_id.name;
       const foundCategory = this.categoriesList().find(
         (cat) => cat.name === categoryName
       );
 
       if (foundCategory) {
-        formValue.investment_category_id = foundCategory.id;
+        formValue.investment_budget_category_id = foundCategory.id;
       } else {
         // Si no encontramos la categoría, crear una nueva
         const code = categoryName
@@ -510,36 +451,28 @@ export class InvestmentModalComponent implements OnInit {
         const newCategory = await firstValueFrom(
           this.investmentCategoryService.create(categoryData)
         );
-        formValue.investment_category_id = newCategory.id;
+        formValue.investment_budget_category_id = newCategory.id;
       }
     }
 
-    const unitCostValue =
-      formValue.unit_cost?.toString().replace(/[^0-9.]/g, '') || '0';
-    const quantityValue =
-      formValue.quantity?.toString().replace(/[^0-9.]/g, '') || '0';
-    const totalCostValue =
-      formValue.total_cost?.toString().replace(/[^0-9.]/g, '') || '0';
-
     // Extraer el ID de la categoría si es un objeto
     let categoryId: number;
-    if (typeof formValue.investment_category_id === 'object' && formValue.investment_category_id.id) {
-      categoryId = formValue.investment_category_id.id;
-    } else if (typeof formValue.investment_category_id === 'number') {
-      categoryId = formValue.investment_category_id;
+    if (typeof formValue.investment_budget_category_id === 'object' && formValue.investment_budget_category_id.id) {
+      categoryId = formValue.investment_budget_category_id.id;
+    } else if (typeof formValue.investment_budget_category_id === 'number') {
+      categoryId = formValue.investment_budget_category_id;
     } else {
-      categoryId = parseInt(formValue.investment_category_id, 10);
+      categoryId = parseInt(formValue.investment_budget_category_id, 10);
     }
 
+    const amountValue =
+      formValue.amount?.toString().replace(/[^0-9.]/g, '') || '0';
+
     const investmentData: InvestmentCreate = {
-      investment_category_id: categoryId,
+      investment_budget_category_id: categoryId,
+      investment_budget_annual_id: formValue.investment_budget_annual_id || null,
       company_id: this.companyId(),
-      investment_date: formValue.investment_date,
-      unit_cost: parseFloat(unitCostValue) || 0,
-      quantity: parseFloat(quantityValue) || 0,
-      total_cost: parseFloat(totalCostValue) || 0,
-      user_id: this.userId(),
-      document_origin: '',
+      amount: parseFloat(amountValue) || 0,
     };
 
     if (this.isEditMode() && this.investment()?.id) {

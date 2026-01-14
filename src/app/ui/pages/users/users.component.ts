@@ -3,7 +3,7 @@ import { CommonModule } from '@angular/common';
 import { Store } from '@ngrx/store';
 import { selectAllUsers, selectUserIsLoading } from '../../../infrastructure/store/user';
 import * as UserActions from '../../../infrastructure/store/user/user.actions';
-import { User, UserCreate } from '../../../entities/interfaces';
+import { User, UserCreate, UserType } from '../../../entities/interfaces';
 import { LucideAngularModule, UserPlus, Pencil, Trash2 } from 'lucide-angular';
 import { ConfirmDialogComponent } from '../../shared/confirm-dialog/confirm-dialog.component';
 import { UserModalComponent } from '../../shared/user-modal/user-modal.component';
@@ -23,7 +23,7 @@ export class UsersComponent implements OnInit {
   showConfirmDialog = signal(false);
   editingUser = signal<User | null>(null);
   deletingUser = signal<User | null>(null);
-
+  userType = UserType;
   // Lucide icons
   readonly icons = { UserPlus, Pencil, Trash2 };
 

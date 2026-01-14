@@ -8,9 +8,9 @@
       type="button"
       aria-label="Toggle mobile menu"
     >
-      <span [innerHTML]="getIconSvg('menu')"></span>
-        </button>
-      </div>
+      <lucide-icon [img]="hamburgeMenu" [size]="20"></lucide-icon>
+    </button>
+  </div>
 
   <!-- Center section -->
   <div class="toolbar__center"></div>
@@ -33,8 +33,11 @@
           </div>
           <small class="toolbar__user-role">Administrador</small>
         </div>
-        <span [innerHTML]="getIconSvg('chevron-down')" class="toolbar__chevron"></span>
-          </button>
+        <span
+          [innerHTML]="getIconSvg('chevron-down')"
+          class="toolbar__chevron"
+        ></span>
+      </button>
 
       <!-- Dropdown menu -->
       <div
@@ -44,7 +47,7 @@
         <div class="toolbar__dropdown-header">
           <div class="toolbar__dropdown-name">
             {{ userFullName() }}
-              </div>
+          </div>
           <small class="toolbar__dropdown-subtitle">Cuenta principal</small>
         </div>
 
@@ -72,12 +75,12 @@
           (click)="onLogout()"
         >
           <span [innerHTML]="getIconSvg('log-out')"></span>
-                <span>Cerrar Sesión</span>
+          <span>Cerrar Sesión</span>
         </button>
-            </div>
-        </div>
       </div>
-    </header>
+    </div>
+  </div>
+</header>
 
 <!-- Backdrop for dropdown -->
 @if (isUserMenuOpen()) {

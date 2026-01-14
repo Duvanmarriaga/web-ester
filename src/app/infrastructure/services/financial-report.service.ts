@@ -8,24 +8,41 @@ import { PaginatedResponse } from '../../entities/interfaces/pagination.interfac
 export interface FinancialReport {
   id?: number;
   company_id: number;
+  financial_report_category_id?: number | null;
   report_date: string;
-  income: number;
-  expenses: number;
-  profit: number;
-  user_id: number;
-  document_origin?: string | null;
-  financial_category_id?: number | null;
+  current_asset?: number;
+  current_passive?: number;
+  inventories?: number;
+  total_passive?: number;
+  total_assets?: number;
+  net_profit?: number;
+  total_revenue?: number;
+  current_value_result?: number;
+  initial_value_of_the_year?: number;
+  budgeted_value?: number;
+  executed_value?: number;
+  current_cash_balance?: number;
+  average_consumption_of_boxes_over_the_last_3_months?: number;
+  user_id?: number;
 }
 
 export interface FinancialReportCreate {
   company_id: number;
+  financial_report_category_id?: number | null;
   report_date: string;
-  income: number;
-  expenses: number;
-  profit: number;
-  user_id: number;
-  document_origin?: string | null;
-  financial_category_id?: number | null;
+  current_asset?: number;
+  current_passive?: number;
+  inventories?: number;
+  total_passive?: number;
+  total_assets?: number;
+  net_profit?: number;
+  total_revenue?: number;
+  current_value_result?: number;
+  initial_value_of_the_year?: number;
+  budgeted_value?: number;
+  executed_value?: number;
+  current_cash_balance?: number;
+  average_consumption_of_boxes_over_the_last_3_months?: number;
 }
 
 @Injectable({
@@ -59,20 +76,20 @@ export class FinancialReportService {
     }
 
     return this.http.get<PaginatedResponse<FinancialReport>>(
-      `${this.apiUrl}/admin/reports/financial-reports`,
+      `${this.apiUrl}/financial-reports`,
       { params }
     );
   }
 
   getById(id: number): Observable<FinancialReport> {
     return this.http.get<FinancialReport>(
-      `${this.apiUrl}/admin/reports/financial-reports/${id}`
+      `${this.apiUrl}/financial-reports/${id}`
     );
   }
 
   create(reportData: FinancialReportCreate): Observable<FinancialReport> {
     return this.http.post<FinancialReport>(
-      `${this.apiUrl}/admin/reports/financial-reports`,
+      `${this.apiUrl}/financial-reports`,
       reportData
     );
   }
@@ -82,20 +99,20 @@ export class FinancialReportService {
     reportData: Partial<FinancialReportCreate>
   ): Observable<FinancialReport> {
     return this.http.put<FinancialReport>(
-      `${this.apiUrl}/admin/reports/financial-reports/${id}`,
+      `${this.apiUrl}/financial-reports/${id}`,
       reportData
     );
   }
 
   delete(id: number): Observable<void> {
     return this.http.delete<void>(
-      `${this.apiUrl}/admin/reports/financial-reports/${id}`
+      `${this.apiUrl}/financial-reports/${id}`
     );
   }
 
   downloadTemplate(): Observable<Blob> {
     return this.http.get(
-      `${this.apiUrl}/admin/reports/financial-reports/template/download`,
+      `${this.apiUrl}/financial-reports/template/download`,
       { responseType: 'blob' }
     );
   }
@@ -104,7 +121,7 @@ export class FinancialReportService {
     const formData = new FormData();
     formData.append('file', file);
     return this.http.post<{ message?: string }>(
-      `${this.apiUrl}/admin/reports/financial-reports/import`,
+      `${this.apiUrl}/financial-reports/import`,
       formData
     );
   }
@@ -113,7 +130,7 @@ export class FinancialReportService {
     reports: FinancialReportCreate[]
   ): Observable<FinancialReport[]> {
     return this.http.post<FinancialReport[]>(
-      `${this.apiUrl}/admin/reports/financial-reports/multiple`,
+      `${this.apiUrl}/financial-reports/multiple`,
       { reports }
     );
   }
@@ -132,7 +149,7 @@ export class FinancialReportService {
 
     return this.http
       .get<PaginatedResponse<FinancialReport>>(
-        `${this.apiUrl}/admin/reports/financial-reports`,
+        `${this.apiUrl}/financial-reports`,
         { params }
       )
       .pipe(

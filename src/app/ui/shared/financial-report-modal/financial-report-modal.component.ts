@@ -93,11 +93,11 @@ export class FinancialReportModalComponent implements OnInit {
         setTimeout(() => {
           if (this.reportForm) {
             this.reportForm.reset({
-              financial_category_id: null,
+              financial_report_category_id: null,
               report_date: '',
-              income: '0',
-              expenses: '0',
-              profit: 0,
+              total_revenue: '0',
+              executed_value: '0',
+              net_profit: '0',
             });
           }
         }, 0);
@@ -109,24 +109,15 @@ export class FinancialReportModalComponent implements OnInit {
     this.setupTypeahead();
     
     this.reportForm = this.fb.group({
-      financial_category_id: [null],
+      financial_report_category_id: [null],
       report_date: [
         '',
         [Validators.required],
         [this.dateExistsValidator.bind(this)],
       ],
-      income: ['0', [Validators.required, this.currencyValidator]],
-      expenses: ['0', [Validators.required, this.currencyValidator]],
-      profit: [0, [Validators.required]],
-    });
-
-    // Calculate profit when income or expenses change
-    this.reportForm.get('income')?.valueChanges.subscribe(() => {
-      this.calculateProfit();
-    });
-
-    this.reportForm.get('expenses')?.valueChanges.subscribe(() => {
-      this.calculateProfit();
+      total_revenue: ['0', [Validators.required, this.currencyValidator]],
+      executed_value: ['0', [Validators.required, this.currencyValidator]],
+      net_profit: ['0', [Validators.required, this.currencyValidator]],
     });
 
     // Watch for date validation errors
@@ -256,7 +247,6 @@ export class FinancialReportModalComponent implements OnInit {
       .substring(0, 20);
 
     const categoryData: FinancialReportCategoryCreate = {
-      code: code || 'CAT_' + Date.now(),
       name: term.trim(),
       company_id: companyId,
     };
@@ -329,7 +319,7 @@ export class FinancialReportModalComponent implements OnInit {
     return null;
   }
 
-  formatCurrency(event: Event, fieldName: 'income' | 'expenses'): void {
+  formatCurrency(event: Event, fieldName: 'total_revenue' | 'executed_value' | 'net_profit'): void {
     const input = event.target as HTMLInputElement;
     let value = input.value.replace(/[^0-9.]/g, '');
 
@@ -360,7 +350,7 @@ export class FinancialReportModalComponent implements OnInit {
     );
   }
 
-  formatCurrencyOnBlur(fieldName: 'income' | 'expenses'): void {
+  formatCurrencyOnBlur(fieldName: 'total_revenue' | 'executed_value' | 'net_profit'): void{
     const control = this.reportForm.get(fieldName);
     if (!control) return;
 
@@ -405,35 +395,40 @@ export class FinancialReportModalComponent implements OnInit {
       ? report.report_date.substring(0, 7)
       : '';
 
-    // Ensure income and expenses are numbers
-    const income =
-      typeof report.income === 'number'
-        ? report.income
-        : parseFloat(report.income) || 0;
-    const expenses =
-      typeof report.expenses === 'number'
-        ? report.expenses
-        : parseFloat(report.expenses) || 0;
+    // Ensure values are numbers
+    const totalRevenue =
+      typeof report.total_revenue === 'number'
+        ? report.total_revenue
+        : parseFloat(report.total_revenue as any) || 0;
+    const executedValue =
+      typeof report.executed_value === 'number'
+        ? report.executed_value
+        : parseFloat(report.executed_value as any) || 0;
+    const netProfit =
+      typeof report.net_profit === 'number'
+        ? report.net_profit
+        : parseFloat(report.net_profit as any) || 0;
 
     this.reportForm.patchValue(
       {
-        financial_category_id: report.financial_category_id || null,
+        financial_report_category_id: report.financial_report_category_id || null,
         report_date: reportDate,
-        income: this.formatNumberWithCommas(income),
-        expenses: this.formatNumberWithCommas(expenses),
-        profit:
-          typeof report.profit === 'number'
-            ? report.profit
-            : parseFloat(report.profit) || 0,
+        total_revenue: this.formatNumberWithCommas(totalRevenue),
+        executed_value: this.formatNumberWithCommas(executedValue),
+        net_profit: this.formatNumberWithCommas(netProfit),
       },
       { emitEvent: false }
     );
   }
 
   calculateProfit() {
+    // Net profit calculation removed as it's now a direct input
+  }
+
+  oldCalculateProfit() {
     const incomeValue =
       this.reportForm
-        .get('income')
+        .get('total_revenue')
         ?.value?.toString()
         .replace(/[^0-9.]/g, '') || '0';
     const expensesValue =
@@ -482,7 +477,6 @@ export class FinancialReportModalComponent implements OnInit {
           .substring(0, 20);
 
         const categoryData: FinancialReportCategoryCreate = {
-          code: code || 'CAT_' + Date.now(),
           name: categoryName.trim(),
           company_id: this.companyId(),
         };
@@ -524,19 +518,17 @@ export class FinancialReportModalComponent implements OnInit {
 
     // Parse currency values
     const incomeValue =
-      formValue.income?.toString().replace(/[^0-9.]/g, '') || '0';
+      formValue.total_revenue?.toString().replace(/[^0-9.]/g, '') || '0';
     const expensesValue =
-      formValue.expenses?.toString().replace(/[^0-9.]/g, '') || '0';
+      formValue.executed_value?.toString().replace(/[^0-9.]/g, '') || '0';
 
     const reportData: FinancialReportCreate = {
       company_id: this.companyId(),
       report_date: reportDate,
-      income: parseFloat(incomeValue) || 0,
-      expenses: parseFloat(expensesValue) || 0,
-      profit: parseFloat(formValue.profit) || 0,
-      user_id: this.userId(),
-      document_origin: '', // Always send empty string as requested
-      financial_category_id: formValue.financial_category_id || null,
+      total_revenue: parseFloat(incomeValue) || 0,
+      executed_value: parseFloat(expensesValue) || 0,
+      net_profit: parseFloat(formValue.net_profit?.toString().replace(/[^0-9.]/g, '') || '0') || 0,
+      financial_report_category_id: formValue.financial_report_category_id || null,
     };
     if (this.isEditMode() && this.report()?.id) {
       this.update.emit({

@@ -8,6 +8,7 @@
 @use "./styles/mixins" as *;
 @use "./styles/utilities" as *;
 @use "ngx-toastr/toastr";
+@import "@ng-select/ng-select/themes/default.theme.css";
 
 /* Google Fonts - Inter (Professional sans-serif for accounting software) */
 @import url("https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap");
@@ -17,15 +18,36 @@
    ================================================== */
 
 :root {
-  /* Colores Primarios Ester - Nueva Paleta */
+  /* Colores Primarios Ester - Nueva Paleta TailPanel */
   --ester-primary: #{$ester-primary};
   --ester-primary-dark: #{$ester-primary-dark};
   --ester-primary-light: #{$ester-primary-light};
   --ester-primary-lightest: #{$ester-primary-lightest};
+  --color-primary-50: #{$ester-primary-50};
+  --color-primary-100: #{$ester-primary-100};
+  --color-primary-200: #{$ester-primary-200};
+  --color-primary-300: #{$ester-primary-300};
+  --color-primary-400: #{$ester-primary-400};
+  --color-primary-500: #{$ester-primary-500};
+  --color-primary-600: #{$ester-primary-600};
+  --color-primary-700: #{$ester-primary-700};
+  --color-primary-800: #{$ester-primary-800};
+  --color-primary-900: #{$ester-primary-900};
   --ester-secondary: #{$ester-secondary};
   --ester-secondary-dark: #{$ester-secondary-dark};
   --ester-secondary-light: #{$ester-secondary-light};
   --ester-secondary-lightest: #{$ester-secondary-lightest};
+  --color-secondary-50: #{$ester-secondary-50};
+  --color-secondary-100: #{$ester-secondary-100};
+  --color-secondary-200: #{$ester-secondary-200};
+  --color-secondary-300: #{$ester-secondary-300};
+  --color-secondary-400: #{$ester-secondary-400};
+  --color-secondary-500: #{$ester-secondary-500};
+  --color-secondary-600: #{$ester-secondary-600};
+  --color-secondary-700: #{$ester-secondary-700};
+  --color-secondary-800: #{$ester-secondary-800};
+  --color-secondary-900: #{$ester-secondary-900};
+  --color-secondary-950: #{$ester-secondary-950};
 
   /* Colores de Estado */
   --ester-success: #{$ester-success};
@@ -64,6 +86,10 @@
   box-sizing: border-box;
 }
 
+html {
+  height: 100%;
+}
+
 body {
   font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
     Oxygen, Ubuntu, Cantarell, sans-serif;
@@ -73,6 +99,7 @@ body {
   font-size: 14px;
   line-height: 1.5;
   font-feature-settings: "cv02", "cv03", "cv04", "cv11"; // Inter font features
+  min-height: 100%;
   .ng-dropdown-panel {
     z-index: 1000000 !important;
   }
@@ -110,7 +137,7 @@ body {
   @include transition(all, $transition-fast);
   border: 1px solid transparent;
   font-weight: map.get($font-weights, medium);
-
+  height: 32px;
   &:hover:not(:disabled) {
     transform: translateY(-1px);
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
@@ -196,16 +223,16 @@ body {
 .form-control,
 .form-select {
   width: 100%;
-  padding: 4px 10px;
-  height: 32px;
+  padding: 0px 12px;
+  height: 36px;
   font-size: 13px;
   line-height: 1.5;
   font-weight: map.get($font-weights, regular);
   color: $ester-text-primary;
   background-color: $ester-bg-primary;
-  border: 1px solid $ester-border-primary;
   border-radius: $border-radius-md;
   @include transition(all, $transition-fast);
+  border: 1px solid #e7e7e7;
 
   &:focus {
     outline: none;
@@ -244,18 +271,19 @@ body {
   }
 
   &-lg {
-    padding: 6px 14px;
-    height: 36px;
+    padding: 8px 16px;
+    height: 42px;
     font-size: 15px;
   }
 }
+
 
 textarea.form-control {
   resize: vertical;
   min-height: 60px;
   height: auto;
   line-height: 1.5;
-  padding: 4px 10px;
+  padding: 4px 12px !important;
 }
 
 .form-select {
@@ -421,176 +449,176 @@ html {
    ng-select Styles
    ================================================== */
 
-.ng-select {
-  .ng-select-container {
-    min-height: 28px;
-    border: 1px solid $ester-border-primary;
-    border-radius: $border-radius-md;
-    font-size: map.get($font-sizes, sm);
-    background-color: $ester-bg-primary;
-    color: $ester-text-primary;
-    @include transition(border-color, $transition-fast);
+// .ng-select {
+//   .ng-select-container {
+//     min-height: 28px;
+//     border: 1px solid $ester-border-primary;
+//     border-radius: $border-radius-md;
+//     font-size: map.get($font-sizes, sm);
+//     background-color: $ester-bg-primary;
+//     color: $ester-text-primary;
+//     @include transition(border-color, $transition-fast);
 
-    &:hover {
-      border-color: $ester-border-secondary;
-    }
+//     &:hover {
+//       border-color: $ester-border-secondary;
+//     }
 
-    &.ng-select-focused {
-      border-color: $ester-primary;
-      box-shadow: 0 0 0 3px rgba($ester-primary, 0.1);
-    }
-  }
-  .ng-clear-wrapper {
-    @include flex-center;
-    margin-right: 8px;
-    z-index: 1000000 !important;
-  }
+//     &.ng-select-focused {
+//       border-color: $ester-primary;
+//       box-shadow: 0 0 0 3px rgba($ester-primary, 0.1);
+//     }
+//   }
+//   .ng-clear-wrapper {
+//     @include flex-center;
+//     margin-right: 8px;
+//     z-index: 1000000 !important;
+//   }
 
-  .ng-placeholder {
-    color: $ester-text-tertiary;
-    font-size: map.get($font-sizes, sm);
-    padding-left: 16px !important;
-    padding-top: 4px !important;
-  }
+//   .ng-placeholder {
+//     color: $ester-text-tertiary;
+//     font-size: map.get($font-sizes, sm);
+//     padding-left: 16px !important;
+//     padding-top: 4px !important;
+//   }
 
-  .ng-value-container {
-    padding: 6.5px 10px;
-    min-height: 32px;
-    gap: 4px;
+//   .ng-value-container {
+//     padding: 6.5px 10px;
+//     min-height: 32px;
+//     gap: 4px;
 
-    .ng-value {
-      background: none !important;
-      border: none !important;
-      border-radius: 0 !important;
-      padding: 0 !important;
-      padding-left: 9px !important;
-      margin: 0 !important;
-      font-size: 14px !important;
-      @include flex-center;
+//     .ng-value {
+//       background: none !important;
+//       border: none !important;
+//       border-radius: 0 !important;
+//       padding: 0 !important;
+//       padding-left: 9px !important;
+//       margin: 0 !important;
+//       font-size: 14px !important;
+//       @include flex-center;
 
-      .ng-value-label {
-        color: $ester-text-primary;
-        background: none !important;
-        border: none !important;
-        padding: 0 !important;
-      }
+//       .ng-value-label {
+//         color: $ester-text-primary;
+//         background: none !important;
+//         border: none !important;
+//         padding: 0 !important;
+//       }
 
-      // .ng-value-icon {
-      //   color: $ester-primary;
-      //   @include flex-center;
-      //   @include size(24px, 11px);
-      //   font-size: 14px;
-      //   margin: 0;
-      //   padding: 0;
-      //   display: flex !important;
-      //   align-items: center;
-      //   &:hover {
-      //     background-color: rgba($ester-primary, 0.1);
-      //   }
-      // }
-    }
+//       // .ng-value-icon {
+//       //   color: $ester-primary;
+//       //   @include flex-center;
+//       //   @include size(24px, 11px);
+//       //   font-size: 14px;
+//       //   margin: 0;
+//       //   padding: 0;
+//       //   display: flex !important;
+//       //   align-items: center;
+//       //   &:hover {
+//       //     background-color: rgba($ester-primary, 0.1);
+//       //   }
+//       // }
+//     }
 
-    .ng-input {
-      input {
-        font-size: map.get($font-sizes, sm);
-        color: $ester-text-primary;
-        padding-left: 16px !important;
-        padding-top: 4px !important;
-      }
-    }
-  }
+//     .ng-input {
+//       input {
+//         font-size: map.get($font-sizes, sm);
+//         color: $ester-text-primary;
+//         padding-left: 16px !important;
+//         padding-top: 4px !important;
+//       }
+//     }
+//   }
 
-  .ng-arrow-wrapper {
-    .ng-arrow {
-      border-color: $ester-text-tertiary transparent transparent;
-    }
-  }
+//   .ng-arrow-wrapper {
+//     .ng-arrow {
+//       border-color: $ester-text-tertiary transparent transparent;
+//     }
+//   }
 
-  &.ng-select-opened {
-    .ng-arrow {
-      border-color: transparent transparent $ester-text-tertiary;
-    }
-  }
+//   &.ng-select-opened {
+//     .ng-arrow {
+//       border-color: transparent transparent $ester-text-tertiary;
+//     }
+//   }
 
-  .ng-dropdown-panel {
-    background-color: $ester-bg-primary;
-    border: 1px solid $ester-border-primary;
-    border-radius: $border-radius-lg;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15), 0 2px 4px rgba(0, 0, 0, 0.1);
-    max-height: 280px;
-    overflow-y: auto;
-    overflow-x: hidden;
-    margin-top: 4px;
-    padding: map.get($spacing-scale, 1) 0;
-    z-index: 10000 !important;
+//   .ng-dropdown-panel {
+//     background-color: $ester-bg-primary;
+//     border: 1px solid $ester-border-primary;
+//     border-radius: $border-radius-lg;
+//     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15), 0 2px 4px rgba(0, 0, 0, 0.1);
+//     max-height: 280px;
+//     overflow-y: auto;
+//     overflow-x: hidden;
+//     margin-top: 4px;
+//     padding: map.get($spacing-scale, 1) 0;
+//     z-index: 10000 !important;
 
-    // Scrollbar personalizado
-    @include custom-scrollbar(6px, $ester-border-secondary, $ester-bg-tertiary);
+//     // Scrollbar personalizado
+//     @include custom-scrollbar(6px, $ester-border-secondary, $ester-bg-tertiary);
 
-    .ng-dropdown-panel-items {
-      .ng-option {
-        background-color: $ester-bg-primary;
-        color: $ester-text-primary;
-        font-size: map.get($font-sizes, sm);
-        padding: map.get($spacing-scale, 2) map.get($spacing-scale, 3);
-        line-height: 1.5;
-        cursor: pointer;
-        @include transition(all, $transition-fast);
-        border-left: 3px solid transparent;
-        margin: 0 map.get($spacing-scale, 1);
+//     .ng-dropdown-panel-items {
+//       .ng-option {
+//         background-color: $ester-bg-primary;
+//         color: $ester-text-primary;
+//         font-size: map.get($font-sizes, sm);
+//         padding: map.get($spacing-scale, 2) map.get($spacing-scale, 3);
+//         line-height: 1.5;
+//         cursor: pointer;
+//         @include transition(all, $transition-fast);
+//         border-left: 3px solid transparent;
+//         margin: 0 map.get($spacing-scale, 1);
 
-        &:first-child {
-          margin-top: map.get($spacing-scale, 1);
-        }
+//         &:first-child {
+//           margin-top: map.get($spacing-scale, 1);
+//         }
 
-        &:last-child {
-          margin-bottom: map.get($spacing-scale, 1);
-        }
+//         &:last-child {
+//           margin-bottom: map.get($spacing-scale, 1);
+//         }
 
-        &:hover {
-          background-color: $ester-bg-tertiary;
-          border-left-color: $ester-primary;
-          padding-left: calc(#{map.get($spacing-scale, 3)} - 3px);
-        }
+//         &:hover {
+//           background-color: $ester-bg-tertiary;
+//           border-left-color: $ester-primary;
+//           padding-left: calc(#{map.get($spacing-scale, 3)} - 3px);
+//         }
 
-        &.ng-option-selected {
-          color: $ester-primary;
-          font-weight: map.get($font-weights, medium);
-          border-left-color: $ester-primary;
-          padding-left: calc(#{map.get($spacing-scale, 3)} - 3px);
-        }
+//         &.ng-option-selected {
+//           color: $ester-primary;
+//           font-weight: map.get($font-weights, medium);
+//           border-left-color: $ester-primary;
+//           padding-left: calc(#{map.get($spacing-scale, 3)} - 3px);
+//         }
 
-        &.ng-option-marked {
-          background-color: $ester-bg-tertiary;
-          border-left-color: $ester-primary;
-          padding-left: calc(#{map.get($spacing-scale, 3)} - 3px);
-        }
+//         &.ng-option-marked {
+//           background-color: $ester-bg-tertiary;
+//           border-left-color: $ester-primary;
+//           padding-left: calc(#{map.get($spacing-scale, 3)} - 3px);
+//         }
 
-        &.ng-option-disabled {
-          opacity: 0.5;
-          cursor: not-allowed;
+//         &.ng-option-disabled {
+//           opacity: 0.5;
+//           cursor: not-allowed;
 
-          &:hover {
-            background-color: transparent;
-            border-left-color: transparent;
-            padding-left: map.get($spacing-scale, 3);
-          }
-        }
-      }
+//           &:hover {
+//             background-color: transparent;
+//             border-left-color: transparent;
+//             padding-left: map.get($spacing-scale, 3);
+//           }
+//         }
+//       }
 
-      .ng-optgroup {
-        padding: map.get($spacing-scale, 2) map.get($spacing-scale, 3);
-        font-size: map.get($font-sizes, xs);
-        font-weight: map.get($font-weights, semibold);
-        color: $ester-text-secondary;
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
-        border-bottom: 1px solid $ester-border-primary;
-        margin-bottom: map.get($spacing-scale, 1);
-      }
-    }
-  }
-}
+//       .ng-optgroup {
+//         padding: map.get($spacing-scale, 2) map.get($spacing-scale, 3);
+//         font-size: map.get($font-sizes, xs);
+//         font-weight: map.get($font-weights, semibold);
+//         color: $ester-text-secondary;
+//         text-transform: uppercase;
+//         letter-spacing: 0.5px;
+//         border-bottom: 1px solid $ester-border-primary;
+//         margin-bottom: map.get($spacing-scale, 1);
+//       }
+//     }
+//   }
+// }
 
 /* ==================================================
    Print

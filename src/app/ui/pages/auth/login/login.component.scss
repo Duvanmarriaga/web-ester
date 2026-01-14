@@ -3,26 +3,56 @@
 @use '../../../../../styles/mixins' as *;
 
 .login-container {
-  @include flex-center;
-  min-height: 100vh;
-  background: linear-gradient(135deg, $ester-primary 0%, $ester-primary-light 50%, $ester-secondary 100%);
-  padding: map.get($spacing-scale, 4);
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: $ester-bg-secondary;
+  overflow: hidden;
+  z-index: 1;
 }
 
-.login-card {
-  @include card(map.get($spacing-scale, 10), xl);
+.login-wrapper {
+  display: flex;
+  height: 100%;
+  width: 100%;
+}
+
+// Sección izquierda: Formulario
+.login-form-section {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: $ester-bg-primary;
+  padding: map.get($spacing-scale, 6);
+  height: 100%;
+  overflow-y: auto;
+  overflow-x: hidden;
+
+  @media (max-width: $breakpoint-md) {
+    width: 100%;
+    padding: map.get($spacing-scale, 4);
+  }
+}
+
+.login-form-content {
   width: 100%;
   max-width: 420px;
-  border-radius: $border-radius-xl;
+  margin: 0 auto;
+  padding: map.get($spacing-scale, 2) 0;
 }
 
 .login-header {
   text-align: center;
-  margin-bottom: map.get($spacing-scale, 8);
+  margin-bottom: map.get($spacing-scale, 10);
 
   .login-logo {
     @include flex-center;
-    margin-bottom: map.get($spacing-scale, 4);
+    margin-bottom: map.get($spacing-scale, 6);
   }
 
   .login-logo-img {
@@ -37,33 +67,57 @@
     font-weight: map.get($font-weights, bold);
     color: $ester-text-primary;
     margin-bottom: map.get($spacing-scale, 2);
+    letter-spacing: -0.02em;
   }
 
   p {
     color: $ester-text-secondary;
     font-size: map.get($font-sizes, md);
+    line-height: map.get($line-heights, relaxed);
   }
 }
 
 .login-form {
   @include flex(column, stretch, flex-start, map.get($spacing-scale, 6));
+  gap: 0
 }
 
 .form-group {
   @include flex(column, stretch, flex-start, map.get($spacing-scale, 2));
-
+  gap: 0;
   label {
     font-weight: map.get($font-weights, semibold);
     color: $ester-text-primary;
     font-size: map.get($font-sizes, base);
+    margin-bottom: map.get($spacing-scale, 1);
   }
 
   input {
     @include input-base;
     font-size: map.get($font-sizes, md);
+    height: 42px;
+    border: 1px solid $ester-border-primary;
+    background-color: $ester-bg-primary;
+    color: $ester-text-primary;
+    border-radius: 10px;
+    transition: border-color $transition-fast, box-shadow $transition-fast;
+
+    &:focus {
+      outline: none;
+      border-color: $ester-primary;
+      box-shadow: 0 0 0 3px rgba($ester-primary, 0.1);
+    }
+
+    &::placeholder {
+      color: $ester-text-tertiary;
+    }
 
     &.invalid {
       border-color: $ester-danger;
+      
+      &:focus {
+        box-shadow: 0 0 0 3px rgba($ester-danger, 0.1);
+      }
     }
   }
 }
@@ -74,7 +128,7 @@
 
   input {
     width: 100%;
-    padding-right: 40px;
+    padding-right: 44px;
   }
 
   .password-toggle {
@@ -90,15 +144,18 @@
     @include transition(color, $transition-fast);
     cursor: pointer;
     outline: none;
+    width: 32px;
+    height: 32px;
+    border-radius: $border-radius-sm;
 
     &:hover {
       color: $ester-text-primary;
+      background-color: $ester-bg-tertiary;
     }
 
     &:focus-visible {
       outline: 2px solid $ester-primary;
       outline-offset: 2px;
-      border-radius: $border-radius-sm;
     }
 
     lucide-icon {
@@ -110,18 +167,21 @@
 .error-text {
   color: $ester-danger;
   font-size: map.get($font-sizes, sm);
+  margin-top: map.get($spacing-scale, 1);
 }
 
 .error-message {
-  padding: map.get($spacing-scale, 3);
+  padding: map.get($spacing-scale, 4);
   background-color: $ester-danger-light;
   color: $ester-danger-dark;
   border-radius: $border-radius-md;
   font-size: map.get($font-sizes, base);
+  border: 1px solid rgba($ester-danger, 0.2);
 }
 
 .form-actions {
   @include flex(row, center, flex-end);
+  margin-top: map.get($spacing-scale, 2);
 }
 
 .forgot-link {
@@ -129,7 +189,7 @@
   text-decoration: none;
   font-size: map.get($font-sizes, base);
   font-weight: map.get($font-weights, medium);
-  @include transition(color);
+  @include transition(color, $transition-fast);
 
   &:hover {
     color: $ester-primary-dark;
@@ -139,38 +199,111 @@
 
 .btn-primary {
   @include button-base;
-  @include button-variant($ester-primary);
-  height: $button-height-lg;
+  height: 48px;
   font-size: map.get($font-sizes, md);
-  background: linear-gradient(135deg, $ester-primary 0%, $ester-primary-light 50%, $ester-secondary 100%);
+  font-weight: map.get($font-weights, semibold);
+  background-color: $ester-primary;
   color: $ester-text-inverse;
+  border: none;
+  border-radius: $border-radius-md;
+  cursor: pointer;
+  @include transition(all, $transition-fast);
+  width: 100%;
+  margin-top: 32px;
 
   &:hover:not(:disabled) {
-    transform: translateY(-2px);
-    box-shadow: 0 10px 20px rgba($ester-primary, 0.4);
-    background: linear-gradient(135deg, $ester-primary-dark 0%, $ester-primary 50%, $ester-secondary-dark 100%);
+    background-color: $ester-primary-dark;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba($ester-primary, 0.3);
+  }
+
+  &:active:not(:disabled) {
+    transform: translateY(0);
+  }
+
+  &:disabled {
+    opacity: 1;
+    cursor: default;
+    background: $ester-secondary;
+  }
+
+  &:focus-visible {
+    outline: 2px solid $ester-primary;
+    outline-offset: 2px;
   }
 }
 
-.demo-credentials {
-  margin-top: map.get($spacing-scale, 8);
-  padding: map.get($spacing-scale, 4);
+// Sección derecha: Imagen
+.login-image-section {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   background-color: $ester-bg-tertiary;
-  border-radius: $border-radius-md;
-  font-size: map.get($font-sizes, sm);
-  color: $ester-text-secondary;
+  position: relative;
+  overflow: hidden;
+  height: 100%;
 
-  p {
-    margin: map.get($spacing-scale, 1) 0;
+  @media (max-width: $breakpoint-md) {
+    display: none;
+  }
+}
+
+.login-image-wrapper {
+  width: 100%;
+  height: 100%;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.login-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+}
+
+// Responsive
+@media (max-width: $breakpoint-md) {
+  .login-wrapper {
+    flex-direction: column;
+  }
+
+  .login-form-section {
+    width: 100%;
+    height: 100%;
+    padding: map.get($spacing-scale, 6) map.get($spacing-scale, 4);
+  }
+
+  .login-header {
+    margin-bottom: map.get($spacing-scale, 8);
+
+    h1 {
+      font-size: map.get($font-sizes, 3xl);
+    }
   }
 }
 
 @media (max-width: $breakpoint-sm) {
-  .login-card {
-    padding: map.get($spacing-scale, 6);
+  .login-form-section {
+    padding: map.get($spacing-scale, 4) map.get($spacing-scale, 3);
   }
 
-  .login-header h1 {
-    font-size: map.get($font-sizes, 3xl);
+  .login-header {
+    margin-bottom: map.get($spacing-scale, 6);
+
+    .login-logo-img {
+      width: 100px;
+    }
+
+    h1 {
+      font-size: map.get($font-sizes, 2xl);
+    }
+
+    p {
+      font-size: map.get($font-sizes, base);
+    }
   }
 }

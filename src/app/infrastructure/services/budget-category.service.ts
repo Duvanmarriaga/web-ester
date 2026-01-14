@@ -45,7 +45,7 @@ export class BudgetCategoryService {
     }
 
     return this.http.get<BudgetCategory[]>(
-      `${this.apiUrl}/admin/reports/budget-categories`,
+      `${this.apiUrl}/operation-budget-categories`,
       { params: httpParams }
     ).pipe(
       map((response) => {
@@ -63,7 +63,7 @@ export class BudgetCategoryService {
 
   getById(id: number): Observable<BudgetCategory> {
     return this.http.get<BudgetCategory>(
-      `${this.apiUrl}/admin/reports/budget-categories/${id}`
+      `${this.apiUrl}/operation-budget-categories/${id}`
     );
   }
 
@@ -81,7 +81,7 @@ export class BudgetCategoryService {
       .set('name', searchTerm.trim());
 
     return this.http.get<BudgetCategory[] | { data: BudgetCategory[] }>(
-      `${this.apiUrl}/admin/reports/budget-categories`,
+      `${this.apiUrl}/operation-budget-categories`,
       { params }
     ).pipe(
       map((response) => {
@@ -99,21 +99,21 @@ export class BudgetCategoryService {
 
   create(categoryData: BudgetCategoryCreate): Observable<BudgetCategory> {
     return this.http.post<BudgetCategory>(
-      `${this.apiUrl}/admin/reports/budget-categories`,
+      `${this.apiUrl}/operation-budget-categories`,
       categoryData
     );
   }
 
   update(id: number, categoryData: BudgetCategoryUpdate): Observable<BudgetCategory> {
     return this.http.put<BudgetCategory>(
-      `${this.apiUrl}/admin/reports/budget-categories/${id}`,
+      `${this.apiUrl}/operation-budget-categories/${id}`,
       categoryData
     );
   }
 
   delete(id: number): Observable<void> {
     return this.http.delete<void>(
-      `${this.apiUrl}/admin/reports/budget-categories/${id}`
+      `${this.apiUrl}/operation-budget-categories/${id}`
     );
   }
 }

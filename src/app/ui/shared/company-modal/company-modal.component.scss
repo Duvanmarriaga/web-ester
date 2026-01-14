@@ -1,0 +1,90 @@
+@use "sass:map";
+@use "../../../../styles/variables" as *;
+@use "../../../../styles/mixins" as *;
+
+.modal {
+  background-color: rgba(0, 0, 0, 0.5);
+  z-index: $z-index-modal-backdrop;
+}
+
+.modal-dialog {
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+.modal-header {
+  @include flex(row, center, space-between);
+  border-bottom: 1px solid $ester-border-primary;
+}
+
+.modal-body {
+  padding: map.get($spacing-scale, 3);
+
+  .form-label {
+    display: block;
+    margin-bottom: map.get($spacing-scale, 1);
+    font-size: map.get($font-sizes, sm);
+    font-weight: map.get($font-weights, medium);
+    color: $ester-text-primary;
+  }
+
+  .form-control {
+    width: 100%;
+    height: 36px;
+    padding: 0px 12px;
+    font-size: map.get($font-sizes, sm);
+    background-color: $ester-bg-primary;
+    border: 1px solid $ester-border-primary;
+    border-radius: $border-radius-md;
+    color: $ester-text-primary;
+    @include transition(border-color, $transition-fast);
+
+    &:focus {
+      outline: none;
+      border-color: $ester-primary;
+    }
+
+    &::placeholder {
+      color: $ester-text-tertiary;
+    }
+
+    &textarea {
+      height: auto;
+      padding: 8px 12px;
+      resize: vertical;
+    }
+  }
+
+  .form-error {
+    display: block;
+    margin-top: map.get($spacing-scale, 1);
+    font-size: map.get($font-sizes, xs);
+    color: $ester-danger;
+  }
+
+  .btn {
+    @include button-base;
+    min-width: 80px;
+
+    &.btn-primary {
+      @include button-variant($ester-primary);
+    }
+
+    &.btn-outline-secondary {
+      background-color: transparent;
+      border: 1px solid $ester-border-primary;
+      color: $ester-text-secondary;
+
+      &:hover:not(:disabled) {
+        background-color: $ester-bg-tertiary;
+        border-color: $ester-border-secondary;
+        color: $ester-text-primary;
+      }
+    }
+
+    &:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+  }
+}

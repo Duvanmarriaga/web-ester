@@ -16,6 +16,10 @@ import {
   FinancialReportCreate,
   FinancialReport,
 } from '../../../../../infrastructure/services/financial-report.service';
+import {
+  FinancialReportCategoryService,
+  FinancialReportCategory,
+} from '../../../../../infrastructure/services/financial-report-category.service';
 import { FinancialReportModalComponent } from '../../../../shared/financial-report-modal/financial-report-modal.component';
 import { FinancialReportImportModalComponent, ImportedFinancialReport } from '../../../../shared/financial-report-import-modal/financial-report-import-modal.component';
 import { selectUser } from '../../../../../infrastructure/store/auth/auth.selectors';
@@ -36,6 +40,7 @@ export class FinancialReportsComponent implements OnInit {
   private route = inject(ActivatedRoute);
   private store = inject(Store);
   private financialReportService = inject(FinancialReportService);
+  private financialReportCategoryService = inject(FinancialReportCategoryService);
   private toastr = inject(ToastrService);
 
   readonly icons = {
@@ -52,6 +57,7 @@ export class FinancialReportsComponent implements OnInit {
   showModal = signal(false);
   isImporting = signal(false);
   reports = signal<FinancialReport[]>([]);
+  categories = signal<FinancialReportCategory[]>([]);
   pagination = signal<PaginatedResponse<FinancialReport> | null>(null);
   isLoading = signal(false);
   currentPage = signal(1);
@@ -68,6 +74,7 @@ export class FinancialReportsComponent implements OnInit {
       if (id) {
         this.companyId.set(parseInt(id, 10));
         this.loadReports();
+        this.loadCategories();
       }
     });
 
@@ -77,6 +84,26 @@ export class FinancialReportsComponent implements OnInit {
         this.userId.set(user.id);
       }
     });
+  }
+
+  loadCategories(): void {
+    const companyId = this.companyId();
+    if (!companyId) return;
+
+    this.financialReportCategoryService.getByCompany(companyId).subscribe({
+      next: (categories) => {
+        this.categories.set(categories);
+      },
+      error: () => {
+        this.toastr.error('Error al cargar las categorías', 'Error');
+      },
+    });
+  }
+
+  getCategoryName(categoryId: number | null | undefined): string {
+    if (!categoryId) return 'Sin categoría';
+    const category = this.categories().find((c) => c.id === categoryId);
+    return category?.name || 'Sin categoría';
   }
 
   loadReports(page: number = 1): void {

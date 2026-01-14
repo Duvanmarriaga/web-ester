@@ -17,6 +17,10 @@ import {
   Investment,
   InvestmentUpdate,
 } from '../../../../../infrastructure/services/investment.service';
+import {
+  InvestmentCategoryService,
+  InvestmentCategory,
+} from '../../../../../infrastructure/services/investment-category.service';
 import { InvestmentModalComponent } from '../../../../shared/investment-modal/investment-modal.component';
 import { selectUser } from '../../../../../infrastructure/store/auth/auth.selectors';
 import { ToastrService } from 'ngx-toastr';
@@ -41,6 +45,7 @@ export class InvestmentsComponent implements OnInit {
   private route = inject(ActivatedRoute);
   private store = inject(Store);
   private investmentService = inject(InvestmentService);
+  private investmentCategoryService = inject(InvestmentCategoryService);
   private toastr = inject(ToastrService);
 
   readonly icons = {
@@ -56,6 +61,7 @@ export class InvestmentsComponent implements OnInit {
   userId = signal<number | null>(null);
   showModal = signal(false);
   investments = signal<Investment[]>([]);
+  categories = signal<InvestmentCategory[]>([]);
   pagination = signal<PaginatedResponse<Investment> | null>(null);
   isLoading = signal(false);
   isImporting = signal(false);
@@ -70,6 +76,7 @@ export class InvestmentsComponent implements OnInit {
       if (id) {
         this.companyId.set(parseInt(id, 10));
         this.loadInvestments();
+        this.loadCategories();
       }
     });
 
@@ -78,6 +85,25 @@ export class InvestmentsComponent implements OnInit {
         this.userId.set(user.id);
       }
     });
+  }
+
+  loadCategories(): void {
+    const companyId = this.companyId();
+    if (!companyId) return;
+
+    this.investmentCategoryService.getByCompany(companyId).subscribe({
+      next: (categories) => {
+        this.categories.set(categories);
+      },
+      error: () => {
+        this.toastr.error('Error al cargar las categorías', 'Error');
+      },
+    });
+  }
+
+  getCategoryName(categoryId: number): string {
+    const category = this.categories().find((c) => c.id === categoryId);
+    return category?.name || 'Sin categoría';
   }
 
   loadInvestments(page: number = 1): void {
@@ -218,14 +244,10 @@ export class InvestmentsComponent implements OnInit {
   ): void {
     // Convert InvestmentCreate to InvestmentUpdate (all fields optional)
     const updatePayload: InvestmentUpdate = {
-      investment_category_id: updateData.data.investment_category_id,
+      investment_budget_category_id: updateData.data.investment_budget_category_id,
+      investment_budget_annual_id: updateData.data.investment_budget_annual_id,
       company_id: updateData.data.company_id,
-      investment_date: updateData.data.investment_date,
-      unit_cost: updateData.data.unit_cost,
-      quantity: updateData.data.quantity,
-      total_cost: updateData.data.total_cost,
-      user_id: updateData.data.user_id,
-      document_origin: updateData.data.document_origin,
+      amount: updateData.data.amount,
     };
     
     this.investmentService.update(updateData.id, updatePayload).subscribe({
@@ -289,14 +311,7 @@ export class InvestmentsComponent implements OnInit {
     const investment = this.deletingInvestment();
     if (!investment) return '';
 
-    const date = new Date(investment.investment_date);
-    const formattedDate = date.toLocaleDateString('es-ES', {
-      day: '2-digit',
-      month: 'short',
-      year: 'numeric',
-    });
-
-    return `¿Estás seguro de que deseas eliminar el reporte de inversión del ${formattedDate}? Esta acción no se puede deshacer.`;
+    return `¿Estás seguro de que deseas eliminar la inversión de $${investment.amount?.toLocaleString() || 0}? Esta acción no se puede deshacer.`;
   }
 }
 

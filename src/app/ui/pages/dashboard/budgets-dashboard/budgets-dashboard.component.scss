@@ -21,7 +21,7 @@
 .filters-container {
   background: white;
   border: 1px solid var(--ester-border-light);
-  border-radius: 0.75rem;
+  border-radius: 6px;
   padding: map.get($spacing-scale, 4);
   margin-bottom: map.get($spacing-scale, 4);
 }
@@ -124,7 +124,8 @@
 .chart-card {
   background: white;
   border: 1px solid var(--ester-border-light);
-  border-radius: 0.75rem;
+  border-radius: 6px;
+  padding: 1rem;
   overflow: hidden;
   height: 100%;
   display: flex;

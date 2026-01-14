@@ -70,7 +70,7 @@ export class LegalProcessesDashboardComponent implements OnInit {
   companies = signal<Company[]>([]);
   statuses = signal<ProcessStatus[]>([]);
   currentUser = signal<any>(null);
-  isAdmin = computed(() => this.currentUser()?.type === UserType.ADMIN);
+  isAdmin = computed(() => this.currentUser()?.type === UserType.CLIENT);
 
   filterForm!: FormGroup;
 
@@ -118,7 +118,7 @@ export class LegalProcessesDashboardComponent implements OnInit {
       if (user) {
         this.initFilterForm();
         // Only load companies if user is ADMIN
-        if (user.type === UserType.ADMIN) {
+        if (user.type === UserType.CLIENT) {
           this.loadCompanies();
         }
       }
@@ -169,7 +169,7 @@ export class LegalProcessesDashboardComponent implements OnInit {
     let defaultCompanyId: number | null = null;
     if (
       user &&
-      user.type === UserType.CLIENT &&
+      user.type === UserType.COMPANY &&
       user.companies &&
       user.companies.length > 0
     ) {
@@ -236,13 +236,13 @@ export class LegalProcessesDashboardComponent implements OnInit {
     let defaultCompanyId: number | Company | null = null;
     if (
       user &&
-      user.type === UserType.CLIENT &&
+      user.type === UserType.COMPANY &&
       user.companies &&
       user.companies.length > 0
     ) {
       // If client, use company from role
       defaultCompanyId = user.companies[0];
-    } else if (user && user.type === UserType.ADMIN) {
+    } else if (user && user.type === UserType.CLIENT) {
       const firstCompany = this.companies()[0];
       defaultCompanyId = firstCompany || null;
     }

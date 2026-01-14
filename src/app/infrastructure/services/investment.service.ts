@@ -7,36 +7,24 @@ import { PaginatedResponse } from '../../entities/interfaces/pagination.interfac
 
 export interface Investment {
   id?: number;
-  investment_category_id: number;
+  investment_budget_annual_id?: number | null;
+  investment_budget_category_id: number;
   company_id: number;
-  investment_date: string;
-  unit_cost: number;
-  quantity: number;
-  total_cost: number;
-  user_id: number;
-  document_origin?: string | null;
+  amount: number;
 }
 
 export interface InvestmentCreate {
-  investment_category_id: number;
+  investment_budget_annual_id?: number | null;
+  investment_budget_category_id: number;
   company_id: number;
-  investment_date: string;
-  unit_cost: number;
-  quantity: number;
-  total_cost: number;
-  user_id: number;
-  document_origin?: string | null;
+  amount: number;
 }
 
 export interface InvestmentUpdate {
-  investment_category_id?: number;
+  investment_budget_annual_id?: number | null;
+  investment_budget_category_id?: number;
   company_id?: number;
-  investment_date?: string;
-  unit_cost?: number;
-  quantity?: number;
-  total_cost?: number;
-  user_id?: number;
-  document_origin?: string | null;
+  amount?: number;
 }
 
 @Injectable({
@@ -70,40 +58,40 @@ export class InvestmentService {
     }
     
     return this.http.get<PaginatedResponse<Investment>>(
-      `${this.apiUrl}/admin/reports/investments`,
+      `${this.apiUrl}/investment-budgets`,
       { params }
     );
   }
 
   getById(id: number): Observable<Investment> {
     return this.http.get<Investment>(
-      `${this.apiUrl}/admin/reports/investments/${id}`
+      `${this.apiUrl}/investment-budgets/${id}`
     );
   }
 
   create(investmentData: InvestmentCreate): Observable<Investment> {
     return this.http.post<Investment>(
-      `${this.apiUrl}/admin/reports/investments`,
+      `${this.apiUrl}/investment-budgets`,
       investmentData
     );
   }
 
   update(id: number, investmentData: InvestmentUpdate): Observable<Investment> {
     return this.http.put<Investment>(
-      `${this.apiUrl}/admin/reports/investments/${id}`,
+      `${this.apiUrl}/investment-budgets/${id}`,
       investmentData
     );
   }
 
   delete(id: number): Observable<void> {
     return this.http.delete<void>(
-      `${this.apiUrl}/admin/reports/investments/${id}`
+      `${this.apiUrl}/investment-budgets/${id}`
     );
   }
 
   downloadTemplate(): Observable<Blob> {
     return this.http.get(
-      `${this.apiUrl}/admin/reports/investments/template/download`,
+      `${this.apiUrl}/investment-budgets/template/download`,
       { responseType: 'blob' }
     );
   }
@@ -112,8 +100,15 @@ export class InvestmentService {
     const formData = new FormData();
     formData.append('file', file);
     return this.http.post<{ message?: string }>(
-      `${this.apiUrl}/admin/reports/investments/import`,
+      `${this.apiUrl}/investment-budgets/import`,
       formData
+    );
+  }
+
+  createMultiple(investments: InvestmentCreate[]): Observable<Investment[]> {
+    return this.http.post<Investment[]>(
+      `${this.apiUrl}/investment-budgets/multiple`,
+      { investments }
     );
   }
 }

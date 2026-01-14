@@ -16,6 +16,10 @@ import {
   OperationReportCreate,
   OperationReport,
 } from '../../../../../infrastructure/services/operation-report.service';
+import {
+  OperationCategoryService,
+  OperationCategory,
+} from '../../../../../infrastructure/services/operation-category.service';
 import { OperationReportModalComponent } from '../../../../shared/operation-report-modal/operation-report-modal.component';
 import { selectUser } from '../../../../../infrastructure/store/auth/auth.selectors';
 import { ToastrService } from 'ngx-toastr';
@@ -34,6 +38,7 @@ export class OperationsReportsComponent implements OnInit {
   private route = inject(ActivatedRoute);
   private store = inject(Store);
   private operationReportService = inject(OperationReportService);
+  private operationCategoryService = inject(OperationCategoryService);
   private toastr = inject(ToastrService);
 
   readonly icons = {
@@ -49,6 +54,7 @@ export class OperationsReportsComponent implements OnInit {
   userId = signal<number | null>(null);
   showModal = signal(false);
   reports = signal<OperationReport[]>([]);
+  categories = signal<OperationCategory[]>([]);
   pagination = signal<PaginatedResponse<OperationReport> | null>(null);
   isLoading = signal(false);
   isImporting = signal(false);
@@ -63,6 +69,7 @@ export class OperationsReportsComponent implements OnInit {
       if (id) {
         this.companyId.set(parseInt(id, 10));
         this.loadReports();
+        this.loadCategories();
       }
     });
 
@@ -71,6 +78,25 @@ export class OperationsReportsComponent implements OnInit {
         this.userId.set(user.id);
       }
     });
+  }
+
+  loadCategories(): void {
+    const companyId = this.companyId();
+    if (!companyId) return;
+
+    this.operationCategoryService.getByCompany(companyId).subscribe({
+      next: (categories) => {
+        this.categories.set(categories);
+      },
+      error: () => {
+        this.toastr.error('Error al cargar las categorías', 'Error');
+      },
+    });
+  }
+
+  getCategoryName(categoryId: number): string {
+    const category = this.categories().find((c) => c.id === categoryId);
+    return category?.name || 'Sin categoría';
   }
 
   loadReports(page: number = 1): void {
@@ -259,7 +285,7 @@ export class OperationsReportsComponent implements OnInit {
     const report = this.deletingReport();
     if (!report) return '';
     
-    const date = new Date(report.operation_date);
+    const date = new Date(report.budget_date);
     const formattedDate = date.toLocaleDateString('es-ES', { month: 'short', year: 'numeric' });
     
     return `¿Estás seguro de que deseas eliminar el reporte de operación del ${formattedDate}? Esta acción no se puede deshacer.`;

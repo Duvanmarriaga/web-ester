@@ -39,7 +39,7 @@ export class OperationCategoryService {
     }
 
     return this.http.get<OperationCategory[]>(
-      `${this.apiUrl}/admin/reports/operation-categories`,
+      `${this.apiUrl}/operation-budget-categories`,
       { params: httpParams }
     ).pipe(
       map((response) => {
@@ -69,7 +69,7 @@ export class OperationCategoryService {
       .set('name', searchTerm.trim());
 
     return this.http.get<OperationCategory[] | { data: OperationCategory[] }>(
-      `${this.apiUrl}/admin/reports/operation-categories`,
+      `${this.apiUrl}/operation-budget-categories`,
       { params }
     ).pipe(
       map((response) => {
@@ -87,27 +87,27 @@ export class OperationCategoryService {
 
   create(categoryData: OperationCategoryCreate): Observable<OperationCategory> {
     return this.http.post<OperationCategory>(
-      `${this.apiUrl}/admin/reports/operation-categories`,
+      `${this.apiUrl}/operation-budget-categories`,
       categoryData
     );
   }
 
   getById(id: number): Observable<OperationCategory> {
     return this.http.get<OperationCategory>(
-      `${this.apiUrl}/admin/reports/operation-categories/${id}`
+      `${this.apiUrl}/operation-budget-categories/${id}`
     );
   }
 
   update(id: number, categoryData: Partial<OperationCategoryCreate>): Observable<OperationCategory> {
     return this.http.put<OperationCategory>(
-      `${this.apiUrl}/admin/reports/operation-categories/${id}`,
+      `${this.apiUrl}/operation-budget-categories/${id}`,
       categoryData
     );
   }
 
   delete(id: number): Observable<void> {
     return this.http.delete<void>(
-      `${this.apiUrl}/admin/reports/operation-categories/${id}`
+      `${this.apiUrl}/operation-budget-categories/${id}`
     );
   }
 }

@@ -45,7 +45,7 @@ export class InvestmentCategoryService {
     }
 
     return this.http.get<InvestmentCategory[]>(
-      `${this.apiUrl}/admin/reports/investment-categories`,
+      `${this.apiUrl}/investment-budget-categories`,
       { params: httpParams }
     ).pipe(
       map((response) => {
@@ -63,13 +63,13 @@ export class InvestmentCategoryService {
 
   getById(id: number): Observable<InvestmentCategory> {
     return this.http.get<InvestmentCategory>(
-      `${this.apiUrl}/admin/reports/investment-categories/${id}`
+      `${this.apiUrl}/investment-budget-categories/${id}`
     );
   }
 
   getByCompany(companyId: number): Observable<InvestmentCategory[]> {
     return this.http.get<InvestmentCategory[]>(
-      `${this.apiUrl}/admin/reports/investment-categories?company_id=${companyId}`
+      `${this.apiUrl}/companies/${companyId}/investment-budget-categories`
     ).pipe(
       map((response) => {
         if (Array.isArray(response)) {
@@ -94,7 +94,7 @@ export class InvestmentCategoryService {
       .set('name', searchTerm.trim());
 
     return this.http.get<InvestmentCategory[] | { data: InvestmentCategory[] }>(
-      `${this.apiUrl}/admin/reports/investment-categories`,
+      `${this.apiUrl}/investment-budget-categories`,
       { params }
     ).pipe(
       map((response) => {
@@ -112,21 +112,59 @@ export class InvestmentCategoryService {
 
   create(categoryData: InvestmentCategoryCreate): Observable<InvestmentCategory> {
     return this.http.post<InvestmentCategory>(
-      `${this.apiUrl}/admin/reports/investment-categories`,
+      `${this.apiUrl}/investment-budget-categories`,
       categoryData
     );
   }
 
   update(id: number, categoryData: InvestmentCategoryUpdate): Observable<InvestmentCategory> {
     return this.http.put<InvestmentCategory>(
-      `${this.apiUrl}/admin/reports/investment-categories/${id}`,
+      `${this.apiUrl}/investment-budget-categories/${id}`,
       categoryData
     );
   }
 
   delete(id: number): Observable<void> {
     return this.http.delete<void>(
-      `${this.apiUrl}/admin/reports/investment-categories/${id}`
+      `${this.apiUrl}/investment-budget-categories/${id}`
+    );
+  }
+
+  // Método para obtener presupuestos anuales de inversión
+  getAnnuals(companyId: number, year?: number): Observable<any[]> {
+    let params = new HttpParams().set('company_id', companyId.toString());
+    if (year) {
+      params = params.set('year', year.toString());
+    }
+    return this.http.get<any[]>(
+      `${this.apiUrl}/investment-budget-annuals`,
+      { params }
+    );
+  }
+
+  createAnnual(annualData: { company_id: number; year: number; amount: number }): Observable<any> {
+    return this.http.post<any>(
+      `${this.apiUrl}/investment-budget-annuals`,
+      annualData
+    );
+  }
+
+  updateAnnual(id: number, annualData: { year?: number; amount?: number }): Observable<any> {
+    return this.http.put<any>(
+      `${this.apiUrl}/investment-budget-annuals/${id}`,
+      annualData
+    );
+  }
+
+  deleteAnnual(id: number): Observable<void> {
+    return this.http.delete<void>(
+      `${this.apiUrl}/investment-budget-annuals/${id}`
+    );
+  }
+
+  getAnnualById(id: number): Observable<any> {
+    return this.http.get<any>(
+      `${this.apiUrl}/investment-budget-annuals/${id}`
     );
   }
 }

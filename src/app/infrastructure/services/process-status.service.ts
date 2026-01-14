@@ -25,33 +25,33 @@ export class ProcessStatusService {
 
   getAll(): Observable<ProcessStatus[]> {
     return this.http.get<ProcessStatus[]>(
-      `${this.apiUrl}/admin/reports/process-statuses`
+      `${this.apiUrl}/process-statuses`
     );
   }
 
   getById(id: number): Observable<ProcessStatus> {
     return this.http.get<ProcessStatus>(
-      `${this.apiUrl}/admin/reports/process-statuses/${id}`
+      `${this.apiUrl}/process-statuses/${id}`
     );
   }
 
   create(statusData: ProcessStatusCreate): Observable<ProcessStatus> {
     return this.http.post<ProcessStatus>(
-      `${this.apiUrl}/admin/reports/process-statuses`,
+      `${this.apiUrl}/process-statuses`,
       statusData
     );
   }
 
   update(id: number, statusData: ProcessStatusUpdate): Observable<ProcessStatus> {
     return this.http.put<ProcessStatus>(
-      `${this.apiUrl}/admin/reports/process-statuses/${id}`,
+      `${this.apiUrl}/process-statuses/${id}`,
       statusData
     );
   }
 
   delete(id: number): Observable<void> {
     return this.http.delete<void>(
-      `${this.apiUrl}/admin/reports/process-statuses/${id}`
+      `${this.apiUrl}/process-statuses/${id}`
     );
   }
 }
