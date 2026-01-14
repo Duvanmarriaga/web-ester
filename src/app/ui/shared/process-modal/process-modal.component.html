@@ -47,6 +47,28 @@
               }
             </div>
             <div class="col-12">
+              <label for="contact_id" class="form-label"
+                >Responsable</label
+              >
+              <ng-select
+                id="contact_id"
+                [items]="contactsList()"
+                bindLabel="name"
+                [compareWith]="compareContacts"
+                placeholder="Escribe para buscar o presiona Enter para crear..."
+                formControlName="contact_id"
+                [searchable]="true"
+                [clearable]="true"
+                [loading]="isLoadingContacts()"
+                [typeahead]="contactInput$"
+                [addTag]="true"
+                [addTagText]="'Crear: '"
+                (onAddTag)="onCreateContactFromTag($event)"
+                appendTo="body"
+              >
+              </ng-select>
+            </div>
+            <div class="col-12">
               <label for="process_status_id" class="form-label">Estado</label>
               <ng-select
                 id="process_status_id"

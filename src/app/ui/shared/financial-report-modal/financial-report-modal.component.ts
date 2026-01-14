@@ -95,9 +95,19 @@ export class FinancialReportModalComponent implements OnInit {
             this.reportForm.reset({
               financial_report_category_id: null,
               report_date: '',
-              total_revenue: '0',
-              executed_value: '0',
+              current_asset: '0',
+              current_passive: '0',
+              inventories: '0',
+              total_passive: '0',
+              total_assets: '0',
               net_profit: '0',
+              total_revenue: '0',
+              current_value_result: '0',
+              initial_value_of_the_year: '0',
+              budgeted_value: '0',
+              executed_value: '0',
+              current_cash_balance: '0',
+              average_consumption_of_boxes_over_the_last_3_months: '0',
             });
           }
         }, 0);
@@ -115,9 +125,19 @@ export class FinancialReportModalComponent implements OnInit {
         [Validators.required],
         [this.dateExistsValidator.bind(this)],
       ],
-      total_revenue: ['0', [Validators.required, this.currencyValidator]],
-      executed_value: ['0', [Validators.required, this.currencyValidator]],
+      current_asset: ['0', [Validators.required, this.currencyValidator]],
+      current_passive: ['0', [Validators.required, this.currencyValidator]],
+      inventories: ['0', [Validators.required, this.currencyValidator]],
+      total_passive: ['0', [Validators.required, this.currencyValidator]],
+      total_assets: ['0', [Validators.required, this.currencyValidator]],
       net_profit: ['0', [Validators.required, this.currencyValidator]],
+      total_revenue: ['0', [Validators.required, this.currencyValidator]],
+      current_value_result: ['0', [Validators.required, this.currencyValidator]],
+      initial_value_of_the_year: ['0', [Validators.required, this.currencyValidator]],
+      budgeted_value: ['0', [Validators.required, this.currencyValidator]],
+      executed_value: ['0', [Validators.required, this.currencyValidator]],
+      current_cash_balance: ['0', [Validators.required, this.currencyValidator]],
+      average_consumption_of_boxes_over_the_last_3_months: ['0', [Validators.required, this.currencyValidator]],
     });
 
     // Watch for date validation errors
@@ -219,7 +239,7 @@ export class FinancialReportModalComponent implements OnInit {
 
     if (existingCategory) {
       this.reportForm.patchValue({
-        financial_category_id: existingCategory.id,
+        financial_report_category_id: existingCategory.id,
       });
       return;
     }
@@ -258,7 +278,7 @@ export class FinancialReportModalComponent implements OnInit {
       next: (newCategory) => {
         const currentCategories = this.categories();
         this.categories.set([...currentCategories, newCategory]);
-        this.reportForm.patchValue({ financial_category_id: newCategory.id });
+        this.reportForm.patchValue({ financial_report_category_id: newCategory.id });
         this.toastr.success('Categoría creada exitosamente', 'Éxito');
         this.isCreatingCategory.set(false);
         this.isLoadingCategories.set(false);
@@ -286,8 +306,8 @@ export class FinancialReportModalComponent implements OnInit {
     }
 
     const dateValue = control.value;
-    // Convert YYYY-MM to YYYY-MM-01
-    const reportDate = `${dateValue}-01`;
+    // Date is already in YYYY-MM-DD format
+    const reportDate = dateValue;
 
     return of(null).pipe(
       debounceTime(500),
@@ -319,7 +339,7 @@ export class FinancialReportModalComponent implements OnInit {
     return null;
   }
 
-  formatCurrency(event: Event, fieldName: 'total_revenue' | 'executed_value' | 'net_profit'): void {
+  formatCurrency(event: Event, fieldName: 'current_asset' | 'current_passive' | 'inventories' | 'total_passive' | 'total_assets' | 'net_profit' | 'total_revenue' | 'current_value_result' | 'initial_value_of_the_year' | 'budgeted_value' | 'executed_value' | 'current_cash_balance' | 'average_consumption_of_boxes_over_the_last_3_months'): void {
     const input = event.target as HTMLInputElement;
     let value = input.value.replace(/[^0-9.]/g, '');
 
@@ -350,7 +370,7 @@ export class FinancialReportModalComponent implements OnInit {
     );
   }
 
-  formatCurrencyOnBlur(fieldName: 'total_revenue' | 'executed_value' | 'net_profit'): void{
+  formatCurrencyOnBlur(fieldName: 'current_asset' | 'current_passive' | 'inventories' | 'total_passive' | 'total_assets' | 'net_profit' | 'total_revenue' | 'current_value_result' | 'initial_value_of_the_year' | 'budgeted_value' | 'executed_value' | 'current_cash_balance' | 'average_consumption_of_boxes_over_the_last_3_months'): void{
     const control = this.reportForm.get(fieldName);
     if (!control) return;
 
@@ -390,32 +410,33 @@ export class FinancialReportModalComponent implements OnInit {
   }
 
   populateForm(report: FinancialReport): void {
-    // Convert date (YYYY-MM-DD) to month format (YYYY-MM)
+    // Convert date (YYYY-MM-DD) to date format (YYYY-MM-DD)
     const reportDate = report.report_date
-      ? report.report_date.substring(0, 7)
+      ? report.report_date.substring(0, 10)
       : '';
 
-    // Ensure values are numbers
-    const totalRevenue =
-      typeof report.total_revenue === 'number'
-        ? report.total_revenue
-        : parseFloat(report.total_revenue as any) || 0;
-    const executedValue =
-      typeof report.executed_value === 'number'
-        ? report.executed_value
-        : parseFloat(report.executed_value as any) || 0;
-    const netProfit =
-      typeof report.net_profit === 'number'
-        ? report.net_profit
-        : parseFloat(report.net_profit as any) || 0;
+    // Helper function to safely parse number
+    const parseNumber = (value: any): number => {
+      return typeof value === 'number' ? value : parseFloat(value as any) || 0;
+    };
 
     this.reportForm.patchValue(
       {
         financial_report_category_id: report.financial_report_category_id || null,
         report_date: reportDate,
-        total_revenue: this.formatNumberWithCommas(totalRevenue),
-        executed_value: this.formatNumberWithCommas(executedValue),
-        net_profit: this.formatNumberWithCommas(netProfit),
+        current_asset: this.formatNumberWithCommas(parseNumber(report.current_asset)),
+        current_passive: this.formatNumberWithCommas(parseNumber(report.current_passive)),
+        inventories: this.formatNumberWithCommas(parseNumber(report.inventories)),
+        total_passive: this.formatNumberWithCommas(parseNumber(report.total_passive)),
+        total_assets: this.formatNumberWithCommas(parseNumber(report.total_assets)),
+        net_profit: this.formatNumberWithCommas(parseNumber(report.net_profit)),
+        total_revenue: this.formatNumberWithCommas(parseNumber(report.total_revenue)),
+        current_value_result: this.formatNumberWithCommas(parseNumber(report.current_value_result)),
+        initial_value_of_the_year: this.formatNumberWithCommas(parseNumber(report.initial_value_of_the_year)),
+        budgeted_value: this.formatNumberWithCommas(parseNumber(report.budgeted_value)),
+        executed_value: this.formatNumberWithCommas(parseNumber(report.executed_value)),
+        current_cash_balance: this.formatNumberWithCommas(parseNumber(report.current_cash_balance)),
+        average_consumption_of_boxes_over_the_last_3_months: this.formatNumberWithCommas(parseNumber(report.average_consumption_of_boxes_over_the_last_3_months)),
       },
       { emitEvent: false }
     );
@@ -452,30 +473,23 @@ export class FinancialReportModalComponent implements OnInit {
 
     let formValue = { ...this.reportForm.value };
     
-    // Si financial_category_id es un objeto con name pero sin id, buscar la categoría en la lista
+    // Si financial_report_category_id es un objeto con name pero sin id, buscar la categoría en la lista
     if (
-      formValue.financial_category_id &&
-      typeof formValue.financial_category_id === 'object' &&
-      formValue.financial_category_id.name &&
-      !formValue.financial_category_id.id
+      formValue.financial_report_category_id &&
+      typeof formValue.financial_report_category_id === 'object' &&
+      formValue.financial_report_category_id.name &&
+      !formValue.financial_report_category_id.id
     ) {
-      const categoryName = formValue.financial_category_id.name;
+      const categoryName = formValue.financial_report_category_id.name;
       const foundCategory = this.categoriesList().find(
         (cat) => cat.name === categoryName
       );
 
       if (foundCategory) {
         // Si encontramos la categoría, usar su ID
-        formValue.financial_category_id = foundCategory.id;
+        formValue.financial_report_category_id = foundCategory.id;
       } else {
         // Si no encontramos la categoría, crear una nueva
-        const code = categoryName
-          .trim()
-          .toUpperCase()
-          .replace(/\s+/g, '_')
-          .replace(/[^A-Z0-9_]/g, '')
-          .substring(0, 20);
-
         const categoryData: FinancialReportCategoryCreate = {
           name: categoryName.trim(),
           company_id: this.companyId(),
@@ -487,48 +501,54 @@ export class FinancialReportModalComponent implements OnInit {
         const newCategory = await firstValueFrom(
           this.categoryService.create(categoryData)
         );
-        formValue.financial_category_id = newCategory.id;
+        formValue.financial_report_category_id = newCategory.id;
         
         this.isCreatingCategory.set(false);
         this.isLoadingCategories.set(false);
       }
     } else if (
-      formValue.financial_category_id &&
-      typeof formValue.financial_category_id === 'object' &&
-      formValue.financial_category_id.id
+      formValue.financial_report_category_id &&
+      typeof formValue.financial_report_category_id === 'object' &&
+      formValue.financial_report_category_id.id
     ) {
       // Si es un objeto con id, usar solo el id
-      formValue.financial_category_id = formValue.financial_category_id.id;
+      formValue.financial_report_category_id = formValue.financial_report_category_id.id;
     } else if (
-      formValue.financial_category_id &&
-      typeof formValue.financial_category_id === 'number'
+      formValue.financial_report_category_id &&
+      typeof formValue.financial_report_category_id === 'number'
     ) {
       // Si ya es un número, mantenerlo
-      formValue.financial_category_id = formValue.financial_category_id;
+      formValue.financial_report_category_id = formValue.financial_report_category_id;
     } else {
       // Si no hay categoría, establecer null
-      formValue.financial_category_id = null;
+      formValue.financial_report_category_id = null;
     }
     
-    // Convert month/year format (YYYY-MM) to full date (YYYY-MM-01)
-    // Using the first day of the selected month
-    const reportDate = formValue.report_date
-      ? `${formValue.report_date}-01`
-      : '';
+    // Helper function to parse currency value
+    const parseCurrency = (value: any): number => {
+      return parseFloat(value?.toString().replace(/[^0-9.]/g, '') || '0') || 0;
+    };
 
-    // Parse currency values
-    const incomeValue =
-      formValue.total_revenue?.toString().replace(/[^0-9.]/g, '') || '0';
-    const expensesValue =
-      formValue.executed_value?.toString().replace(/[^0-9.]/g, '') || '0';
+    // Report date should be in YYYY-MM-DD format
+    const reportDate = formValue.report_date || '';
 
     const reportData: FinancialReportCreate = {
       company_id: this.companyId(),
-      report_date: reportDate,
-      total_revenue: parseFloat(incomeValue) || 0,
-      executed_value: parseFloat(expensesValue) || 0,
-      net_profit: parseFloat(formValue.net_profit?.toString().replace(/[^0-9.]/g, '') || '0') || 0,
       financial_report_category_id: formValue.financial_report_category_id || null,
+      report_date: reportDate,
+      current_asset: parseCurrency(formValue.current_asset),
+      current_passive: parseCurrency(formValue.current_passive),
+      inventories: parseCurrency(formValue.inventories),
+      total_passive: parseCurrency(formValue.total_passive),
+      total_assets: parseCurrency(formValue.total_assets),
+      net_profit: parseCurrency(formValue.net_profit),
+      total_revenue: parseCurrency(formValue.total_revenue),
+      current_value_result: parseCurrency(formValue.current_value_result),
+      initial_value_of_the_year: parseCurrency(formValue.initial_value_of_the_year),
+      budgeted_value: parseCurrency(formValue.budgeted_value),
+      executed_value: parseCurrency(formValue.executed_value),
+      current_cash_balance: parseCurrency(formValue.current_cash_balance),
+      average_consumption_of_boxes_over_the_last_3_months: parseCurrency(formValue.average_consumption_of_boxes_over_the_last_3_months),
     };
     if (this.isEditMode() && this.report()?.id) {
       this.update.emit({

@@ -11,7 +11,7 @@
         title="Descargar plantilla CSV"
       >
         <lucide-icon [img]="icons.Download" [size]="16"></lucide-icon>
-        <span>Descargar CSV</span>
+        <span>Descargar plantilla</span>
       </button>
       <button
         type="button"
@@ -28,7 +28,7 @@
         } @else {
         <lucide-icon [img]="icons.Upload" [size]="16"></lucide-icon>
         }
-        <span>Importar XLS</span>
+        <span>Importar datos</span>
       </button>
       <button
         type="button"
@@ -63,10 +63,21 @@
         <table class="table table-hover mb-0">
           <thead class="table-light">
             <tr>
-              <th class="table-header">Mes/Año</th>
+              <th class="table-header">Fecha</th>
               <th class="table-header">Categoría</th>
-              <th class="table-header">Ingresos Totales</th>
+              <th class="table-header">Activo Corriente</th>
+              <th class="table-header">Pasivo Corriente</th>
+              <th class="table-header">Inventarios</th>
+              <th class="table-header">Pasivo Total</th>
+              <th class="table-header">Activo Total</th>
               <th class="table-header">Ganancia Neta</th>
+              <th class="table-header">Ingresos Totales</th>
+              <th class="table-header">Resultado Valor Corriente</th>
+              <th class="table-header">Valor Inicial del Año</th>
+              <th class="table-header">Valor Presupuestado</th>
+              <th class="table-header">Valor Ejecutado</th>
+              <th class="table-header">Saldo de Caja Actual</th>
+              <th class="table-header">Consumo Promedio Cajas (3 meses)</th>
               <th class="table-header text-end">Acciones</th>
             </tr>
           </thead>
@@ -74,20 +85,53 @@
             @for (report of reports(); track report.id) {
             <tr>
               <td class="table-cell">
-                {{ report.report_date | date : "MM/yyyy" }}
+                {{ report.report_date | date : "dd/MM/yyyy" }}
               </td>
               <td class="table-cell">
                 {{ getCategoryName(report.financial_report_category_id) }}
               </td>
               <td class="table-cell fw-medium">
-                ${{ report.total_revenue | number }}
+                ${{ (report.current_asset || 0) | number }}
+              </td>
+              <td class="table-cell fw-medium">
+                ${{ (report.current_passive || 0) | number }}
+              </td>
+              <td class="table-cell fw-medium">
+                ${{ (report.inventories || 0) | number }}
+              </td>
+              <td class="table-cell fw-medium">
+                ${{ (report.total_passive || 0) | number }}
+              </td>
+              <td class="table-cell fw-medium">
+                ${{ (report.total_assets || 0) | number }}
               </td>
               <td
                 class="table-cell fw-medium"
                 [class.text-success]="(report.net_profit || 0) > 0"
                 [class.text-danger]="(report.net_profit || 0) < 0"
               >
-                ${{ report.net_profit | number }}
+                ${{ (report.net_profit || 0) | number }}
+              </td>
+              <td class="table-cell fw-medium">
+                ${{ (report.total_revenue || 0) | number }}
+              </td>
+              <td class="table-cell fw-medium">
+                ${{ (report.current_value_result || 0) | number }}
+              </td>
+              <td class="table-cell fw-medium">
+                ${{ (report.initial_value_of_the_year || 0) | number }}
+              </td>
+              <td class="table-cell fw-medium">
+                ${{ (report.budgeted_value || 0) | number }}
+              </td>
+              <td class="table-cell fw-medium">
+                ${{ (report.executed_value || 0) | number }}
+              </td>
+              <td class="table-cell fw-medium">
+                ${{ (report.current_cash_balance || 0) | number }}
+              </td>
+              <td class="table-cell fw-medium">
+                ${{ (report.average_consumption_of_boxes_over_the_last_3_months || 0) | number }}
               </td>
               <td class="text-end">
                 <div class="d-flex gap-2 justify-content-end">

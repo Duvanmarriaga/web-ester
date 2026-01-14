@@ -13,6 +13,10 @@ import {
   ProcessCreate,
   Process,
 } from '../../../../../infrastructure/services/process.service';
+import {
+  ProcessContactService,
+  ProcessContact,
+} from '../../../../../infrastructure/services/process-contact.service';
 import { ProcessModalComponent } from '../../../../shared/process-modal/process-modal.component';
 import { ToastrService } from 'ngx-toastr';
 import { PaginationComponent } from '../../../../shared/pagination/pagination.component';
@@ -29,6 +33,7 @@ import { ConfirmDialogComponent } from '../../../../shared/confirm-dialog/confir
 export class LegalProcessesComponent implements OnInit {
   private route = inject(ActivatedRoute);
   private processService = inject(ProcessService);
+  private processContactService = inject(ProcessContactService);
   private toastr = inject(ToastrService);
 
   readonly icons = {
@@ -41,6 +46,7 @@ export class LegalProcessesComponent implements OnInit {
   companyId = signal<number | null>(null);
   showModal = signal(false);
   processes = signal<Process[]>([]);
+  contacts = signal<ProcessContact[]>([]);
   pagination = signal<PaginatedResponse<Process> | null>(null);
   isLoading = signal(false);
   currentPage = signal(1);
@@ -53,8 +59,25 @@ export class LegalProcessesComponent implements OnInit {
       const id = params.get('id');
       if (id) {
         this.companyId.set(parseInt(id, 10));
+        this.loadContacts();
         this.loadProcesses();
       }
+    });
+  }
+
+  loadContacts(): void {
+    const companyId = this.companyId();
+    if (!companyId) return;
+
+    this.processContactService.getAll(companyId).subscribe({
+      next: (response) => {
+        // Handle both array and paginated response
+        const contacts = Array.isArray(response) ? response : (response.data || []);
+        this.contacts.set(contacts);
+      },
+      error: () => {
+        this.contacts.set([]);
+      },
     });
   }
 
@@ -114,6 +137,7 @@ export class LegalProcessesComponent implements OnInit {
       next: () => {
         this.toastr.success('Proceso jurídico creado correctamente', 'Éxito');
         this.closeModal();
+        this.loadContacts();
         this.loadProcesses(this.currentPage());
       },
       error: (error: unknown) => {
@@ -132,6 +156,7 @@ export class LegalProcessesComponent implements OnInit {
       next: () => {
         this.toastr.success('Proceso jurídico actualizado correctamente', 'Éxito');
         this.closeModal();
+        this.loadContacts();
         this.loadProcesses(this.currentPage());
       },
       error: (error: unknown) => {
@@ -174,6 +199,11 @@ export class LegalProcessesComponent implements OnInit {
     });
   }
 
+  getContactName(contactId: number | null | undefined): string {
+    if (!contactId) return '';
+    const contact = this.contacts().find((c) => c.id === contactId);
+    return contact?.name || '';
+  }
   onCancelDelete(): void {
     this.showConfirmDialog.set(false);
     this.deletingProcess.set(null);

@@ -57,7 +57,6 @@ export class CompanyDetailComponent implements OnInit {
     const url = this.router.url;
     if (url.includes('/financial')) return 'financial';
     if (url.includes('/operations')) return 'operations';
-    if (url.includes('/budgets')) return 'budgets';
     if (url.includes('/legal')) return 'legal';
     if (url.includes('/investments')) return 'investments';
     return 'financial';
@@ -113,7 +112,7 @@ export class CompanyDetailComponent implements OnInit {
     this.router.navigate(['/companies']);
   }
 
-  getTabRoute(tab: 'financial' | 'operations' | 'budgets' | 'legal' | 'investments'): string[] {
+  getTabRoute(tab: 'financial' | 'operations' | 'legal' | 'investments'): string[] {
     const id = this.companyId();
     return id ? ['/companies', id, tab] : ['/companies'];
   }

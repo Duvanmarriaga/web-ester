@@ -71,7 +71,7 @@ export class CompaniesComponent implements OnInit {
     this.editingCompany.set(null);
   }
 
-  onSaveCompany(event: { company: CompanyCreate | CompanyUpdate }) {
+  onSaveCompany(event: { company: CompanyCreate | Partial<Company> }) {
     const editing = this.editingCompany();
     if (editing) {
       this.store.dispatch(

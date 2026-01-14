@@ -93,13 +93,6 @@ export const routes: Routes = [
               {
                 path: 'operations',
                 loadComponent: () =>
-                  import('./ui/pages/companies/company-detail/operations-reports/operations-reports.component').then(
-                    (m) => m.OperationsReportsComponent
-                  ),
-              },
-              {
-                path: 'budgets',
-                loadComponent: () =>
                   import('./ui/pages/companies/company-detail/budgets/budgets.component').then(
                     (m) => m.BudgetsComponent
                   ),

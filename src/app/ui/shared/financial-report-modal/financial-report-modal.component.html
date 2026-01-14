@@ -32,7 +32,7 @@
                 bindLabel="name"
                 [compareWith]="compareCategories"
                 placeholder="Escribe para buscar o presiona Enter para crear..."
-                formControlName="financial_category_id"
+                formControlName="financial_report_category_id"
                 [searchable]="true"
                 [clearable]="true"
                 [loading]="isLoadingCategories()"
@@ -46,10 +46,10 @@
             </div>
             <div class="col-12">
               <label for="report_date" class="form-label"
-                >Mes y Año del Reporte</label
+                >Fecha del Reporte</label
               >
               <input
-                type="month"
+                type="date"
                 class="form-control"
                 id="report_date"
                 formControlName="report_date"
@@ -59,11 +59,125 @@
                 @if (dateExistsError()) {
                   <small class="form-error">{{ dateExistsError() }}</small>
                 } @else {
-                  <small class="form-error">Mes y año requeridos</small>
+                  <small class="form-error">Fecha requerida</small>
                 }
               }
             </div>
-            <div class="col-12">
+            <div class="col-md-6">
+              <label for="current_asset" class="form-label">Activo Corriente</label>
+              <div class="input-group">
+                <span class="input-group-text">$</span>
+                <input
+                  type="text"
+                  class="form-control"
+                  id="current_asset"
+                  formControlName="current_asset"
+                  placeholder="000"
+                  (input)="formatCurrency($event, 'current_asset')"
+                  (blur)="formatCurrencyOnBlur('current_asset')"
+                />
+              </div>
+              @if (reportForm.get('current_asset')?.invalid &&
+              reportForm.get('current_asset')?.touched) {
+              <small class="form-error">Activo corriente requerido (mínimo 0)</small>
+              }
+            </div>
+            <div class="col-md-6">
+              <label for="current_passive" class="form-label">Pasivo Corriente</label>
+              <div class="input-group">
+                <span class="input-group-text">$</span>
+                <input
+                  type="text"
+                  class="form-control"
+                  id="current_passive"
+                  formControlName="current_passive"
+                  placeholder="000"
+                  (input)="formatCurrency($event, 'current_passive')"
+                  (blur)="formatCurrencyOnBlur('current_passive')"
+                />
+              </div>
+              @if (reportForm.get('current_passive')?.invalid &&
+              reportForm.get('current_passive')?.touched) {
+              <small class="form-error">Pasivo corriente requerido (mínimo 0)</small>
+              }
+            </div>
+            <div class="col-md-6">
+              <label for="inventories" class="form-label">Inventarios</label>
+              <div class="input-group">
+                <span class="input-group-text">$</span>
+                <input
+                  type="text"
+                  class="form-control"
+                  id="inventories"
+                  formControlName="inventories"
+                  placeholder="000"
+                  (input)="formatCurrency($event, 'inventories')"
+                  (blur)="formatCurrencyOnBlur('inventories')"
+                />
+              </div>
+              @if (reportForm.get('inventories')?.invalid &&
+              reportForm.get('inventories')?.touched) {
+              <small class="form-error">Inventarios requeridos (mínimo 0)</small>
+              }
+            </div>
+            <div class="col-md-6">
+              <label for="total_passive" class="form-label">Pasivo Total</label>
+              <div class="input-group">
+                <span class="input-group-text">$</span>
+                <input
+                  type="text"
+                  class="form-control"
+                  id="total_passive"
+                  formControlName="total_passive"
+                  placeholder="000"
+                  (input)="formatCurrency($event, 'total_passive')"
+                  (blur)="formatCurrencyOnBlur('total_passive')"
+                />
+              </div>
+              @if (reportForm.get('total_passive')?.invalid &&
+              reportForm.get('total_passive')?.touched) {
+              <small class="form-error">Pasivo total requerido (mínimo 0)</small>
+              }
+            </div>
+            <div class="col-md-6">
+              <label for="total_assets" class="form-label">Activo Total</label>
+              <div class="input-group">
+                <span class="input-group-text">$</span>
+                <input
+                  type="text"
+                  class="form-control"
+                  id="total_assets"
+                  formControlName="total_assets"
+                  placeholder="000"
+                  (input)="formatCurrency($event, 'total_assets')"
+                  (blur)="formatCurrencyOnBlur('total_assets')"
+                />
+              </div>
+              @if (reportForm.get('total_assets')?.invalid &&
+              reportForm.get('total_assets')?.touched) {
+              <small class="form-error">Activo total requerido (mínimo 0)</small>
+              }
+            </div>
+            <div class="col-md-6">
+              <label for="net_profit" class="form-label">Ganancia Neta</label>
+              <div class="input-group">
+                <span class="input-group-text">$</span>
+                <input
+                  type="text"
+                  class="form-control"
+                  id="net_profit"
+                  formControlName="net_profit"
+                  placeholder="000"
+                  (input)="formatCurrency($event, 'net_profit')"
+                  (blur)="formatCurrencyOnBlur('net_profit')"
+                />
+              </div>
+              @if (reportForm.get('net_profit')?.invalid &&
+              reportForm.get('net_profit')?.touched) {
+              <small class="form-error">Ganancia neta requerida (mínimo 0)</small>
+              }
+            </div>
+            <div class="col-md-6">
               <label for="total_revenue" class="form-label">Ingresos Totales</label>
               <div class="input-group">
                 <span class="input-group-text">$</span>
@@ -82,7 +196,64 @@
               <small class="form-error">Ingresos totales requeridos (mínimo 0)</small>
               }
             </div>
-            <div class="col-12">
+            <div class="col-md-6">
+              <label for="current_value_result" class="form-label">Resultado Valor Corriente</label>
+              <div class="input-group">
+                <span class="input-group-text">$</span>
+                <input
+                  type="text"
+                  class="form-control"
+                  id="current_value_result"
+                  formControlName="current_value_result"
+                  placeholder="000"
+                  (input)="formatCurrency($event, 'current_value_result')"
+                  (blur)="formatCurrencyOnBlur('current_value_result')"
+                />
+              </div>
+              @if (reportForm.get('current_value_result')?.invalid &&
+              reportForm.get('current_value_result')?.touched) {
+              <small class="form-error">Resultado valor corriente requerido (mínimo 0)</small>
+              }
+            </div>
+            <div class="col-md-6">
+              <label for="initial_value_of_the_year" class="form-label">Valor Inicial del Año</label>
+              <div class="input-group">
+                <span class="input-group-text">$</span>
+                <input
+                  type="text"
+                  class="form-control"
+                  id="initial_value_of_the_year"
+                  formControlName="initial_value_of_the_year"
+                  placeholder="000"
+                  (input)="formatCurrency($event, 'initial_value_of_the_year')"
+                  (blur)="formatCurrencyOnBlur('initial_value_of_the_year')"
+                />
+              </div>
+              @if (reportForm.get('initial_value_of_the_year')?.invalid &&
+              reportForm.get('initial_value_of_the_year')?.touched) {
+              <small class="form-error">Valor inicial del año requerido (mínimo 0)</small>
+              }
+            </div>
+            <div class="col-md-6">
+              <label for="budgeted_value" class="form-label">Valor Presupuestado</label>
+              <div class="input-group">
+                <span class="input-group-text">$</span>
+                <input
+                  type="text"
+                  class="form-control"
+                  id="budgeted_value"
+                  formControlName="budgeted_value"
+                  placeholder="000"
+                  (input)="formatCurrency($event, 'budgeted_value')"
+                  (blur)="formatCurrencyOnBlur('budgeted_value')"
+                />
+              </div>
+              @if (reportForm.get('budgeted_value')?.invalid &&
+              reportForm.get('budgeted_value')?.touched) {
+              <small class="form-error">Valor presupuestado requerido (mínimo 0)</small>
+              }
+            </div>
+            <div class="col-md-6">
               <label for="executed_value" class="form-label">Valor Ejecutado</label>
               <div class="input-group">
                 <span class="input-group-text">$</span>
@@ -101,23 +272,42 @@
               <small class="form-error">Valor ejecutado requerido (mínimo 0)</small>
               }
             </div>
-            <div class="col-12">
-              <label for="net_profit" class="form-label">Ganancia Neta</label>
+            <div class="col-md-6">
+              <label for="current_cash_balance" class="form-label">Saldo de Caja Actual</label>
               <div class="input-group">
                 <span class="input-group-text">$</span>
                 <input
                   type="text"
                   class="form-control"
-                  id="net_profit"
-                  formControlName="net_profit"
+                  id="current_cash_balance"
+                  formControlName="current_cash_balance"
                   placeholder="000"
-                  (input)="formatCurrency($event, 'net_profit')"
-                  (blur)="formatCurrencyOnBlur('net_profit')"
+                  (input)="formatCurrency($event, 'current_cash_balance')"
+                  (blur)="formatCurrencyOnBlur('current_cash_balance')"
                 />
               </div>
-              @if (reportForm.get('net_profit')?.invalid &&
-              reportForm.get('net_profit')?.touched) {
-              <small class="form-error">Ganancia neta requerida</small>
+              @if (reportForm.get('current_cash_balance')?.invalid &&
+              reportForm.get('current_cash_balance')?.touched) {
+              <small class="form-error">Saldo de caja actual requerido (mínimo 0)</small>
+              }
+            </div>
+            <div class="col-md-6">
+              <label for="average_consumption_of_boxes_over_the_last_3_months" class="form-label">Consumo Promedio de Cajas (Últimos 3 Meses)</label>
+              <div class="input-group">
+                <span class="input-group-text">$</span>
+                <input
+                  type="text"
+                  class="form-control"
+                  id="average_consumption_of_boxes_over_the_last_3_months"
+                  formControlName="average_consumption_of_boxes_over_the_last_3_months"
+                  placeholder="000"
+                  (input)="formatCurrency($event, 'average_consumption_of_boxes_over_the_last_3_months')"
+                  (blur)="formatCurrencyOnBlur('average_consumption_of_boxes_over_the_last_3_months')"
+                />
+              </div>
+              @if (reportForm.get('average_consumption_of_boxes_over_the_last_3_months')?.invalid &&
+              reportForm.get('average_consumption_of_boxes_over_the_last_3_months')?.touched) {
+              <small class="form-error">Consumo promedio requerido (mínimo 0)</small>
               }
             </div>
           </div>

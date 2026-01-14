@@ -51,13 +51,22 @@
   <div class="tabs-container">
     <div class="tabs-header">
       <a
-        [routerLink]="getTabRoute('budgets')"
+        [routerLink]="getTabRoute('operations')"
         routerLinkActive="active"
         [routerLinkActiveOptions]="{ exact: false }"
         class="tab-button"
       >
         <lucide-icon [img]="icons.DollarSign" [size]="14"></lucide-icon>
-        <span>Presupuestos Financieros</span>
+        <span>Presupuesto de Operaciones</span>
+      </a>
+      <a
+        [routerLink]="getTabRoute('investments')"
+        routerLinkActive="active"
+        [routerLinkActiveOptions]="{ exact: false }"
+        class="tab-button"
+      >
+        <lucide-icon [img]="icons.TrendingDown" [size]="14"></lucide-icon>
+        <span>Presupuesto de Inversiones</span>
       </a>
       <a
         [routerLink]="getTabRoute('financial')"
@@ -68,24 +77,7 @@
         <lucide-icon [img]="icons.FileText" [size]="14"></lucide-icon>
         <span>Reportes Financieros</span>
       </a>
-      <a
-        [routerLink]="getTabRoute('operations')"
-        routerLinkActive="active"
-        [routerLinkActiveOptions]="{ exact: false }"
-        class="tab-button"
-      >
-        <lucide-icon [img]="icons.TrendingUp" [size]="14"></lucide-icon>
-        <span>Reportes de Operaciones</span>
-      </a>
-      <a
-        [routerLink]="getTabRoute('investments')"
-        routerLinkActive="active"
-        [routerLinkActiveOptions]="{ exact: false }"
-        class="tab-button"
-      >
-        <lucide-icon [img]="icons.TrendingDown" [size]="14"></lucide-icon>
-        <span>Reporte de Inversiones</span>
-      </a>
+
       <a
         [routerLink]="getTabRoute('legal')"
         routerLinkActive="active"

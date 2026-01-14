@@ -41,7 +41,7 @@
               <th class="table-header">Tipo</th>
               <th class="table-header">Fecha Inicio</th>
               <th class="table-header">Fecha Fin</th>
-              <th class="table-header">Descripción</th>
+              <th class="table-header">Responsable</th>
               <th class="table-header text-end">Acciones</th>
             </tr>
           </thead>
@@ -68,7 +68,7 @@
                     : "-"
                 }}
               </td>
-              <td class="table-cell">{{ process.description || "-" }}</td>
+              <td class="table-cell">{{ getContactName(process.contact_id) || "-" }}</td>
               <td class="text-end">
                 <div class="d-flex gap-2 justify-content-end">
                   <button
