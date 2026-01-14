@@ -25,6 +25,10 @@ import {
   InvestmentCategory,
   InvestmentCategoryCreate,
 } from '../../../infrastructure/services/investment-category.service';
+import {
+  InvestmentBudgetYearService,
+  InvestmentBudgetYear,
+} from '../../../infrastructure/services/investment-budget-year.service';
 import { LucideAngularModule, X } from 'lucide-angular';
 import { NgSelectModule } from '@ng-select/ng-select';
 import { firstValueFrom, Observable, of, Subject } from 'rxjs';
@@ -38,20 +42,21 @@ import {
 import { ToastrService } from 'ngx-toastr';
 
 @Component({
-  selector: 'app-investment-modal',
+  selector: 'app-investment-budget-modal',
   imports: [
     CommonModule,
     ReactiveFormsModule,
     LucideAngularModule,
     NgSelectModule,
   ],
-  templateUrl: './investment-modal.component.html',
-  styleUrl: './investment-modal.component.scss',
+  templateUrl: './investment-budget-modal.component.html',
+  styleUrl: './investment-budget-modal.component.scss',
 })
-export class InvestmentModalComponent implements OnInit {
+export class InvestmentBudgetModalComponent implements OnInit {
   private fb = inject(FormBuilder);
   private investmentService = inject(InvestmentService);
   private investmentCategoryService = inject(InvestmentCategoryService);
+  private budgetYearService = inject(InvestmentBudgetYearService);
   private toastr = inject(ToastrService);
 
   // Inputs
@@ -70,8 +75,10 @@ export class InvestmentModalComponent implements OnInit {
   isSubmitting = signal(false);
   isEditMode = signal(false);
   categories = signal<InvestmentCategory[]>([]);
+  budgetYears = signal<InvestmentBudgetYear[]>([]);
   categoryInput$ = new Subject<string>();
   isLoadingCategories = signal(false);
+  isLoadingBudgetYears = signal(false);
   currentSearchTerm = signal<string>('');
   isCreatingCategory = signal(false);
 
@@ -117,8 +124,9 @@ export class InvestmentModalComponent implements OnInit {
       amount: ['0', [Validators.required, this.currencyValidator]],
     });
 
-    // Load initial categories
+    // Load initial categories and budget years
     this.loadCategories();
+    this.loadBudgetYears();
 
     if (this.investment() && this.isVisible()) {
       this.isEditMode.set(true);
@@ -169,7 +177,7 @@ export class InvestmentModalComponent implements OnInit {
       this.categories.set([]);
       return;
     }
-
+    
     this.isLoadingCategories.set(true);
     this.investmentCategoryService.getByCompany(companyId).subscribe({
       next: (categories) => {
@@ -181,6 +189,26 @@ export class InvestmentModalComponent implements OnInit {
       error: () => {
         this.categories.set([]);
         this.isLoadingCategories.set(false);
+      },
+    });
+  }
+
+  loadBudgetYears(): void {
+    const companyId = this.companyId();
+    if (!companyId) {
+      this.budgetYears.set([]);
+      return;
+    }
+
+    this.isLoadingBudgetYears.set(true);
+    this.budgetYearService.getAll(companyId).subscribe({
+      next: (budgetYears) => {
+        this.budgetYears.set(Array.isArray(budgetYears) ? budgetYears : []);
+        this.isLoadingBudgetYears.set(false);
+      },
+      error: () => {
+        this.budgetYears.set([]);
+        this.isLoadingBudgetYears.set(false);
       },
     });
   }
@@ -382,10 +410,11 @@ export class InvestmentModalComponent implements OnInit {
           this.categories.set([...currentCategories, category]);
         }
 
-        // Establecer el valor del formulario como objeto con name
+        // Establecer el valor del formulario con el objeto completo de la categoría
+        // para que ng-select pueda mostrarlo correctamente
         this.investmentForm.patchValue(
           {
-            investment_budget_category_id: { name: category.name },
+            investment_budget_category_id: category,
             investment_budget_annual_id: investment.investment_budget_annual_id || null,
             amount: this.formatNumberWithCommas(amount),
           },
@@ -393,15 +422,32 @@ export class InvestmentModalComponent implements OnInit {
         );
       },
       error: () => {
-        // Si falla la búsqueda, establecer solo con el ID como fallback
-        this.investmentForm.patchValue(
-          {
-            investment_budget_category_id: investment.investment_budget_category_id.toString(),
-            investment_budget_annual_id: investment.investment_budget_annual_id || null,
-            amount: this.formatNumberWithCommas(amount),
-          },
-          { emitEvent: false }
+        // Si falla la búsqueda, intentar encontrar la categoría en la lista actual
+        const currentCategories = this.categories();
+        const foundCategory = currentCategories.find(
+          (cat) => cat.id === categoryId
         );
+        
+        if (foundCategory) {
+          this.investmentForm.patchValue(
+            {
+              investment_budget_category_id: foundCategory,
+              investment_budget_annual_id: investment.investment_budget_annual_id || null,
+              amount: this.formatNumberWithCommas(amount),
+            },
+            { emitEvent: false }
+          );
+        } else {
+          // Si no se encuentra, establecer solo el ID como último recurso
+          this.investmentForm.patchValue(
+            {
+              investment_budget_category_id: categoryId,
+              investment_budget_annual_id: investment.investment_budget_annual_id || null,
+              amount: this.formatNumberWithCommas(amount),
+            },
+            { emitEvent: false }
+          );
+        }
       },
     });
   }
@@ -501,11 +547,27 @@ export class InvestmentModalComponent implements OnInit {
   }
 
   compareCategories(category1: any, category2: any): boolean {
-    // Comparar por nombre para que funcione con {name: ...}
+    // Comparar por ID para que funcione correctamente con objetos de categoría
     if (!category1 || !category2) return false;
+    
+    // Si ambos son objetos con id, comparar por id
     if (typeof category1 === 'object' && typeof category2 === 'object') {
+      if (category1.id && category2.id) {
+        return category1.id === category2.id;
+      }
+      // Fallback: comparar por nombre si no tienen id
       return category1.name === category2.name;
     }
+    
+    // Si uno es número (ID) y el otro es objeto, comparar el ID del objeto con el número
+    if (typeof category1 === 'number' && typeof category2 === 'object' && category2.id) {
+      return category1 === category2.id;
+    }
+    if (typeof category2 === 'number' && typeof category1 === 'object' && category1.id) {
+      return category2 === category1.id;
+    }
+    
+    // Comparación directa
     return category1 === category2;
   }
 }

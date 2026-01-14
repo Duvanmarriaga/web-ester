@@ -30,7 +30,7 @@ interface MenuItem {
 export class SidebarComponent implements OnInit {
   private store = inject(Store);
   
-  isOpen = input<boolean>(true);
+  isOpen = input<boolean>(false);
   isMobileOpen = input<boolean>(false);
   openChange = output<boolean>();
   mobileOpenChange = output<boolean>();

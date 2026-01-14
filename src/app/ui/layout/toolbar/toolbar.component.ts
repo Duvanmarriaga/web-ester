@@ -22,10 +22,8 @@ import { Menu, LucideAngularModule } from 'lucide-angular';
 })
 export class ToolbarComponent {
   private store = inject(Store);
-  private router = inject(Router);
-  private authService = inject(AuthService);
 
-  isOpen = input<boolean>(true);
+  isOpen = input<boolean>(false);
   isMobileOpen = input<boolean>(false);
   openChange = output<boolean>();
   mobileOpenChange = output<boolean>();

@@ -80,7 +80,7 @@ export const routes: Routes = [
             children: [
               {
                 path: '',
-                redirectTo: 'budgets',
+                redirectTo: 'operations',
                 pathMatch: 'full',
               },
               {
@@ -93,8 +93,8 @@ export const routes: Routes = [
               {
                 path: 'operations',
                 loadComponent: () =>
-                  import('./ui/pages/companies/company-detail/budgets/budgets.component').then(
-                    (m) => m.BudgetsComponent
+                  import('./ui/pages/companies/company-detail/budgets/operation-budgets.component').then(
+                    (m) => m.OperationBudgetsComponent
                   ),
               },
               {
@@ -107,8 +107,8 @@ export const routes: Routes = [
               {
                 path: 'investments',
                 loadComponent: () =>
-                  import('./ui/pages/companies/company-detail/investments/investments.component').then(
-                    (m) => m.InvestmentsComponent
+                  import('./ui/pages/companies/company-detail/investment-budgets/investment-budgets.component').then(
+                    (m) => m.InvestmentBudgetsComponent
                   ),
               },
             ],

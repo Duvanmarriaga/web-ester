@@ -15,35 +15,35 @@ import {
   Validators,
 } from '@angular/forms';
 import {
-  BudgetYearService,
-  BudgetYearCreate,
-  BudgetYearUpdate,
-  BudgetYear,
-} from '../../../infrastructure/services/budget-year.service';
+  InvestmentBudgetYearService,
+  InvestmentBudgetYearCreate,
+  InvestmentBudgetYearUpdate,
+  InvestmentBudgetYear,
+} from '../../../infrastructure/services/investment-budget-year.service';
 import { LucideAngularModule, X } from 'lucide-angular';
 import { ToastrService } from 'ngx-toastr';
 import { firstValueFrom } from 'rxjs';
 
 @Component({
-  selector: 'app-budget-year-modal',
+  selector: 'app-investment-budget-year-modal',
   imports: [CommonModule, ReactiveFormsModule, LucideAngularModule],
-  templateUrl: './budget-year-modal.component.html',
-  styleUrl: './budget-year-modal.component.scss',
+  templateUrl: './investment-budget-year-modal.component.html',
+  styleUrl: './investment-budget-year-modal.component.scss',
 })
-export class BudgetYearModalComponent implements OnInit {
+export class InvestmentBudgetYearModalComponent implements OnInit {
   private fb = inject(FormBuilder);
-  private budgetYearService = inject(BudgetYearService);
+  private budgetYearService = inject(InvestmentBudgetYearService);
   private toastr = inject(ToastrService);
 
   // Inputs
   isVisible = input.required<boolean>();
   companyId = input.required<number>();
-  budgetYear = input<BudgetYear | null>(null);
+  budgetYear = input<InvestmentBudgetYear | null>(null);
 
   // Outputs
   close = output<void>();
-  save = output<BudgetYearCreate>();
-  update = output<{ id: number; data: BudgetYearUpdate }>();
+  save = output<InvestmentBudgetYearCreate>();
+  update = output<{ id: number; data: InvestmentBudgetYearUpdate }>();
 
   budgetYearForm!: FormGroup;
   readonly icons = { X };
@@ -121,11 +121,11 @@ export class BudgetYearModalComponent implements OnInit {
     }
   }
 
-  populateForm(budgetYear: BudgetYear): void {
+  populateForm(budgetYear: InvestmentBudgetYear): void {
     const amount =
       typeof budgetYear.amount === 'number'
         ? budgetYear.amount
-        : parseFloat(budgetYear.amount) || 0;
+        : parseFloat(budgetYear.amount as any) || 0;
 
     this.budgetYearForm.patchValue({
       year: budgetYear.year,
@@ -234,7 +234,7 @@ export class BudgetYearModalComponent implements OnInit {
     const amount = parseFloat(amountValue) || 0;
 
     if (this.isEditMode() && this.budgetYear()?.id) {
-      const updateData: BudgetYearUpdate = {
+      const updateData: InvestmentBudgetYearUpdate = {
         amount,
       };
       this.update.emit({ id: this.budgetYear()!.id!, data: updateData });
@@ -256,7 +256,7 @@ export class BudgetYearModalComponent implements OnInit {
         }
 
         // Year doesn't exist, proceed with creation
-        const createData: BudgetYearCreate = {
+        const createData: InvestmentBudgetYearCreate = {
           company_id: this.companyId(),
           year,
           amount,
@@ -281,8 +281,3 @@ export class BudgetYearModalComponent implements OnInit {
     this.close.emit();
   }
 }
-
-
-
-
-

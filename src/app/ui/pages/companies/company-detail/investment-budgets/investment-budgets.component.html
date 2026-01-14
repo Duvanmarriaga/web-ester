@@ -1,7 +1,7 @@
 <div class="tab-panel">
   <div class="tab-panel-header">
     <div>
-      <h4 class="tab-panel-title">Presupuestos de operaciones</h4>
+      <h4 class="tab-panel-title">Presupuestos de Inversiones</h4>
     </div>
     <div class="tab-panel-actions">
       <button
@@ -21,15 +21,15 @@
       <span class="visually-hidden">Cargando...</span>
     </div>
   </div>
-  } @else if (budgetYearsWithBudgets().length === 0 &&
-  budgetsWithoutYear().length === 0) {
+  } @else if (budgetYearsWithInvestments().length === 0 &&
+  investmentsWithoutYear().length === 0) {
   <div class="empty-state">
     <lucide-icon
-      [img]="icons.DollarSign"
+      [img]="icons.TrendingUp"
       [size]="48"
       class="empty-icon"
     ></lucide-icon>
-    <p>No hay presupuestos financieros disponibles</p>
+    <p>No hay presupuestos de inversiones disponibles</p>
   </div>
   } @else {
   <div class="card border-0 shadow-sm">
@@ -45,7 +45,7 @@
             </tr>
           </thead>
           <tbody>
-            @for (budgetYear of budgetYearsWithBudgets(); track budgetYear.id) {
+            @for (budgetYear of budgetYearsWithInvestments(); track budgetYear.id) {
             <tr class="budget-year-row">
               <td class="table-cell">
                 <button
@@ -69,36 +69,20 @@
               </td>
               <td class="table-cell fw-medium">{{ budgetYear.year }}</td>
               <td class="table-cell fw-medium">
-                ${{ budgetYear.allocated_budget | number : "1.2-2" }}
+                ${{ budgetYear.amount | number : "1.2-2" }}
               </td>
               <td class="text-end">
                 <div class="d-flex gap-2 justify-content-end">
                   <button
                     class="btn btn-sm btn-link text-primary p-1"
-                    title="Descargar plantilla XLS"
+                    title="Descargar plantilla CSV"
                     (click)="downloadTemplate(budgetYear.id)"
                   >
                     <lucide-icon [img]="icons.Download" [size]="14"></lucide-icon>
                   </button>
                   <button
                     class="btn btn-sm btn-link text-primary p-1"
-                    title="Importar desde XLS"
-                    (click)="triggerFileInput(budgetYear.id)"
-                    [disabled]="isImporting() && importingYearId() === budgetYear.id"
-                  >
-                    @if (isImporting() && importingYearId() === budgetYear.id) {
-                    <span
-                      class="spinner-border spinner-border-sm"
-                      role="status"
-                      style="width: 14px; height: 14px;"
-                    ></span>
-                    } @else {
-                    <lucide-icon [img]="icons.Upload" [size]="14"></lucide-icon>
-                    }
-                  </button>
-                  <button
-                    class="btn btn-sm btn-link text-primary p-1"
-                    title="Agregar Presupuesto Mensual"
+                    title="Agregar Presupuesto de Inversión"
                     (click)="openCreateModal(budgetYear.id)"
                   >
                     <lucide-icon [img]="icons.Plus" [size]="14"></lucide-icon>
@@ -125,48 +109,26 @@
             <tr class="budget-month-row">
               <td colspan="4" class="p-0">
                 <div class="budget-months-container">
-                  @if (budgetYear.budgets.length === 0) {
+                  @if (budgetYear.investments.length === 0) {
                   <div class="text-center py-4 text-muted">
                     <p class="mb-0">
-                      No hay presupuestos mensuales para este año
+                      No hay presupuestos de inversión para este año
                     </p>
                   </div>
                   } @else {
                   <div class="budget-months-list">
-                    @for (budget of budgetYear.budgets; track budget.id) {
+                    @for (investment of budgetYear.investments; track investment.id) {
                     <div class="budget-month-item">
                       <div class="budget-month-date-col">
                         <span class="budget-month-date fw-medium">
-                          {{ budget.budget_date | date : "MM/yyyy" }}
+                          {{ getCategoryName(investment.investment_budget_category_id) }}
                         </span>
                       </div>
                       <div class="budget-month-data-col">
                         <div class="budget-month-data-item">
-                          <span class="budget-data-label">Presupuesto</span>
+                          <span class="budget-data-label">Monto</span>
                           <span class="budget-data-value fw-medium">
-                            ${{ budget.budget_amount | number : "1.2-2" }}
-                          </span>
-                        </div>
-                        <div class="budget-month-data-item">
-                          <span class="budget-data-label">Ejecutado</span>
-                          <span class="budget-data-value">
-                            ${{ budget.executed_amount | number : "1.2-2" }}
-                          </span>
-                        </div>
-                        <div class="budget-month-data-item">
-                          <span class="budget-data-label">Diferencia</span>
-                          <span
-                            class="budget-data-value fw-medium"
-                            [class.text-success]="budget.difference_amount > 0"
-                            [class.text-danger]="budget.difference_amount < 0"
-                          >
-                            ${{ budget.difference_amount | number : "1.2-2" }}
-                          </span>
-                        </div>
-                        <div class="budget-month-data-item">
-                          <span class="budget-data-label">Porcentaje</span>
-                          <span class="budget-data-value">
-                            {{ budget.percentage | number : "1.2-2" }}%
+                            ${{ investment.amount | number : "1.2-2" }}
                           </span>
                         </div>
                       </div>
@@ -175,7 +137,7 @@
                           <button
                             class="btn btn-sm btn-link text-primary p-1"
                             title="Editar"
-                            (click)="editBudget(budget)"
+                            (click)="editInvestment(investment)"
                           >
                             <lucide-icon
                               [img]="icons.Pencil"
@@ -185,7 +147,7 @@
                           <button
                             class="btn btn-sm btn-link text-danger p-1"
                             title="Eliminar"
-                            (click)="deleteBudget(budget)"
+                            (click)="deleteInvestment(investment)"
                           >
                             <lucide-icon
                               [img]="icons.Trash2"
@@ -201,46 +163,24 @@
                 </div>
               </td>
             </tr>
-            } } @if (budgetsWithoutYear().length > 0) {
+            } } @if (investmentsWithoutYear().length > 0) {
             <tr>
               <td colspan="4" class="table-cell fw-bold bg-light">
                 Presupuestos sin año asignado
               </td>
             </tr>
-            @for (budget of budgetsWithoutYear(); track budget.id) {
+            @for (investment of investmentsWithoutYear(); track investment.id) {
             <tr>
               <td class="table-cell"></td>
               <td class="table-cell" colspan="2">
                 <div class="d-flex flex-column">
-                  <span class="fw-medium">{{
-                    budget.budget_date | date : "MM/yyyy"
-                  }}</span>
+                  <span class="fw-medium">Presupuesto de Inversión</span>
                   <div class="d-flex gap-3 mt-1">
                     <small>
-                      <span class="text-muted">Presupuesto:</span>
+                      <span class="text-muted">Monto:</span>
                       <span class="fw-medium"
-                        >${{ budget.budget_amount | number : "1.2-2" }}</span
+                        >${{ investment.amount | number : "1.2-2" }}</span
                       >
-                    </small>
-                    <small>
-                      <span class="text-muted">Ejecutado:</span>
-                      <span
-                        >${{ budget.executed_amount | number : "1.2-2" }}</span
-                      >
-                    </small>
-                    <small>
-                      <span class="text-muted">Diferencia:</span>
-                      <span
-                        [class.text-success]="budget.difference_amount > 0"
-                        [class.text-danger]="budget.difference_amount < 0"
-                        class="fw-medium"
-                      >
-                        ${{ budget.difference_amount | number : "1.2-2" }}
-                      </span>
-                    </small>
-                    <small>
-                      <span class="text-muted">Porcentaje:</span>
-                      <span>{{ budget.percentage | number : "1.2-2" }}%</span>
                     </small>
                   </div>
                 </div>
@@ -250,14 +190,14 @@
                   <button
                     class="btn btn-sm btn-link text-primary p-1"
                     title="Editar"
-                    (click)="editBudget(budget)"
+                    (click)="editInvestment(investment)"
                   >
                     <lucide-icon [img]="icons.Pencil" [size]="14"></lucide-icon>
                   </button>
                   <button
                     class="btn btn-sm btn-link text-danger p-1"
                     title="Eliminar"
-                    (click)="deleteBudget(budget)"
+                    (click)="deleteInvestment(investment)"
                   >
                     <lucide-icon [img]="icons.Trash2" [size]="14"></lucide-icon>
                   </button>
@@ -274,32 +214,32 @@
 </div>
 
 @if (companyId() && userId()) {
-<app-budget-modal
+<app-investment-budget-modal
   [isVisible]="showModal()"
   [companyId]="companyId()!"
   [userId]="userId()!"
-  [budget]="selectedBudget()"
+  [investment]="selectedInvestment()"
   (close)="closeModal()"
-  (save)="onSaveBudget($event)"
-  (update)="onUpdateBudget($event)"
-></app-budget-modal>
+  (save)="onSaveInvestment($event)"
+  (update)="onUpdateInvestment($event)"
+></app-investment-budget-modal>
 } @if (companyId()) {
-<app-budget-year-modal
+<app-investment-budget-year-modal
   [isVisible]="showBudgetYearModal()"
   [companyId]="companyId()!"
   [budgetYear]="selectedBudgetYear()"
   (close)="closeBudgetYearModal()"
   (save)="onSaveBudgetYear($event)"
   (update)="onUpdateBudgetYear($event)"
-></app-budget-year-modal>
+></app-investment-budget-year-modal>
 }
 
 <app-confirm-dialog
   [isVisible]="showConfirmDialog()"
   [title]="
     isDeletingBudgetYear()
-      ? 'Eliminar Presupuesto Anual'
-      : 'Eliminar Presupuesto'
+      ? 'Eliminar Presupuesto Anual de Inversión'
+      : 'Eliminar Presupuesto de Inversión'
   "
   [message]="getDeleteMessage()"
   confirmText="Eliminar"
@@ -308,15 +248,3 @@
   (confirmed)="onConfirmDelete()"
   (cancelled)="onCancelDelete()"
 ></app-confirm-dialog>
-
-@if (companyId() && userId() && currentImportYearId()) {
-<app-budget-import-modal
-  [isVisible]="showImportModal()"
-  [companyId]="companyId()!"
-  [userId]="userId()!"
-  [budgetYearId]="currentImportYearId()!"
-  [importedData]="importedBudgets()"
-  (close)="onCloseImportModal()"
-  (save)="onSaveImportedBudgets($event)"
-></app-budget-import-modal>
-}

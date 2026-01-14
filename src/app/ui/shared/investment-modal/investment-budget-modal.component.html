@@ -6,8 +6,8 @@
         <h5 class="modal-title">
           {{
             isEditMode()
-              ? "Editar Reporte de Inversión"
-              : "Nuevo Reporte de Inversión"
+              ? "Editar Presupuesto de Inversión"
+              : "Nuevo Presupuesto de Inversión"
           }}
         </h5>
         <button
@@ -47,6 +47,22 @@
               investmentForm.get('investment_budget_category_id')?.touched) {
               <small class="form-error">Categoría requerida</small>
               }
+            </div>
+            <div class="col-12">
+              <label for="investment_budget_annual_id" class="form-label">Año</label>
+              <select
+                class="form-select"
+                id="investment_budget_annual_id"
+                formControlName="investment_budget_annual_id"
+              >
+                <option value="">Seleccione un año</option>
+                @for (year of budgetYears(); track year.id) {
+                  <option [value]="year.id">{{ year.year }}</option>
+                }
+              </select>
+              <small class="form-text text-muted">
+                Seleccione el presupuesto anual al que pertenece esta inversión
+              </small>
             </div>
             <div class="col-12">
               <label for="amount" class="form-label">Monto</label>

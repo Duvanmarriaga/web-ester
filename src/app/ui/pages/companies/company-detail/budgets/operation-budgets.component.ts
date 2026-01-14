@@ -24,9 +24,9 @@ import {
   BudgetYearCreate,
   BudgetYearUpdate,
 } from '../../../../../infrastructure/services/budget-year.service';
-import { BudgetModalComponent } from '../../../../shared/budget-modal/budget-modal.component';
-import { BudgetYearModalComponent } from '../../../../shared/budget-year-modal/budget-year-modal.component';
-import { BudgetImportModalComponent, ImportedBudget } from '../../../../shared/budget-import-modal/budget-import-modal.component';
+import { OperationBudgetModalComponent } from '../../../../shared/budget-modal/operation-budget-modal.component';
+import { OperationBudgetYearModalComponent } from '../../../../shared/budget-year-modal/operation-budget-year-modal.component';
+import { OperationBudgetImportModalComponent, ImportedBudget } from '../../../../shared/budget-import-modal/operation-budget-import-modal.component';
 import { selectUser } from '../../../../../infrastructure/store/auth/auth.selectors';
 import { ToastrService } from 'ngx-toastr';
 import { PaginationComponent } from '../../../../shared/pagination/pagination.component';
@@ -40,13 +40,13 @@ interface BudgetYearWithBudgets extends BudgetYear {
 }
 
 @Component({
-  selector: 'app-budgets',
+  selector: 'app-operation-budgets',
   standalone: true,
-  imports: [CommonModule, LucideAngularModule, BudgetModalComponent, BudgetYearModalComponent, ConfirmDialogComponent, BudgetImportModalComponent],
-  templateUrl: './budgets.component.html',
-  styleUrl: './budgets.component.scss',
+  imports: [CommonModule, LucideAngularModule, OperationBudgetModalComponent, OperationBudgetYearModalComponent, ConfirmDialogComponent, OperationBudgetImportModalComponent],
+  templateUrl: './operation-budgets.component.html',
+  styleUrl: './operation-budgets.component.scss',
 })
-export class BudgetsComponent implements OnInit {
+export class OperationBudgetsComponent implements OnInit {
   private route = inject(ActivatedRoute);
   private store = inject(Store);
   private budgetService = inject(BudgetService);

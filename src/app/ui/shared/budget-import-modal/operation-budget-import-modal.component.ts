@@ -31,13 +31,13 @@ export interface ImportedBudget {
 }
 
 @Component({
-  selector: 'app-budget-import-modal',
+  selector: 'app-operation-budget-import-modal',
   standalone: true,
   imports: [CommonModule, ReactiveFormsModule, LucideAngularModule, NgSelectModule],
-  templateUrl: './budget-import-modal.component.html',
-  styleUrl: './budget-import-modal.component.scss',
+  templateUrl: './operation-budget-import-modal.component.html',
+  styleUrl: './operation-budget-import-modal.component.scss',
 })
-export class BudgetImportModalComponent implements OnInit {
+export class OperationBudgetImportModalComponent implements OnInit {
   private fb = inject(FormBuilder);
   private toastr = inject(ToastrService);
   private cdr = inject(ChangeDetectorRef);

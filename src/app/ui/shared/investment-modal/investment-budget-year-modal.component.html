@@ -1,0 +1,76 @@
+@if (isVisible()) {
+<div class="modal-overlay" (click)="onClose()">
+  <div class="modal-content" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h5 class="modal-title">
+        {{ isEditMode() ? 'Editar Presupuesto Anual de Inversión' : 'Crear Presupuesto Anual de Inversión' }}
+      </h5>
+      <button type="button" class="btn-close" (click)="onClose()" aria-label="Cerrar">
+        <lucide-icon [img]="icons.X" [size]="20"></lucide-icon>
+      </button>
+    </div>
+
+    <form [formGroup]="budgetYearForm" (ngSubmit)="onSubmit()">
+      <div class="modal-body">
+        <div class="mb-3">
+          <label for="year" class="form-label">
+            Año <span class="text-danger">*</span>
+          </label>
+          <input
+            type="number"
+            class="form-control"
+            id="year"
+            formControlName="year"
+            [class.is-invalid]="(budgetYearForm.get('year')?.invalid && budgetYearForm.get('year')?.touched) || yearExistsError()"
+            min="2000"
+            max="2100"
+          />
+          @if (yearExistsError()) {
+          <small class="form-error">{{ yearExistsError() }}</small>
+          } @else if (budgetYearForm.get('year')?.invalid && budgetYearForm.get('year')?.touched) {
+          <small class="form-error">El año es requerido y debe estar entre 2000 y 2100</small>
+          }
+        </div>
+
+        <div class="mb-3">
+          <label for="amount" class="form-label">
+            Monto <span class="text-danger">*</span>
+          </label>
+          <div class="input-group">
+            <span class="input-group-text">$</span>
+            <input
+              type="text"
+              class="form-control"
+              id="amount"
+              formControlName="amount"
+              placeholder="000"
+              (input)="formatCurrency($event, 'amount')"
+              (blur)="formatCurrencyOnBlur('amount')"
+              [class.is-invalid]="budgetYearForm.get('amount')?.invalid && budgetYearForm.get('amount')?.touched"
+            />
+          </div>
+          @if (budgetYearForm.get('amount')?.invalid && budgetYearForm.get('amount')?.touched) {
+          <small class="form-error">El monto es requerido y debe ser un número válido</small>
+          }
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" (click)="onClose()">
+          Cancelar
+        </button>
+        <button
+          type="submit"
+          class="btn btn-primary"
+          [disabled]="budgetYearForm.invalid || isSubmitting() || yearExistsError()"
+        >
+          @if (isSubmitting()) {
+          <span class="spinner-border spinner-border-sm me-2" role="status"></span>
+          }
+          {{ isEditMode() ? 'Actualizar' : 'Crear' }}
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+}

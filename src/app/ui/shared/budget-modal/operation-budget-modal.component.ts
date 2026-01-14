@@ -44,17 +44,17 @@ import {
 import { ToastrService } from 'ngx-toastr';
 
 @Component({
-  selector: 'app-budget-modal',
+  selector: 'app-operation-budget-modal',
   imports: [
     CommonModule,
     ReactiveFormsModule,
     LucideAngularModule,
     NgSelectModule,
   ],
-  templateUrl: './budget-modal.component.html',
-  styleUrl: './budget-modal.component.scss',
+  templateUrl: './operation-budget-modal.component.html',
+  styleUrl: './operation-budget-modal.component.scss',
 })
-export class BudgetModalComponent implements OnInit {
+export class OperationBudgetModalComponent implements OnInit {
   private fb = inject(FormBuilder);
   private budgetService = inject(BudgetService);
   private budgetCategoryService = inject(BudgetCategoryService);
@@ -577,10 +577,11 @@ export class BudgetModalComponent implements OnInit {
           this.categories.set([...currentCategories, category]);
         }
 
-        // Establecer el valor del formulario como objeto con name (formato solicitado)
+        // Establecer el valor del formulario con el objeto completo de la categoría
+        // para que ng-select pueda mostrarlo correctamente
         this.budgetForm.patchValue(
           {
-            operation_budget_category_id: { name: category.name },
+            operation_budget_category_id: category,
             operation_budget_annual_id: budget.operation_budget_annual_id || null,
             budget_month: budgetMonth,
             budget_amount: this.formatNumberWithCommas(budgetAmount),
@@ -598,25 +599,52 @@ export class BudgetModalComponent implements OnInit {
         );
       },
       error: () => {
-        // Si falla la búsqueda, establecer solo con el ID como fallback
-    this.budgetForm.patchValue(
-      {
-        operation_budget_category_id: budget.operation_budget_category_id.toString(),
-            operation_budget_annual_id: budget.operation_budget_annual_id || null,
-        budget_month: budgetMonth,
-        budget_amount: this.formatNumberWithCommas(budgetAmount),
-        executed_amount: this.formatNumberWithCommas(executedAmount),
-        difference_amount:
-          typeof budget.difference_amount === 'number'
-            ? budget.difference_amount
-            : parseFloat(budget.difference_amount) || 0,
-        percentage:
-          typeof budget.percentage === 'number'
-            ? budget.percentage
-            : parseFloat(budget.percentage) || 0,
-      },
-      { emitEvent: false }
-    );
+        // Si falla la búsqueda, intentar encontrar la categoría en la lista actual
+        const currentCategories = this.categories();
+        const foundCategory = currentCategories.find(
+          (cat) => cat.id === categoryId
+        );
+        
+        if (foundCategory) {
+          this.budgetForm.patchValue(
+            {
+              operation_budget_category_id: foundCategory,
+              operation_budget_annual_id: budget.operation_budget_annual_id || null,
+              budget_month: budgetMonth,
+              budget_amount: this.formatNumberWithCommas(budgetAmount),
+              executed_amount: this.formatNumberWithCommas(executedAmount),
+              difference_amount:
+                typeof budget.difference_amount === 'number'
+                  ? budget.difference_amount
+                  : parseFloat(budget.difference_amount) || 0,
+              percentage:
+                typeof budget.percentage === 'number'
+                  ? budget.percentage
+                  : parseFloat(budget.percentage) || 0,
+            },
+            { emitEvent: false }
+          );
+        } else {
+          // Si no se encuentra, establecer solo el ID como último recurso
+          this.budgetForm.patchValue(
+            {
+              operation_budget_category_id: categoryId,
+              operation_budget_annual_id: budget.operation_budget_annual_id || null,
+              budget_month: budgetMonth,
+              budget_amount: this.formatNumberWithCommas(budgetAmount),
+              executed_amount: this.formatNumberWithCommas(executedAmount),
+              difference_amount:
+                typeof budget.difference_amount === 'number'
+                  ? budget.difference_amount
+                  : parseFloat(budget.difference_amount) || 0,
+              percentage:
+                typeof budget.percentage === 'number'
+                  ? budget.percentage
+                  : parseFloat(budget.percentage) || 0,
+            },
+            { emitEvent: false }
+          );
+        }
       },
     });
   }
@@ -732,11 +760,27 @@ export class BudgetModalComponent implements OnInit {
   }
 
   compareCategories(category1: any, category2: any): boolean {
-    // Comparar por nombre para que funcione con {name: ...}
+    // Comparar por ID para que funcione correctamente con objetos de categoría
     if (!category1 || !category2) return false;
+    
+    // Si ambos son objetos con id, comparar por id
     if (typeof category1 === 'object' && typeof category2 === 'object') {
+      if (category1.id && category2.id) {
+        return category1.id === category2.id;
+      }
+      // Fallback: comparar por nombre si no tienen id
       return category1.name === category2.name;
     }
+    
+    // Si uno es número (ID) y el otro es objeto, comparar el ID del objeto con el número
+    if (typeof category1 === 'number' && typeof category2 === 'object' && category2.id) {
+      return category1 === category2.id;
+    }
+    if (typeof category2 === 'number' && typeof category1 === 'object' && category1.id) {
+      return category2 === category1.id;
+    }
+    
+    // Comparación directa
     return category1 === category2;
   }
 }

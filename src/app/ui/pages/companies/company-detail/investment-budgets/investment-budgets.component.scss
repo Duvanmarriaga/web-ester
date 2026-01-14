@@ -1,5 +1,121 @@
 @use "sass:map";
 @use "../../../../../../styles/variables" as *;
+@use "../../../../../../styles/mixins" as *;
+
+.budget-year-row {
+  background-color: $ester-bg-primary;
+
+  &:hover {
+    background-color: $ester-bg-secondary;
+  }
+}
+
+.budget-month-row {
+  background-color: $ester-bg-secondary;
+
+  td {
+    border-top: none;
+  }
+}
+
+.budget-months-container {
+  padding: map.get($spacing-scale, 2);
+  background-color: $ester-bg-secondary;
+}
+
+.budget-months-list {
+  display: flex;
+  flex-direction: column;
+  gap: map.get($spacing-scale, 1);
+}
+
+.budget-month-item {
+  display: grid;
+  grid-template-columns: 120px 1fr auto;
+  align-items: center;
+  gap: map.get($spacing-scale, 3);
+  background-color: white;
+  border: 1px solid $ester-border-primary;
+  border-radius: $border-radius-sm;
+  padding: map.get($spacing-scale, 2) map.get($spacing-scale, 3);
+  transition: all $transition-fast;
+
+  &:hover {
+    background-color: $ester-bg-tertiary;
+    border-color: $ester-primary;
+  }
+}
+
+.budget-month-date-col {
+  display: flex;
+  align-items: center;
+}
+
+.budget-month-date {
+  font-size: map.get($font-sizes, sm);
+  color: $ester-text-primary;
+  font-weight: map.get($font-weights, medium);
+}
+
+.budget-month-data-col {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: map.get($spacing-scale, 3);
+  align-items: center;
+
+  @media (max-width: 992px) {
+    grid-template-columns: repeat(2, 1fr);
+    gap: map.get($spacing-scale, 2);
+  }
+
+  @media (max-width: 576px) {
+    grid-template-columns: 1fr;
+    gap: map.get($spacing-scale, 1);
+  }
+}
+
+.budget-month-data-item {
+  display: flex;
+  flex-direction: column;
+  gap: map.get($spacing-scale, 1);
+}
+
+.budget-data-label {
+  font-size: map.get($font-sizes, xs);
+  color: $ester-text-secondary;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+  font-weight: map.get($font-weights, medium);
+}
+
+.budget-data-value {
+  font-size: map.get($font-sizes, sm);
+  color: $ester-text-primary;
+
+  &.fw-medium {
+    font-weight: map.get($font-weights, medium);
+  }
+
+  &.text-success {
+    color: $ester-success;
+  }
+
+  &.text-danger {
+    color: $ester-danger;
+  }
+}
+
+.budget-month-actions-col {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+}
+
+.budget-month-actions {
+  display: flex;
+  gap: map.get($spacing-scale, 1);
+  align-items: center;
+}
 
 .tab-panel {
   animation: fadeIn 0.3s ease;
@@ -124,6 +240,14 @@
     font-weight: map.get($font-weights, medium);
     color: $ester-text-primary;
   }
+
+  &.text-success {
+    color: $ester-success;
+  }
+
+  &.text-danger {
+    color: $ester-danger;
+  }
 }
 
 .card {
@@ -145,11 +269,11 @@
     background-color: $ester-primary;
     color: $ester-text-inverse;
     border-bottom: 2px solid $ester-primary-dark;
-    
+
     &:first-child {
       border-top-left-radius: 4px;
     }
-    
+
     &:last-child {
       border-top-right-radius: 4px;
     }
@@ -175,4 +299,3 @@
     }
   }
 }
-
