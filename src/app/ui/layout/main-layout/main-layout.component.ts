@@ -10,7 +10,7 @@ import { ToolbarComponent } from '../toolbar/toolbar.component';
   styleUrl: './main-layout.component.scss'
 })
 export class MainLayoutComponent {
-  isSidebarOpen = signal(true);
+  isSidebarOpen = signal(false);
   isMobileSidebarOpen = signal(false);
 
   onSidebarOpenChange(open: boolean) {

@@ -69,7 +69,7 @@ export class InvestmentCategoryService {
 
   getByCompany(companyId: number): Observable<InvestmentCategory[]> {
     return this.http.get<InvestmentCategory[]>(
-      `${this.apiUrl}/companies/${companyId}/investment-budget-categories`
+      `${this.apiUrl}/investment-budget-categories`
     ).pipe(
       map((response) => {
         if (Array.isArray(response)) {

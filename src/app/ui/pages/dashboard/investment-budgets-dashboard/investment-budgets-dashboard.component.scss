@@ -51,7 +51,7 @@
 .stat-card {
   background: white;
   border: 1px solid var(--ester-border-light);
-  border-radius: 0.75rem;
+  border-radius: 4px;
   padding: 1.25rem;
   display: flex;
   align-items: center;
@@ -88,6 +88,11 @@
     background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
     lucide-icon { color: var(--ester-warning); }
   }
+
+  &.bg-danger-light {
+    background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%);
+    lucide-icon { color: var(--ester-danger); }
+  }
   
   lucide-icon {
     display: flex;
@@ -96,6 +101,10 @@
 
 .stat-content {
   flex: 1;
+}
+
+.stat-card-sm {
+  padding: 1rem;
 }
 
 .stat-value {
@@ -160,3 +169,223 @@
   opacity: 0.5;
 }
 
+.budget-status-card {
+  background: white;
+  border: 1px solid var(--ester-border-light);
+  border-radius: 4px;
+  padding: 1.5rem;
+  transition: all 0.2s ease;
+  
+  &:hover {
+    border-color: var(--ester-secondary);
+    box-shadow: 0 4px 12px rgba(33, 25, 21, 0.1);
+  }
+}
+
+.budget-status-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid var(--ester-border-light);
+}
+
+.budget-status-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--ester-text-primary);
+  margin: 0;
+}
+
+.budget-status-indicator {
+  display: flex;
+  align-items: center;
+}
+
+.status-badge {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  border-radius: 0.5rem;
+  font-size: 14px;
+  font-weight: 500;
+  
+  .status-dot {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    box-shadow: 0 0 8px currentColor;
+  }
+  
+  &.status-green {
+    background: #d1fae5;
+    color: #10b981;
+    
+    .status-dot {
+      background: #10b981;
+    }
+  }
+  
+  &.status-orange {
+    background: #fef3c7;
+    color: #f59e0b;
+    
+    .status-dot {
+      background: #f59e0b;
+    }
+  }
+  
+  &.status-red {
+    background: #fee2e2;
+    color: #ef4444;
+    
+    .status-dot {
+      background: #ef4444;
+    }
+  }
+}
+
+.budget-status-content {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1rem;
+}
+
+.budget-status-item {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.budget-status-label {
+  font-size: 12px;
+  color: var(--ester-text-secondary);
+  font-weight: 500;
+}
+
+.budget-status-value {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--ester-text-primary);
+  
+  &.text-success {
+    color: var(--ester-success);
+  }
+  
+  &.text-warning {
+    color: var(--ester-warning);
+  }
+  
+  &.text-danger {
+    color: var(--ester-danger);
+  }
+}
+
+.budget-status-cards {
+  margin-top: 0.5rem;
+}
+
+.top-investments-section {
+  .top-investments-header {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    margin-bottom: 0.75rem;
+  }
+
+  .top-investments-title {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--ester-text-primary);
+    margin: 0;
+  }
+
+  .top-investments-subtitle {
+    font-size: 12px;
+    color: var(--ester-text-secondary);
+  }
+}
+
+.top-investments-card {
+  background: white;
+  border: 1px solid var(--ester-border-light);
+  border-radius: 6px;
+  padding: 0.75rem;
+}
+
+.top-investments-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 0.75rem;
+}
+
+.top-investment-item {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem;
+  border-radius: 0.5rem;
+  border: 1px solid var(--ester-border-light);
+  background: #ffffff;
+  transition: all 0.2s ease;
+
+  &.tone-high {
+    border-color: rgba(16, 185, 129, 0.4);
+    background: linear-gradient(135deg, #ecfdf5 0%, #ffffff 100%);
+  }
+
+  &.tone-medium {
+    border-color: rgba(245, 158, 11, 0.4);
+    background: linear-gradient(135deg, #fffbeb 0%, #ffffff 100%);
+  }
+
+  &.tone-low {
+    border-color: rgba(148, 163, 184, 0.4);
+    background: linear-gradient(135deg, #f8fafc 0%, #ffffff 100%);
+  }
+}
+
+.top-investment-rank {
+  width: 36px;
+  height: 36px;
+  border-radius: 999px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--ester-text-secondary);
+  background: #f1f5f9;
+}
+
+.top-investment-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  flex: 1;
+}
+
+.top-investment-name {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--ester-text-primary);
+}
+
+.top-investment-amount {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--ester-text-primary);
+}
+
+.top-investment-icon {
+  width: 32px;
+  height: 32px;
+  border-radius: 0.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #f1f5f9;
+  color: var(--ester-text-secondary);
+}

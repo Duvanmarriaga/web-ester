@@ -17,15 +17,6 @@
       <div class="tabs-header">
         <button
           type="button"
-          (click)="setActiveTab('financial')"
-          [class.active]="activeTab() === 'financial'"
-          class="tab-button"
-        >
-          <lucide-icon [img]="icons.FileText" [size]="14"></lucide-icon>
-          <span>Reportes Financieros</span>
-        </button>
-        <button
-          type="button"
           (click)="setActiveTab('operation-budgets')"
           [class.active]="activeTab() === 'operation-budgets'"
           class="tab-button"
@@ -41,6 +32,15 @@
         >
           <lucide-icon [img]="icons.TrendingDown" [size]="14"></lucide-icon>
           <span>Presupuestos de Inversiones</span>
+        </button>
+        <button
+          type="button"
+          (click)="setActiveTab('financial')"
+          [class.active]="activeTab() === 'financial'"
+          class="tab-button"
+        >
+          <lucide-icon [img]="icons.FileText" [size]="14"></lucide-icon>
+          <span>Reportes Financieros</span>
         </button>
         <button
           type="button"

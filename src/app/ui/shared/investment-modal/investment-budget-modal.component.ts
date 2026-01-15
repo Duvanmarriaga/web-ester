@@ -104,9 +104,13 @@ export class InvestmentBudgetModalComponent implements OnInit {
         this.isEditMode.set(false);
         setTimeout(() => {
           if (this.investmentForm) {
+            // Get investment_budget_annual_id from the investment input (even if it's a temp one)
+            const tempInvestment = this.investment();
+            const annualId = tempInvestment?.investment_budget_annual_id || null;
+            
             this.investmentForm.reset({
               investment_budget_category_id: '',
-              investment_budget_annual_id: null,
+              investment_budget_annual_id: annualId,
               amount: '0',
             });
           }
@@ -514,9 +518,13 @@ export class InvestmentBudgetModalComponent implements OnInit {
     const amountValue =
       formValue.amount?.toString().replace(/[^0-9.]/g, '') || '0';
 
+    // Always get investment_budget_annual_id from the investment input (context)
+    const currentInvestment = this.investment();
+    const annualId = currentInvestment?.investment_budget_annual_id || formValue.investment_budget_annual_id || null;
+
     const investmentData: InvestmentCreate = {
       investment_budget_category_id: categoryId,
-      investment_budget_annual_id: formValue.investment_budget_annual_id || null,
+      investment_budget_annual_id: annualId,
       company_id: this.companyId(),
       amount: parseFloat(amountValue) || 0,
     };

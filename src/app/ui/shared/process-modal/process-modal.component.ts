@@ -90,7 +90,6 @@ export class ProcessModalComponent implements OnInit {
   // Computed signal para filtrar solo los status permitidos
   filteredStatuses = computed(() => {
     const allStatuses = this.statuses();
-    console.log(allStatuses);
     return allStatuses;
   });
 

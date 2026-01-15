@@ -44,7 +44,7 @@
 .stat-card {
   background: white;
   border: 1px solid var(--ester-border-light);
-  border-radius: 0.75rem;
+  border-radius: 4px;
   padding: 1.25rem;
   display: flex;
   align-items: center;
@@ -169,7 +169,7 @@
 .indicator-card {
   background: white;
   border: 1px solid var(--ester-border-light);
-  border-radius: 0.75rem;
+  border-radius: 4px;
   padding: 1.25rem;
   display: flex;
   flex-direction: column;

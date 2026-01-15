@@ -11,7 +11,7 @@
     <form [formGroup]="filterForm" class="filters-form">
       <div class="row g-3">
         @if (isAdmin()) {
-        <div class="col-md-4">
+        <div class="col-md-3">
           <label for="filter_company_id" class="form-label">
             <lucide-icon [img]="icons.Filter" [size]="14" class="me-1"></lucide-icon>
             Compañía <span class="text-danger">*</span>
@@ -34,29 +34,20 @@
           }
         </div>
         }
-        <div [class]="isAdmin() ? 'col-md-4' : 'col-md-6'">
-          <label for="filter_date_from" class="form-label">
+        <div [class]="isAdmin() ? 'col-md-3' : 'col-md-4'">
+          <label for="filter_year" class="form-label">
             <lucide-icon [img]="icons.Calendar" [size]="14" class="me-1"></lucide-icon>
-            Fecha Desde
+            Año <span class="text-danger">*</span>
           </label>
-          <input
-            type="date"
-            class="form-control"
-            id="filter_date_from"
-            formControlName="date_from"
-          />
-        </div>
-        <div [class]="isAdmin() ? 'col-md-4' : 'col-md-6'">
-          <label for="filter_date_to" class="form-label">
-            <lucide-icon [img]="icons.Calendar" [size]="14" class="me-1"></lucide-icon>
-            Fecha Hasta
-          </label>
-          <input
-            type="date"
-            class="form-control"
-            id="filter_date_to"
-            formControlName="date_to"
-          />
+          <select
+            class="form-select"
+            id="filter_year"
+            formControlName="year"
+          >
+            @for (year of availableYears(); track year) {
+              <option [value]="year">{{ year }}</option>
+            }
+          </select>
         </div>
       </div>
     </form>
@@ -69,6 +60,82 @@
     </div>
   </div>
   } @else {
+  <!-- Budget Status Indicator -->
+  @if (budgetStatus()) {
+  <div class="row g-3 mb-4">
+    <div class="col-12">
+      <div class="budget-status-card">
+        <div class="budget-status-header">
+          <h4 class="budget-status-title">Estado del Presupuesto - Año {{ selectedYear() }}</h4>
+          <div class="budget-status-indicator">
+            @if (budgetStatus()!.status === 'green') {
+              <div class="status-badge status-green">
+                <div class="status-dot"></div>
+                <span>Bien</span>
+              </div>
+            } @else if (budgetStatus()!.status === 'orange') {
+              <div class="status-badge status-orange">
+                <div class="status-dot"></div>
+                <span>Cerca del Límite</span>
+              </div>
+            } @else {
+              <div class="status-badge status-red">
+                <div class="status-dot"></div>
+                <span>Excedido</span>
+              </div>
+            }
+          </div>
+        </div>
+        <div class="budget-status-cards row g-3">
+          <div class="col-xl-4 col-lg-6 col-md-6">
+            <div class="stat-card stat-card-sm">
+              <div class="stat-icon bg-info-light">
+                <lucide-icon [img]="icons.DollarSign" [size]="20"></lucide-icon>
+              </div>
+              <div class="stat-content">
+                <p class="stat-label">Presupuesto Anual</p>
+                <h3 class="stat-value">${{ budgetStatus()!.budgetAmount | number : '1.0-0' }}</h3>
+              </div>
+            </div>
+          </div>
+          <div class="col-xl-4 col-lg-6 col-md-6">
+            <div class="stat-card stat-card-sm">
+              <div class="stat-icon" [class.bg-success-light]="budgetStatus()!.status === 'green'" [class.bg-warning-light]="budgetStatus()!.status === 'orange'" [class.bg-danger-light]="budgetStatus()!.status === 'red'">
+                <lucide-icon [img]="icons.TrendingUp" [size]="20"></lucide-icon>
+              </div>
+              <div class="stat-content">
+                <p class="stat-label">Total Inversiones</p>
+                <h3 class="stat-value" [class.text-success]="budgetStatus()!.status === 'green'" [class.text-warning]="budgetStatus()!.status === 'orange'" [class.text-danger]="budgetStatus()!.status === 'red'">
+                  ${{ budgetStatus()!.totalInvestments | number : '1.0-0' }}
+                </h3>
+              </div>
+            </div>
+          </div>
+          <div class="col-xl-4 col-lg-6 col-md-6">
+            <div class="stat-card stat-card-sm">
+              <div class="stat-icon" [class.bg-success-light]="budgetStatus()!.difference > 0" [class.bg-danger-light]="budgetStatus()!.difference < 0" [class.bg-info-light]="budgetStatus()!.difference === 0">
+                <lucide-icon [img]="icons.TrendingDown" [size]="20"></lucide-icon>
+              </div>
+              <div class="stat-content">
+                <p class="stat-label">Diferencia</p>
+                <h3 class="stat-value" [class.text-success]="budgetStatus()!.difference > 0" [class.text-danger]="budgetStatus()!.difference < 0" [class.text-muted]="budgetStatus()!.difference === 0">
+                  @if (budgetStatus()!.difference > 0) {
+                    +${{ budgetStatus()!.difference | number : '1.0-0' }}
+                  } @else if (budgetStatus()!.difference < 0) {
+                    ${{ budgetStatus()!.difference | number : '1.0-0' }}
+                  } @else {
+                    ${{ budgetStatus()!.difference | number : '1.0-0' }}
+                  }
+                </h3>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  }
+
   <!-- Stats Cards -->
   <div class="row g-3 mb-4">
     <div class="col-xl-4 col-lg-6 col-md-6">
@@ -93,57 +160,140 @@
         </div>
       </div>
     </div>
+    <div class="col-xl-4 col-lg-6 col-md-6">
+      <div class="stat-card">
+        <div class="stat-icon bg-warning-light">
+          <lucide-icon [img]="icons.Package" [size]="20"></lucide-icon>
+        </div>
+        <div class="stat-content">
+          <h3 class="stat-value">{{ totalCount() }}</h3>
+          <p class="stat-label">Total de Inversiones</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Top Investments -->
+  <div class="top-investments-section mb-4">
+    <div class="top-investments-header">
+      <h4 class="top-investments-title">Top 10 Inversiones del Año {{ selectedYear() }}</h4>
+      <span class="top-investments-subtitle">Mayor monto primero</span>
+    </div>
+    <div class="top-investments-card">
+      @if (topInvestments().length > 0) {
+        <div class="top-investments-list">
+          @for (item of topInvestments(); track item.id) {
+            <div class="top-investment-item" [class.tone-high]="item.tone === 'high'" [class.tone-medium]="item.tone === 'medium'" [class.tone-low]="item.tone === 'low'">
+              <div class="top-investment-rank">#{{ item.rank }}</div>
+              <div class="top-investment-info">
+                <span class="top-investment-name">{{ item.name }}</span>
+                <span class="top-investment-amount">${{ item.amount | number : '1.0-0' }}</span>
+              </div>
+              <div class="top-investment-icon">
+                <lucide-icon [img]="item.tone === 'high' ? icons.TrendingUp : item.tone === 'medium' ? icons.BarChart3 : icons.TrendingDown" [size]="18"></lucide-icon>
+              </div>
+            </div>
+          }
+        </div>
+      } @else {
+        <div class="empty-chart">
+          <lucide-icon [img]="icons.BarChart3" [size]="32" class="empty-chart-icon"></lucide-icon>
+          <p class="empty-chart-text">No hay inversiones para este año</p>
+        </div>
+      }
+    </div>
   </div>
 
   <!-- Charts Grid -->
   <div class="row g-3">
-    <!-- Investment Trend -->
+    <!-- Budget Status Chart -->
     <div class="col-xl-6 col-lg-6 col-12">
       <div class="chart-card">
         <div class="chart-header">
           <h3 class="chart-title">
-            <lucide-icon [img]="icons.TrendingUp" [size]="18" class="me-2"></lucide-icon>
-            Inversión por Categoría
+            <lucide-icon [img]="icons.BarChart3" [size]="18" class="me-2"></lucide-icon>
+            Presupuesto vs Inversiones - Año {{ selectedYear() || 'N/A' }}
           </h3>
         </div>
         <div class="chart-body">
-          <apx-chart
-            [series]="investmentByCategoryChart.series"
-            [chart]="investmentByCategoryChart.chart"
-            [colors]="investmentByCategoryChart.colors"
-            [plotOptions]="investmentByCategoryChart.plotOptions"
-            [dataLabels]="investmentByCategoryChart.dataLabels"
-            [xaxis]="investmentByCategoryChart.xaxis"
-            [yaxis]="investmentByCategoryChart.yaxis"
-            [grid]="investmentByCategoryChart.grid">
-          </apx-chart>
+          @if (budgetStatusChart && budgetStatusChart.series) {
+            <apx-chart
+              [series]="budgetStatusChart.series"
+              [chart]="budgetStatusChart.chart"
+              [colors]="budgetStatusChart.colors"
+              [plotOptions]="budgetStatusChart.plotOptions"
+              [dataLabels]="budgetStatusChart.dataLabels"
+              [xaxis]="budgetStatusChart.xaxis"
+              [yaxis]="budgetStatusChart.yaxis"
+              [grid]="budgetStatusChart.grid"
+              [legend]="budgetStatusChart.legend">
+            </apx-chart>
+          } @else {
+            <div class="empty-chart">
+              <lucide-icon [img]="icons.BarChart3" [size]="48" class="empty-chart-icon"></lucide-icon>
+              <p class="empty-chart-text">No hay datos disponibles</p>
+            </div>
+          }
         </div>
       </div>
     </div>
 
-    <!-- Monthly Investment Trend -->
+    <!-- Two Year Comparison Chart -->
     <div class="col-xl-6 col-lg-6 col-12">
       <div class="chart-card">
         <div class="chart-header">
-          <h3 class="chart-title">
-            <lucide-icon [img]="icons.TrendingUp" [size]="18" class="me-2"></lucide-icon>
-            Tendencia Mensual de Inversión
-          </h3>
+          <div class="d-flex justify-content-between align-items-center">
+            <h3 class="chart-title">
+              <lucide-icon [img]="icons.BarChart3" [size]="18" class="me-2"></lucide-icon>
+              Comparación entre Años Seleccionados
+            </h3>
+            <div class="chart-filters">
+              <select
+                class="form-select form-select-sm"
+                style="width: auto; display: inline-block;"
+                [formControl]="comparisonYear1Form"
+              >
+                <option [value]="null">Seleccionar Año 1</option>
+                @for (year of availableYears(); track year) {
+                  <option [value]="year">{{ year }}</option>
+                }
+              </select>
+              <span class="mx-2">vs</span>
+              <select
+                class="form-select form-select-sm"
+                style="width: auto; display: inline-block;"
+                [formControl]="comparisonYear2Form"
+              >
+                <option [value]="null">Seleccionar Año 2</option>
+                @for (year of availableYears(); track year) {
+                  <option [value]="year">{{ year }}</option>
+                }
+              </select>
+            </div>
+          </div>
         </div>
         <div class="chart-body">
-          <apx-chart
-            [series]="monthlyInvestmentTrendChart.series"
-            [chart]="monthlyInvestmentTrendChart.chart"
-            [colors]="monthlyInvestmentTrendChart.colors"
-            [stroke]="monthlyInvestmentTrendChart.stroke"
-            [xaxis]="monthlyInvestmentTrendChart.xaxis"
-            [yaxis]="monthlyInvestmentTrendChart.yaxis"
-            [grid]="monthlyInvestmentTrendChart.grid">
-          </apx-chart>
+          @if (twoYearComparisonChart && twoYearComparisonChart.series) {
+            <apx-chart
+              [series]="twoYearComparisonChart.series"
+              [chart]="twoYearComparisonChart.chart"
+              [colors]="twoYearComparisonChart.colors"
+              [plotOptions]="twoYearComparisonChart.plotOptions"
+              [dataLabels]="twoYearComparisonChart.dataLabels"
+              [xaxis]="twoYearComparisonChart.xaxis"
+              [yaxis]="twoYearComparisonChart.yaxis"
+              [grid]="twoYearComparisonChart.grid"
+              [legend]="twoYearComparisonChart.legend">
+            </apx-chart>
+          } @else {
+            <div class="empty-chart">
+              <lucide-icon [img]="icons.BarChart3" [size]="48" class="empty-chart-icon"></lucide-icon>
+              <p class="empty-chart-text">No hay datos disponibles</p>
+            </div>
+          }
         </div>
       </div>
     </div>
   </div>
   }
 </div>
-

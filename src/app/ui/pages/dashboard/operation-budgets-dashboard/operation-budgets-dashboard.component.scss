@@ -51,13 +51,12 @@
 .stat-card {
   background: white;
   border: 1px solid var(--ester-border-light);
-  border-radius: 0.75rem;
+  border-radius: 6px;
   padding: 1.25rem;
   display: flex;
   align-items: center;
   gap: 1rem;
   transition: all 0.2s ease;
-  
   &:hover {
     border-color: var(--ester-secondary);
     box-shadow: 0 4px 12px rgba(33, 25, 21, 0.1);

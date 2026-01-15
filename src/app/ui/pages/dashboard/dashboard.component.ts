@@ -37,7 +37,7 @@ export class DashboardComponent implements OnInit {
   userName = signal('');
   activeTab = signal<
     'financial' | 'operation-budgets' | 'investment-budgets' | 'legal'
-  >('financial');
+  >('operation-budgets');
 
   // Lucide icons
   readonly icons = { FileText, TrendingUp, DollarSign, TrendingDown, Scale };

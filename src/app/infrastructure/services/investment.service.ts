@@ -39,7 +39,8 @@ export class InvestmentService {
     perPage: number = 15, 
     companyId?: number,
     dateFrom?: string,
-    dateTo?: string
+    dateTo?: string,
+    investmentBudgetAnnualId?: number
   ): Observable<PaginatedResponse<Investment>> {
     let params = new HttpParams()
       .set('page', page.toString())
@@ -55,6 +56,10 @@ export class InvestmentService {
     
     if (dateTo) {
       params = params.set('date_to', dateTo);
+    }
+    
+    if (investmentBudgetAnnualId) {
+      params = params.set('investment_budget_annual_id', investmentBudgetAnnualId.toString());
     }
     
     return this.http.get<PaginatedResponse<Investment>>(

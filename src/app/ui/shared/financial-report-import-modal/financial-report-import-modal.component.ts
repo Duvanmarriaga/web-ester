@@ -107,7 +107,6 @@ export class FinancialReportImportModalComponent implements OnInit {
       dateValue = dateValue.substring(0, 7); // Take YYYY-MM part
     }
     
-    console.log('Setting date value in form:', dateValue);
     
     // Format income and expenses as currency strings
     const incomeValue = data.income !== null && data.income !== undefined && !isNaN(data.income) 

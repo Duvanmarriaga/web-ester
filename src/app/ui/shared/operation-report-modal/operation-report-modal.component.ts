@@ -237,7 +237,6 @@ export class OperationReportModalComponent implements OnInit {
   }
 
   onCreateCategoryFromTag(term: string | any): void {
-    console.log(term);
     // This is called when user clicks on the "addTag" option or presses Enter with no matches
     // ng-select can emit the term as a string or as an object, handle both cases
     let categoryName: string;
@@ -555,7 +554,6 @@ export class OperationReportModalComponent implements OnInit {
     this.isSubmitting.set(true);
 
     let formValue = { ...this.reportForm.value };
-    console.log(formValue);
     
     // Si operation_category_id es un objeto con name pero sin id, buscar la categoría en la lista
     if (

@@ -231,7 +231,6 @@ export class FinancialReportsDashboardComponent implements OnInit {
     this.store.select(selectAllCompanies).subscribe((companies) => {
       this.companies.set(companies);
       // Set first company as default if available
-      console.log('companies', companies);
       if (companies.length > 0 && !this.filterForm.get('company_id')?.value) {
         this.filterForm.patchValue({ company_id: companies[0].id });
         // Execute search when company is set for the first time
