@@ -53,9 +53,27 @@
                 <span
                   class="badge"
                   [class.badge-penal]="process.type === 'penal'"
-                  [class.badge-juridico]="process.type === 'juridico'"
+                  [class.badge-civil]="process.type === 'civil'"
+                  [class.badge-laboral]="process.type === 'laboral'"
+                  [class.badge-administrativo]="process.type === 'administrativo'"
+                  [class.badge-contencioso-administrativo]="process.type === 'contencioso administrativo'"
+                  [class.badge-constitucional]="process.type === 'constitucional'"
+                  [class.badge-disciplinario]="process.type === 'disciplinario'"
+                  [class.badge-fiscal]="process.type === 'fiscal'"
+                  [class.badge-policivo]="process.type === 'policivo'"
+                  [class.badge-familia]="process.type === 'de familia'"
+                  [class.badge-comercial-mercantil]="process.type === 'comercial / mercantil'"
+                  [class.badge-tributario]="process.type === 'tributario'"
+                  [class.badge-electoral]="process.type === 'electoral'"
+                  [class.badge-ambiental]="process.type === 'ambiental'"
+                  [class.badge-agrario]="process.type === 'agrario'"
+                  [class.badge-responsabilidad-medica]="process.type === 'de responsabilidad médica'"
+                  [class.badge-insolvencia]="process.type === 'de insolvencia'"
+                  [class.badge-arbitral]="process.type === 'arbitral'"
+                  [class.badge-conciliatorio]="process.type === 'conciliatorio'"
+                  [class.badge-otro]="process.type === 'otro'"
                 >
-                  {{ process.type === "penal" ? "Penal" : "Jurídico" }}
+                  {{ getProcessTypeLabel(process.type) }}
                 </span>
               </td>
               <td class="table-cell">

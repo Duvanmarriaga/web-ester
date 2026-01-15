@@ -9,7 +9,7 @@ export interface Process {
   company_id: number;
   contact_id?: number | null;
   docket_number: string;
-  type: 'penal' | 'juridico';
+  type: 'penal' | 'civil' | 'laboral' | 'administrativo' | 'contencioso administrativo' | 'constitucional' | 'disciplinario' | 'fiscal' | 'policivo' | 'de familia' | 'comercial / mercantil' | 'tributario' | 'electoral' | 'ambiental' | 'agrario' | 'de responsabilidad médica' | 'de insolvencia' | 'arbitral' | 'conciliatorio' | 'otro';
   start_date: string;
   end_date?: string | null;
   description?: string | null;
@@ -30,7 +30,27 @@ export interface ProcessCreate {
   company_id: number;
   contact_id?: number | null;
   docket_number: string;
-  type: 'penal' | 'juridico';
+  type:
+    | 'penal'
+    | 'civil'
+    | 'laboral'
+    | 'administrativo'
+    | 'contencioso administrativo'
+    | 'constitucional'
+    | 'disciplinario'
+    | 'fiscal'
+    | 'policivo'
+    | 'de familia'
+    | 'comercial / mercantil'
+    | 'tributario'
+    | 'electoral'
+    | 'ambiental'
+    | 'agrario'
+    | 'de responsabilidad médica'
+    | 'de insolvencia'
+    | 'arbitral'
+    | 'conciliatorio'
+    | 'otro';
   start_date: string;
   end_date?: string | null;
   description?: string | null;

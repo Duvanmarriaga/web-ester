@@ -38,7 +38,9 @@
               <label for="type" class="form-label">Tipo</label>
               <select class="form-select" id="type" formControlName="type">
                 @for (type of processTypes; track type.value) {
-                <option [value]="type.value">{{ type.label }}</option>
+                <option [value]="type.value">
+                  {{ type.label | titlecase }}
+                </option>
                 }
               </select>
               @if (processForm.get('type')?.invalid &&
@@ -47,9 +49,7 @@
               }
             </div>
             <div class="col-12">
-              <label for="contact_id" class="form-label"
-                >Responsable</label
-              >
+              <label for="contact_id" class="form-label">Responsable</label>
               <ng-select
                 id="contact_id"
                 [items]="contactsList()"
@@ -72,7 +72,6 @@
               <label for="process_status_id" class="form-label">Estado</label>
               <ng-select
                 id="process_status_id"
-                [items]="filteredStatuses()"
                 bindLabel="name"
                 [compareWith]="compareStatuses"
                 placeholder="Seleccionar estado..."
@@ -81,6 +80,10 @@
                 [clearable]="false"
                 appendTo="body"
               >
+                <ng-option [value]="null">Seleccionar estado</ng-option>
+                @for (status of filteredStatuses(); track status.id) {
+                <ng-option [value]="status">{{ status.name | titlecase }}</ng-option>
+                }
               </ng-select>
               @if (processForm.get('process_status_id')?.invalid &&
               processForm.get('process_status_id')?.touched) {

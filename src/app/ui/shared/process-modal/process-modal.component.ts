@@ -81,8 +81,26 @@ export class ProcessModalComponent implements OnInit {
   isCreatingContact = signal(false);
 
   readonly processTypes = [
-    { value: 'penal', label: 'Penal' },
-    { value: 'juridico', label: 'Jurídico' },
+    { value: 'penal', label: 'PENAL' },
+    { value: 'civil', label: 'CIVIL' },
+    { value: 'laboral', label: 'LABORAL' },
+    { value: 'administrativo', label: 'ADMINISTRATIVO' },
+    { value: 'contencioso administrativo', label: 'CONTENCIOSO ADMINISTRATIVO' },
+    { value: 'constitucional', label: 'CONSTITUCIONAL' },
+    { value: 'disciplinario', label: 'DISCIPLINARIO' },
+    { value: 'fiscal', label: 'FISCAL' },
+    { value: 'policivo', label: 'POLICIVO' },
+    { value: 'de familia', label: 'DE FAMILIA' },
+    { value: 'comercial / mercantil', label: 'COMERCIAL / MERCANTIL' },
+    { value: 'tributario', label: 'TRIBUTARIO' },
+    { value: 'electoral', label: 'ELECTORAL' },
+    { value: 'ambiental', label: 'AMBIENTAL' },
+    { value: 'agrario', label: 'AGRARIO' },
+    { value: 'de responsabilidad médica', label: 'DE RESPONSABILIDAD MÉDICA' },
+    { value: 'de insolvencia', label: 'DE INSOLVENCIA' },
+    { value: 'arbitral', label: 'ARBITRAL' },
+    { value: 'conciliatorio', label: 'CONCILIATORIO' },
+    { value: 'otro', label: 'OTRO' },
   ];
 
   // Statuses permitidos

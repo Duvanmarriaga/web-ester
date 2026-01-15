@@ -166,16 +166,106 @@
   border-radius: $border-radius-full;
   font-size: map.get($font-sizes, xs);
   font-weight: map.get($font-weights, medium);
-  text-transform: capitalize;
+  text-transform: uppercase;
 
   &.badge-penal {
     background-color: $ester-danger-light;
     color: $ester-danger-dark;
   }
 
-  &.badge-juridico {
+  &.badge-civil {
+    background-color: $ester-info-light;
+    color: $ester-info-dark;
+  }
+
+  &.badge-laboral {
     background-color: $ester-warning-light;
     color: $ester-warning-dark;
+  }
+
+  &.badge-administrativo {
+    background-color: $ester-secondary-lightest;
+    color: $ester-secondary-dark;
+  }
+
+  &.badge-contencioso-administrativo {
+    background-color: $ester-primary-lightest;
+    color: $ester-primary-dark;
+  }
+
+  &.badge-constitucional {
+    background-color: $ester-primary-light;
+    color: $ester-primary-dark;
+  }
+
+  &.badge-disciplinario {
+    background-color: $ester-warning-light;
+    color: $ester-warning-dark;
+  }
+
+  &.badge-fiscal {
+    background-color: $ester-danger-light;
+    color: $ester-danger-dark;
+  }
+
+  &.badge-policivo {
+    background-color: $ester-info-light;
+    color: $ester-info-dark;
+  }
+
+  &.badge-familia {
+    background-color: $ester-success-light;
+    color: $ester-success-dark;
+  }
+
+  &.badge-comercial-mercantil {
+    background-color: $ester-secondary-lightest;
+    color: $ester-secondary-dark;
+  }
+
+  &.badge-tributario {
+    background-color: $ester-primary-light;
+    color: $ester-primary-dark;
+  }
+
+  &.badge-electoral {
+    background-color: $ester-info-light;
+    color: $ester-info-dark;
+  }
+
+  &.badge-ambiental {
+    background-color: $ester-success-light;
+    color: $ester-success-dark;
+  }
+
+  &.badge-agrario {
+    background-color: $ester-success-light;
+    color: $ester-success-dark;
+  }
+
+  &.badge-responsabilidad-medica {
+    background-color: $ester-warning-light;
+    color: $ester-warning-dark;
+  }
+
+  &.badge-insolvencia {
+    background-color: $ester-danger-light;
+    color: $ester-danger-dark;
+  }
+
+  &.badge-arbitral {
+    background-color: $ester-secondary-lightest;
+    color: $ester-secondary-dark;
+  }
+
+  &.badge-conciliatorio {
+    background-color: $ester-success-light;
+    color: $ester-success-dark;
+  }
+
+  &.badge-otro {
+    background-color: $ester-secondary-lightest;
+    color: $ester-secondary-dark;
   }
 }
 

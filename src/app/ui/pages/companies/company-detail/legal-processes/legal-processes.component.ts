@@ -43,6 +43,29 @@ export class LegalProcessesComponent implements OnInit {
     Trash2,
   };
 
+  readonly processTypeLabels: Record<string, string> = {
+    penal: 'PENAL',
+    civil: 'CIVIL',
+    laboral: 'LABORAL',
+    administrativo: 'ADMINISTRATIVO',
+    'contencioso administrativo': 'CONTENCIOSO ADMINISTRATIVO',
+    constitucional: 'CONSTITUCIONAL',
+    disciplinario: 'DISCIPLINARIO',
+    fiscal: 'FISCAL',
+    policivo: 'POLICIVO',
+    'de familia': 'DE FAMILIA',
+    'comercial / mercantil': 'COMERCIAL / MERCANTIL',
+    tributario: 'TRIBUTARIO',
+    electoral: 'ELECTORAL',
+    ambiental: 'AMBIENTAL',
+    agrario: 'AGRARIO',
+    'de responsabilidad médica': 'DE RESPONSABILIDAD MÉDICA',
+    'de insolvencia': 'DE INSOLVENCIA',
+    arbitral: 'ARBITRAL',
+    conciliatorio: 'CONCILIATORIO',
+    otro: 'OTRO',
+  };
+
   companyId = signal<number | null>(null);
   showModal = signal(false);
   processes = signal<Process[]>([]);
@@ -107,6 +130,11 @@ export class LegalProcessesComponent implements OnInit {
 
   onPageChange(page: number): void {
     this.loadProcesses(page);
+  }
+
+  getProcessTypeLabel(type: string | null | undefined): string {
+    if (!type) return '';
+    return this.processTypeLabels[type] || type.toUpperCase();
   }
 
   openCreateModal() {
