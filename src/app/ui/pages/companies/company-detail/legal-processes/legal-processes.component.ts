@@ -7,6 +7,7 @@ import {
   Plus,
   Pencil,
   Trash2,
+  MoreVertical,
 } from 'lucide-angular';
 import {
   ProcessService,
@@ -41,6 +42,7 @@ export class LegalProcessesComponent implements OnInit {
     Plus,
     Pencil,
     Trash2,
+    MoreVertical,
   };
 
   readonly processTypeLabels: Record<string, string> = {
@@ -76,6 +78,9 @@ export class LegalProcessesComponent implements OnInit {
   selectedProcess = signal<Process | null>(null);
   showConfirmDialog = signal(false);
   deletingProcess = signal<Process | null>(null);
+  openMenuId = signal<number | null>(null);
+  openMenuTop = signal(0);
+  openMenuLeft = signal(0);
 
   ngOnInit() {
     this.route.parent?.paramMap.subscribe((params) => {
@@ -130,6 +135,33 @@ export class LegalProcessesComponent implements OnInit {
 
   onPageChange(page: number): void {
     this.loadProcesses(page);
+  }
+
+  toggleMenu(processId: number | null | undefined, event?: MouseEvent): void {
+    if (!processId) return;
+    const current = this.openMenuId();
+    if (current !== processId && event) {
+      const target = event.currentTarget as HTMLElement | null;
+      if (target) {
+        const rect = target.getBoundingClientRect();
+        const menuWidth = 160;
+        const menuHeight = 120;
+        const spaceBelow = window.innerHeight - rect.bottom;
+        const spaceAbove = rect.top;
+        const shouldOpenUp = spaceBelow < menuHeight && spaceAbove > menuHeight;
+        const rawTop = shouldOpenUp ? rect.top - menuHeight - 8 : rect.bottom + 4;
+        const top = Math.max(8, Math.min(rawTop, window.innerHeight - menuHeight - 8));
+        const rawLeft = rect.right - menuWidth;
+        const left = Math.max(8, Math.min(rawLeft, window.innerWidth - menuWidth - 8));
+        this.openMenuTop.set(top);
+        this.openMenuLeft.set(left);
+      }
+    }
+    this.openMenuId.set(current === processId ? null : processId);
+  }
+
+  closeMenu(): void {
+    this.openMenuId.set(null);
   }
 
   getProcessTypeLabel(type: string | null | undefined): string {

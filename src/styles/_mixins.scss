@@ -159,7 +159,7 @@
   
   &:disabled {
     background-color: $ester-bg-secondary;
-    cursor: not-allowed;
+    cursor: default;
   }
 }
 
@@ -178,7 +178,7 @@
   
   &:disabled {
     opacity: 0.6;
-    cursor: not-allowed;
+    cursor: default;
   }
 }
 

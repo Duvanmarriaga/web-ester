@@ -1,0 +1,123 @@
+@if (isVisible()) {
+<div class="modal show d-block" (click)="onBackdropClick($event)">
+  <div class="modal-dialog modal-dialog-centered investment-import-modal">
+    <div class="modal-content" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h5 class="modal-title">Agregar Items al Año {{ budgetYear() }}</h5>
+        <button
+          type="button"
+          class="btn-close"
+          (click)="onClose()"
+          [disabled]="isSubmitting()"
+          aria-label="Close"
+        >
+          <lucide-icon [img]="icons.X" [size]="16"></lucide-icon>
+        </button>
+      </div>
+
+    <form [formGroup]="investmentForm" (ngSubmit)="onSubmit()">
+      <div class="modal-body">
+        <div class="table-responsive">
+          <table class="table table-sm table-bordered">
+            <thead>
+              <tr>
+                <th class="table-header">Categoría</th>
+                <th class="table-header">Monto</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody formArrayName="investments">
+              @for (investment of investmentsArray.controls; track $index) {
+              <tr [formGroupName]="$index">
+                <td>
+                  <ng-select
+                    [items]="categories()"
+                    bindLabel="name"
+                    bindValue="id"
+                    formControlName="category_id"
+                    [searchable]="true"
+                    [clearable]="true"
+                    [loading]="isLoadingCategories()"
+                    placeholder="Seleccionar categoría..."
+                    [class.is-invalid]="
+                      investment.get('category_id')?.invalid &&
+                      investment.get('category_id')?.touched
+                    "
+                    appendTo="body"
+                  >
+                  </ng-select>
+                  @if (
+                  investment.get('category_id')?.invalid &&
+                  investment.get('category_id')?.touched
+                  ) {
+                  <small class="text-danger d-block">Categoría requerida</small>
+                  }
+                  <input
+                    type="hidden"
+                    formControlName="category_name_text"
+                  />
+                </td>
+                <td class="align-middle">
+                  <div class="input-group input-group-sm">
+                    <span class="input-group-text">$</span>
+                    <input
+                      type="text"
+                      class="form-control"
+                      formControlName="amount"
+                      (input)="formatCurrency($event, $index)"
+                      (blur)="formatCurrencyOnBlur($index)"
+                      [class.is-invalid]="
+                        investment.get('amount')?.invalid &&
+                        investment.get('amount')?.touched
+                      "
+                    />
+                  </div>
+                  @if (
+                  investment.get('amount')?.invalid &&
+                  investment.get('amount')?.touched
+                  ) {
+                  <small class="text-danger d-block">Monto requerido</small>
+                  }
+                </td>
+                <td class="align-middle text-center">
+                  <button
+                    type="button"
+                    class="btn btn-sm btn-link text-danger p-0"
+                    (click)="removeInvestment($index)"
+                    title="Eliminar fila"
+                  >
+                    <lucide-icon [img]="icons.Trash2" [size]="16"></lucide-icon>
+                  </button>
+                </td>
+              </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button
+          type="button"
+          class="btn btn-sm btn-outline-secondary"
+          (click)="onClose()"
+          [disabled]="isSubmitting()"
+        >
+          Cancelar
+        </button>
+        <button
+          type="submit"
+          class="btn btn-sm btn-primary"
+          [disabled]="isSubmitting() || !areAllFieldsValid()"
+        >
+          @if (isSubmitting()) {
+          <span class="spinner-border spinner-border-sm me-2" role="status"></span>
+          }
+          Guardar
+        </button>
+      </div>
+    </form>
+    </div>
+  </div>
+</div>
+}

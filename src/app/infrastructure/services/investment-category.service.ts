@@ -68,8 +68,10 @@ export class InvestmentCategoryService {
   }
 
   getByCompany(companyId: number): Observable<InvestmentCategory[]> {
+    const params = new HttpParams().set('company_id', companyId.toString());
     return this.http.get<InvestmentCategory[]>(
-      `${this.apiUrl}/investment-budget-categories`
+      `${this.apiUrl}/investment-budget-categories`,
+      { params }
     ).pipe(
       map((response) => {
         if (Array.isArray(response)) {

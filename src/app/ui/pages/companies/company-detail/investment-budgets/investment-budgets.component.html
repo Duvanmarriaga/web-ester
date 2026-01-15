@@ -6,6 +6,15 @@
     <div class="tab-panel-actions">
       <button
         type="button"
+        class="btn btn-sm btn-outline-primary"
+        (click)="downloadTemplate()"
+        title="Descargar plantilla XLSX"
+      >
+        <lucide-icon [img]="icons.Download" [size]="16"></lucide-icon>
+        <span>Descargar plantilla</span>
+      </button>
+      <button
+        type="button"
         class="btn btn-sm btn-primary"
         (click)="openCreateBudgetYearModal()"
         title="Crear nuevo presupuesto anual"
@@ -45,7 +54,8 @@
             </tr>
           </thead>
           <tbody>
-            @for (budgetYear of budgetYearsWithInvestments(); track budgetYear.id) {
+            @for (budgetYear of budgetYearsWithInvestments(); track
+            budgetYear.id) {
             <tr class="budget-year-row">
               <td class="table-cell">
                 <button
@@ -72,36 +82,77 @@
                 ${{ budgetYear.amount | number : "1.2-2" }}
               </td>
               <td class="text-end">
-                <div class="d-flex gap-2 justify-content-end">
+                <div class="row-actions">
                   <button
-                    class="btn btn-sm btn-link text-primary p-1"
-                    title="Descargar plantilla CSV"
-                    (click)="downloadTemplate(budgetYear.id)"
+                    class="menu-trigger"
+                    type="button"
+                    title="Acciones"
+                    (click)="
+                      toggleMenu(getMenuId('year', budgetYear.id), $event)
+                    "
                   >
-                    <lucide-icon [img]="icons.Download" [size]="14"></lucide-icon>
+                    <lucide-icon
+                      [img]="icons.MoreVertical"
+                      [size]="16"
+                    ></lucide-icon>
                   </button>
-                  <button
-                    class="btn btn-sm btn-link text-primary p-1"
-                    title="Agregar Presupuesto de Inversión"
-                    (click)="openCreateModal(budgetYear.id)"
+                  @if (openMenuId() === getMenuId('year', budgetYear.id)) {
+                  <div class="menu-backdrop" (click)="closeMenu()"></div>
+                  <div
+                    class="menu-popover"
+                    [style.top.px]="openMenuTop()"
+                    [style.left.px]="openMenuLeft()"
                   >
-                    <lucide-icon [img]="icons.Plus" [size]="14"></lucide-icon>
-                  </button>
-                  <button
-                    class="btn btn-sm btn-link text-primary p-1"
-                    title="Editar Presupuesto Anual"
-                    (click)="editBudgetYear(budgetYear)"
-                  >
-                    <lucide-icon [img]="icons.Pencil" [size]="14"></lucide-icon>
-                  </button>
-                  <button
-                    class="btn btn-sm btn-link text-danger p-1"
-                    title="Eliminar Presupuesto Anual"
-                    [disabled]="!canDeleteBudgetYear(budgetYear)"
-                    (click)="deleteBudgetYear(budgetYear)"
-                  >
-                    <lucide-icon [img]="icons.Trash2" [size]="14"></lucide-icon>
-                  </button>
+                    <button
+                      class="menu-item text-primary"
+                      type="button"
+                      (click)="editBudgetYear(budgetYear); closeMenu()"
+                    >
+                      <lucide-icon
+                        [img]="icons.Pencil"
+                        [size]="14"
+                      ></lucide-icon>
+                      Editar Presupuesto Anual
+                    </button>
+                    <button
+                      class="menu-item"
+                      type="button"
+                      (click)="triggerFileInput(budgetYear); closeMenu()"
+                      [disabled]="isImporting()"
+                    >
+                      <lucide-icon
+                        [img]="icons.Upload"
+                        [size]="14"
+                      ></lucide-icon>
+                      @if (isImporting()) {
+                      <span>Cargando...</span>
+                      } @else {
+                      <span>Cargar archivo</span>
+                      }
+                    </button>
+                    <button
+                      class="menu-item"
+                      type="button"
+                      (click)="openCreateModal(budgetYear.id); closeMenu()"
+                    >
+                      <lucide-icon [img]="icons.Plus" [size]="14"></lucide-icon>
+                      Agregar Presupuesto de Inversión
+                    </button>
+
+                    <button
+                      class="menu-item text-danger"
+                      type="button"
+                      [disabled]="!canDeleteBudgetYear(budgetYear)"
+                      (click)="deleteBudgetYear(budgetYear); closeMenu()"
+                    >
+                      <lucide-icon
+                        [img]="icons.Trash2"
+                        [size]="14"
+                      ></lucide-icon>
+                      Eliminar Presupuesto Anual
+                    </button>
+                  </div>
+                  }
                 </div>
               </td>
             </tr>
@@ -117,11 +168,16 @@
                   </div>
                   } @else {
                   <div class="budget-months-list">
-                    @for (investment of budgetYear.investments; track investment.id) {
+                    @for (investment of budgetYear.investments; track
+                    investment.id) {
                     <div class="budget-month-item">
                       <div class="budget-month-date-col">
                         <span class="budget-month-date fw-medium">
-                          {{ getCategoryName(investment.investment_budget_category_id) }}
+                          {{
+                            getCategoryName(
+                              investment.investment_budget_category_id
+                            )
+                          }}
                         </span>
                       </div>
                       <div class="budget-month-data-col">
@@ -133,27 +189,60 @@
                         </div>
                       </div>
                       <div class="budget-month-actions-col">
-                        <div class="budget-month-actions">
+                        <div class="row-actions">
                           <button
-                            class="btn btn-sm btn-link text-primary p-1"
-                            title="Editar"
-                            (click)="editInvestment(investment)"
+                            class="menu-trigger"
+                            type="button"
+                            title="Acciones"
+                            (click)="
+                              toggleMenu(
+                                getMenuId('investment', investment.id),
+                                $event
+                              )
+                            "
                           >
                             <lucide-icon
-                              [img]="icons.Pencil"
-                              [size]="14"
+                              [img]="icons.MoreVertical"
+                              [size]="16"
                             ></lucide-icon>
                           </button>
-                          <button
-                            class="btn btn-sm btn-link text-danger p-1"
-                            title="Eliminar"
-                            (click)="deleteInvestment(investment)"
+                          @if (openMenuId() === getMenuId('investment',
+                          investment.id)) {
+                          <div
+                            class="menu-backdrop"
+                            (click)="closeMenu()"
+                          ></div>
+                          <div
+                            class="menu-popover"
+                            [style.top.px]="openMenuTop()"
+                            [style.left.px]="openMenuLeft()"
                           >
-                            <lucide-icon
-                              [img]="icons.Trash2"
-                              [size]="14"
-                            ></lucide-icon>
-                          </button>
+                            <button
+                              class="menu-item text-primary"
+                              type="button"
+                              (click)="editInvestment(investment); closeMenu()"
+                            >
+                              <lucide-icon
+                                [img]="icons.Pencil"
+                                [size]="14"
+                              ></lucide-icon>
+                              Editar
+                            </button>
+                            <button
+                              class="menu-item text-danger"
+                              type="button"
+                              (click)="
+                                deleteInvestment(investment); closeMenu()
+                              "
+                            >
+                              <lucide-icon
+                                [img]="icons.Trash2"
+                                [size]="14"
+                              ></lucide-icon>
+                              Eliminar
+                            </button>
+                          </div>
+                          }
                         </div>
                       </div>
                     </div>
@@ -186,21 +275,52 @@
                 </div>
               </td>
               <td class="text-end">
-                <div class="d-flex gap-2 justify-content-end">
+                <div class="row-actions">
                   <button
-                    class="btn btn-sm btn-link text-primary p-1"
-                    title="Editar"
-                    (click)="editInvestment(investment)"
+                    class="menu-trigger"
+                    type="button"
+                    title="Acciones"
+                    (click)="
+                      toggleMenu(getMenuId('investment', investment.id), $event)
+                    "
                   >
-                    <lucide-icon [img]="icons.Pencil" [size]="14"></lucide-icon>
+                    <lucide-icon
+                      [img]="icons.MoreVertical"
+                      [size]="16"
+                    ></lucide-icon>
                   </button>
-                  <button
-                    class="btn btn-sm btn-link text-danger p-1"
-                    title="Eliminar"
-                    (click)="deleteInvestment(investment)"
+                  @if (openMenuId() === getMenuId('investment', investment.id))
+                  {
+                  <div class="menu-backdrop" (click)="closeMenu()"></div>
+                  <div
+                    class="menu-popover"
+                    [style.top.px]="openMenuTop()"
+                    [style.left.px]="openMenuLeft()"
                   >
-                    <lucide-icon [img]="icons.Trash2" [size]="14"></lucide-icon>
-                  </button>
+                    <button
+                      class="menu-item text-primary"
+                      type="button"
+                      (click)="editInvestment(investment); closeMenu()"
+                    >
+                      <lucide-icon
+                        [img]="icons.Pencil"
+                        [size]="14"
+                      ></lucide-icon>
+                      Editar
+                    </button>
+                    <button
+                      class="menu-item text-danger"
+                      type="button"
+                      (click)="deleteInvestment(investment); closeMenu()"
+                    >
+                      <lucide-icon
+                        [img]="icons.Trash2"
+                        [size]="14"
+                      ></lucide-icon>
+                      Eliminar
+                    </button>
+                  </div>
+                  }
                 </div>
               </td>
             </tr>
@@ -232,6 +352,18 @@
   (save)="onSaveBudgetYear($event)"
   (update)="onUpdateBudgetYear($event)"
 ></app-investment-budget-year-modal>
+}
+
+@if (companyId() && importingBudgetYear()) {
+<app-investment-import-modal
+  [isVisible]="showImportModal()"
+  [companyId]="companyId()!"
+  [budgetYearId]="importingBudgetYear()!.id!"
+  [budgetYear]="importingBudgetYear()!.year"
+  [importedData]="importedInvestments()"
+  (close)="onCloseImportModal()"
+  (save)="onSaveImportedInvestments($event)"
+></app-investment-import-modal>
 }
 
 <app-confirm-dialog

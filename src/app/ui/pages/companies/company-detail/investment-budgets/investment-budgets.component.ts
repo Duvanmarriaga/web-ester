@@ -1,6 +1,7 @@
 import { Component, OnInit, inject, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute } from '@angular/router';
+import { HttpClient } from '@angular/common/http';
 import { Store } from '@ngrx/store';
 import {
   LucideAngularModule,
@@ -12,6 +13,7 @@ import {
   Trash2,
   ChevronDown,
   ChevronUp,
+  MoreVertical,
 } from 'lucide-angular';
 import {
   InvestmentService,
@@ -30,6 +32,7 @@ import {
 } from '../../../../../infrastructure/services/investment-category.service';
 import { InvestmentBudgetModalComponent } from '../../../../shared/investment-modal/investment-budget-modal.component';
 import { InvestmentBudgetYearModalComponent } from '../../../../shared/investment-modal/investment-budget-year-modal.component';
+import { InvestmentImportModalComponent, ImportedInvestment } from '../../../../shared/investment-modal/investment-import-modal.component';
 import { selectUser } from '../../../../../infrastructure/store/auth/auth.selectors';
 import { ToastrService } from 'ngx-toastr';
 import { PaginationComponent } from '../../../../shared/pagination/pagination.component';
@@ -50,6 +53,7 @@ interface InvestmentBudgetYearWithInvestments extends InvestmentBudgetYear {
     LucideAngularModule,
     InvestmentBudgetModalComponent,
     InvestmentBudgetYearModalComponent,
+    InvestmentImportModalComponent,
     ConfirmDialogComponent,
   ],
   templateUrl: './investment-budgets.component.html',
@@ -58,6 +62,7 @@ interface InvestmentBudgetYearWithInvestments extends InvestmentBudgetYear {
 export class InvestmentBudgetsComponent implements OnInit {
   private route = inject(ActivatedRoute);
   private store = inject(Store);
+  private http = inject(HttpClient);
   private investmentService = inject(InvestmentService);
   private budgetYearService = inject(InvestmentBudgetYearService);
   private investmentCategoryService = inject(InvestmentCategoryService);
@@ -72,6 +77,7 @@ export class InvestmentBudgetsComponent implements OnInit {
     Trash2,
     ChevronDown,
     ChevronUp,
+    MoreVertical,
   };
 
   companyId = signal<number | null>(null);
@@ -94,6 +100,12 @@ export class InvestmentBudgetsComponent implements OnInit {
   deletingInvestment = signal<Investment | null>(null);
   deletingBudgetYear = signal<InvestmentBudgetYear | null>(null);
   isDeletingBudgetYear = signal(false);
+  openMenuId = signal<string | null>(null);
+  openMenuTop = signal(0);
+  openMenuLeft = signal(0);
+  showImportModal = signal(false);
+  importedInvestments = signal<ImportedInvestment[]>([]);
+  importingBudgetYear = signal<InvestmentBudgetYear | null>(null);
 
   ngOnInit() {
     this.route.parent?.paramMap.subscribe((params) => {
@@ -111,6 +123,36 @@ export class InvestmentBudgetsComponent implements OnInit {
         this.userId.set(user.id);
       }
     });
+  }
+
+  getMenuId(prefix: 'year' | 'investment', id: number | null | undefined): string {
+    return `${prefix}-${id ?? 'unknown'}`;
+  }
+
+  toggleMenu(menuId: string, event?: MouseEvent): void {
+    const current = this.openMenuId();
+    if (current !== menuId && event) {
+      const target = event.currentTarget as HTMLElement | null;
+      if (target) {
+        const rect = target.getBoundingClientRect();
+        const menuWidth = 200;
+        const menuHeight = 200;
+        const spaceBelow = window.innerHeight - rect.bottom;
+        const spaceAbove = rect.top;
+        const shouldOpenUp = spaceBelow < menuHeight && spaceAbove > menuHeight;
+        const rawTop = shouldOpenUp ? rect.top - menuHeight - 8 : rect.bottom + 4;
+        const top = Math.max(8, Math.min(rawTop, window.innerHeight - menuHeight - 8));
+        const rawLeft = rect.right - menuWidth;
+        const left = Math.max(8, Math.min(rawLeft, window.innerWidth - menuWidth - 8));
+        this.openMenuTop.set(top);
+        this.openMenuLeft.set(left);
+      }
+    }
+    this.openMenuId.set(current === menuId ? null : menuId);
+  }
+
+  closeMenu(): void {
+    this.openMenuId.set(null);
   }
 
   loadBudgetYears(): void {
@@ -202,13 +244,15 @@ export class InvestmentBudgetsComponent implements OnInit {
   }
 
   downloadTemplate(budgetYearId?: number): void {
-    this.investmentService.downloadTemplate().subscribe({
+    this.http.get('assets/templates/plantilla-presupuesto-inversiones.xlsx', {
+      responseType: 'blob'
+    }).subscribe({
       next: (blob: Blob) => {
         const url = window.URL.createObjectURL(blob);
         const link = document.createElement('a');
         const yearSuffix = budgetYearId ? `-${budgetYearId}` : '';
         link.href = url;
-        link.download = `plantilla-presupuestos-inversiones${yearSuffix}.csv`;
+        link.download = `plantilla-presupuesto-inversiones${yearSuffix}.xlsx`;
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
@@ -500,5 +544,182 @@ export class InvestmentBudgetsComponent implements OnInit {
   getCategoryName(categoryId: number): string {
     const category = this.categories().find((c) => c.id === categoryId);
     return category?.name || 'Sin categoría';
+  }
+
+  triggerFileInput(budgetYear: InvestmentBudgetYear): void {
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = '.xls,.xlsx';
+    input.onchange = (e) => this.onFileSelected(e, budgetYear);
+    input.click();
+  }
+
+  onFileSelected(event: Event, budgetYear: InvestmentBudgetYear): void {
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0];
+    if (!file) return;
+
+    const fileName = file.name.toLowerCase();
+    if (!fileName.endsWith('.xls') && !fileName.endsWith('.xlsx')) {
+      this.toastr.error('Por favor, selecciona un archivo Excel (.xls o .xlsx)', 'Error');
+      input.value = '';
+      return;
+    }
+
+    this.isImporting.set(true);
+    this.importingBudgetYear.set(budgetYear);
+
+    const reader = new FileReader();
+    reader.onload = (e: ProgressEvent<FileReader>) => {
+      try {
+        const data = e.target?.result;
+        if (!data) {
+          throw new Error('No se pudo leer el archivo');
+        }
+
+        const workbook = XLSX.read(data, { type: 'binary' });
+        const firstSheetName = workbook.SheetNames[0];
+        const worksheet = workbook.Sheets[firstSheetName];
+        const jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1, defval: null });
+
+        // Read from row 4 (index 3): A4-B4 and down
+        const processedData: ImportedInvestment[] = [];
+        
+        const parseNumericValue = (value: any): number | null => {
+          if (value === null || value === undefined || value === '') {
+            return null;
+          }
+          const num = typeof value === 'number' 
+            ? value 
+            : parseFloat(String(value).replace(/[^0-9.-]/g, ''));
+          return !isNaN(num) ? num : null;
+        };
+
+        for (let i = 3; i < jsonData.length; i++) {
+          const row = jsonData[i] as any[];
+          if (!row || row.length === 0) continue;
+
+          const categoryName = row[0]; // Column A
+          const amountValue = row[1]; // Column B
+
+          const hasCategory = categoryName !== null && categoryName !== undefined && categoryName !== '';
+          const hasAmount = amountValue !== null && amountValue !== undefined && amountValue !== '';
+          const hasAnyData = hasCategory || hasAmount;
+
+          if (!hasAnyData) {
+            continue;
+          }
+
+          processedData.push({
+            category_name: hasCategory ? String(categoryName).trim() : null,
+            amount: parseNumericValue(amountValue),
+          });
+        }
+
+        if (processedData.length === 0) {
+          this.toastr.warning(
+            'No se encontraron datos válidos en el archivo. Asegúrate de que haya datos a partir de la fila 4 (columnas A4 hasta B4).',
+            'Advertencia'
+          );
+          this.isImporting.set(false);
+          this.importingBudgetYear.set(null);
+          input.value = '';
+          return;
+        }
+
+        this.importedInvestments.set(processedData);
+        this.showImportModal.set(true);
+        this.isImporting.set(false);
+        input.value = '';
+      } catch (error) {
+        console.error('Error al leer el archivo Excel:', error);
+        this.toastr.error(
+          'Error al leer el archivo Excel. Asegúrate de que el archivo sea válido.',
+          'Error'
+        );
+        this.isImporting.set(false);
+        this.importingBudgetYear.set(null);
+        input.value = '';
+      }
+    };
+
+    reader.onerror = () => {
+      this.toastr.error('Error al leer el archivo', 'Error');
+      this.isImporting.set(false);
+      this.importingBudgetYear.set(null);
+      input.value = '';
+    };
+
+    reader.readAsBinaryString(file);
+  }
+
+  onCloseImportModal(): void {
+    this.showImportModal.set(false);
+    this.importedInvestments.set([]);
+    this.importingBudgetYear.set(null);
+  }
+
+  onSaveImportedInvestments(investments: InvestmentCreate[]): void {
+    if (!investments || investments.length === 0) {
+      this.toastr.error('No hay inversiones para guardar', 'Error');
+      return;
+    }
+
+    this.isImporting.set(true);
+    
+    // Create investments one by one
+    let completed = 0;
+    let errors = 0;
+
+    investments.forEach((investment) => {
+      this.investmentService.create(investment).subscribe({
+        next: () => {
+          completed++;
+          if (completed + errors === investments.length) {
+            if (errors === 0) {
+              this.toastr.success(
+                `${investments.length} inversión(es) importada(s) correctamente`,
+                'Éxito'
+              );
+            } else {
+              this.toastr.warning(
+                `${completed} inversión(es) importada(s), ${errors} con errores`,
+                'Advertencia'
+              );
+            }
+            this.showImportModal.set(false);
+            this.importedInvestments.set([]);
+            this.importingBudgetYear.set(null);
+            this.isImporting.set(false);
+            this.loadInvestments(this.currentPage());
+            this.loadBudgetYears();
+          }
+        },
+        error: (error: unknown) => {
+          errors++;
+          if (completed + errors === investments.length) {
+            if (errors === investments.length) {
+              const errorMessage =
+                (error as { error?: { message?: string }; message?: string })?.error
+                  ?.message ||
+                (error as { message?: string })?.message ||
+                'Error al importar las inversiones';
+              this.toastr.error(errorMessage, 'Error');
+            } else {
+              this.toastr.warning(
+                `${completed} inversión(es) importada(s), ${errors} con errores`,
+                'Advertencia'
+              );
+            }
+            this.showImportModal.set(false);
+            this.importedInvestments.set([]);
+            this.importingBudgetYear.set(null);
+            this.isImporting.set(false);
+            this.loadInvestments(this.currentPage());
+            this.loadBudgetYears();
+          }
+        },
+      });
+    });
   }
 }

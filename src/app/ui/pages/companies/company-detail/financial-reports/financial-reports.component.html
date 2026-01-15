@@ -8,7 +8,7 @@
         type="button"
         class="btn btn-sm btn-outline-primary"
         (click)="downloadTemplate()"
-        title="Descargar plantilla CSV"
+        title="Descargar plantilla XLSX"
       >
         <lucide-icon [img]="icons.Download" [size]="16"></lucide-icon>
         <span>Descargar plantilla</span>
@@ -134,21 +134,40 @@
                 ${{ (report.average_consumption_of_boxes_over_the_last_3_months || 0) | number }}
               </td>
               <td class="text-end">
-                <div class="d-flex gap-2 justify-content-end">
+                <div class="row-actions">
                   <button
-                    class="btn btn-sm btn-link text-primary p-1"
-                    title="Editar"
-                    (click)="editReport(report)"
+                    class="menu-trigger"
+                    type="button"
+                    title="Acciones"
+                    (click)="toggleMenu(report.id, $event)"
                   >
-                    <lucide-icon [img]="icons.Pencil" [size]="14"></lucide-icon>
+                    <lucide-icon [img]="icons.MoreVertical" [size]="16"></lucide-icon>
                   </button>
-                  <button
-                    class="btn btn-sm btn-link text-danger p-1"
-                    title="Eliminar"
-                    (click)="deleteReport(report)"
-                  >
-                    <lucide-icon [img]="icons.Trash2" [size]="14"></lucide-icon>
-                  </button>
+                  @if (openMenuId() === report.id) {
+                    <div class="menu-backdrop" (click)="closeMenu()"></div>
+                    <div
+                      class="menu-popover"
+                      [style.top.px]="openMenuTop()"
+                      [style.left.px]="openMenuLeft()"
+                    >
+                      <button
+                        class="menu-item text-primary"
+                        type="button"
+                        (click)="editReport(report); closeMenu()"
+                      >
+                        <lucide-icon [img]="icons.Pencil" [size]="14"></lucide-icon>
+                        Editar
+                      </button>
+                      <button
+                        class="menu-item text-danger"
+                        type="button"
+                        (click)="deleteReport(report); closeMenu()"
+                      >
+                        <lucide-icon [img]="icons.Trash2" [size]="14"></lucide-icon>
+                        Eliminar
+                      </button>
+                    </div>
+                  }
                 </div>
               </td>
             </tr>

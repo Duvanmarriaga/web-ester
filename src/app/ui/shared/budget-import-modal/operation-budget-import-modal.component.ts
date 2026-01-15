@@ -21,8 +21,11 @@ import { BudgetService, BudgetCreate } from '../../../infrastructure/services/bu
 import { BudgetCategoryService, BudgetCategory } from '../../../infrastructure/services/budget-category.service';
 import { ToastrService } from 'ngx-toastr';
 import { NgSelectModule } from '@ng-select/ng-select';
+import { firstValueFrom } from 'rxjs';
 
 export interface ImportedBudget {
+  category_name: string | null;
+  month: string | null;
   budget_date: string | null;
   budget_amount: number | null;
   executed_amount: number | null;
@@ -49,6 +52,7 @@ export class OperationBudgetImportModalComponent implements OnInit {
   companyId = input.required<number>();
   userId = input.required<number>();
   budgetYearId = input.required<number>();
+  budgetYear = input.required<number>();
   importedData = input.required<ImportedBudget[]>();
 
   // Outputs
@@ -70,7 +74,8 @@ export class OperationBudgetImportModalComponent implements OnInit {
     // Watch for importedData changes
     effect(() => {
       const data = this.importedData();
-      if (data && data.length > 0) {
+      const categories = this.categories();
+      if (data && data.length > 0 && categories.length > 0) {
         this.initializeForm(data);
       }
     });
@@ -78,7 +83,22 @@ export class OperationBudgetImportModalComponent implements OnInit {
 
   ngOnInit() {
     this.loadCategories();
-    this.initializeForm(this.importedData());
+    // Wait for categories to load before initializing form
+    this.budgetCategoryService.getByCompany(this.companyId()).subscribe({
+      next: (categories) => {
+        this.categories.set(categories);
+        this.isLoadingCategories.set(false);
+        // Initialize form after categories are loaded
+        const data = this.importedData();
+        if (data && data.length > 0) {
+          this.initializeForm(data);
+        }
+      },
+      error: (error: unknown) => {
+        console.error('Error loading categories:', error);
+        this.isLoadingCategories.set(false);
+      },
+    });
   }
 
   loadCategories(): void {
@@ -93,6 +113,64 @@ export class OperationBudgetImportModalComponent implements OnInit {
         this.isLoadingCategories.set(false);
       },
     });
+  }
+
+  // Fuzzy matching: normalize strings (lowercase, remove spaces)
+  normalizeString(str: string): string {
+    return str.toLowerCase().replace(/\s+/g, '').trim();
+  }
+
+  // Find similar category by name (case-insensitive, space-insensitive)
+  findSimilarCategory(categoryName: string | null): BudgetCategory | null {
+    if (!categoryName) return null;
+    
+    const normalizedSearch = this.normalizeString(categoryName);
+    const allCategories = this.categories();
+    
+    // First try exact match (normalized)
+    const exactMatch = allCategories.find(cat => 
+      this.normalizeString(cat.name) === normalizedSearch
+    );
+    if (exactMatch) return exactMatch;
+    
+    // Then try contains match (normalized)
+    const containsMatch = allCategories.find(cat => 
+      this.normalizeString(cat.name).includes(normalizedSearch) ||
+      normalizedSearch.includes(this.normalizeString(cat.name))
+    );
+    if (containsMatch) return containsMatch;
+    
+    return null;
+  }
+
+  // Create category if it doesn't exist
+  async createCategoryIfNeeded(categoryName: string): Promise<BudgetCategory | null> {
+    if (!categoryName || !categoryName.trim()) return null;
+    
+    // Check if it already exists (fuzzy match)
+    const existing = this.findSimilarCategory(categoryName);
+    if (existing) return existing;
+    
+    // Create new category
+    try {
+      const newCategory = await firstValueFrom(
+        this.budgetCategoryService.create({
+          name: categoryName.trim(),
+          code: categoryName.trim().toUpperCase().substring(0, 10).replace(/\s+/g, '_'),
+          company_id: this.companyId(),
+        })
+      );
+      
+      if (newCategory) {
+        // Add to local list
+        this.categories.set([...this.categories(), newCategory]);
+        return newCategory;
+      }
+    } catch (error) {
+      console.error('Error creating category:', error);
+    }
+    
+    return null;
   }
 
   initializeForm(data: ImportedBudget[]) {
@@ -125,17 +203,36 @@ export class OperationBudgetImportModalComponent implements OnInit {
         }
       }
 
+      // Format budget amount and executed amount with commas
+      const formatAmount = (amount: number): string => {
+        if (amount === null || amount === undefined || isNaN(amount)) return '';
+        if (amount % 1 === 0) {
+          return amount.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+        }
+        const parts = amount.toFixed(2).split('.');
+        const integerPart = parts[0];
+        const decimalPart = parts[1];
+        const formattedInteger = integerPart.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+        return `${formattedInteger}.${decimalPart}`;
+      };
+
+      // Try to find similar category
+      const categoryName = budget.category_name || '';
+      const similarCategory = this.findSimilarCategory(categoryName);
+      const selectedCategory = similarCategory || null;
+
       return this.fb.group({
+        category_id: [selectedCategory?.id || null, Validators.required],
+        category_name_text: [categoryName, Validators.required], // Keep original text for reference
         budget_date: [dateValue, Validators.required],
-        budget_amount: [budgetAmount, [Validators.required, Validators.min(0)]],
-        executed_amount: [executedAmount, [Validators.required, Validators.min(0)]],
-        difference_amount: [{ value: difference, disabled: true }],
+        budget_amount: [formatAmount(budgetAmount), [Validators.required, this.currencyValidator]],
+        executed_amount: [formatAmount(executedAmount), [Validators.required, this.currencyValidator]],
+        difference_amount: [{ value: formatAmount(difference), disabled: true }],
         percentage: [{ value: percentage.toFixed(2), disabled: true }],
       });
     });
 
     this.budgetForm = this.fb.group({
-      default_category_id: [null, Validators.required],
       budgets: this.fb.array(budgetGroups),
     });
 
@@ -150,16 +247,44 @@ export class OperationBudgetImportModalComponent implements OnInit {
     });
   }
 
+  currencyValidator(control: any) {
+    if (!control.value) return null;
+    const value = parseFloat(control.value.toString().replace(/[^0-9.-]/g, ''));
+    if (isNaN(value) || value < 0) {
+      return { invalidCurrency: true };
+    }
+    return null;
+  }
+
+  formatNumberWithCommas(value: number | string): string {
+    const numValue = typeof value === 'string' ? parseFloat(value.replace(/[^0-9.-]/g, '')) : value;
+    
+    if (isNaN(numValue) || numValue === null || numValue === undefined) return '';
+    
+    if (numValue % 1 === 0) {
+      return numValue.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+    }
+    
+    const parts = numValue.toFixed(2).split('.');
+    const integerPart = parts[0];
+    const decimalPart = parts[1];
+    const formattedInteger = integerPart.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+    
+    return `${formattedInteger}.${decimalPart}`;
+  }
+
   recalculateRow(index: number) {
     const control = this.budgetsArray.at(index);
-    const budgetAmount = parseFloat(control.get('budget_amount')?.value || '0');
-    const executedAmount = parseFloat(control.get('executed_amount')?.value || '0');
+    const budgetAmountStr = control.get('budget_amount')?.value?.toString().replace(/[^0-9.-]/g, '') || '0';
+    const executedAmountStr = control.get('executed_amount')?.value?.toString().replace(/[^0-9.-]/g, '') || '0';
+    const budgetAmount = parseFloat(budgetAmountStr);
+    const executedAmount = parseFloat(executedAmountStr);
     const difference = budgetAmount - executedAmount;
     const percentage = budgetAmount > 0 ? (executedAmount / budgetAmount) * 100 : 0;
 
     control.patchValue(
       {
-        difference_amount: difference,
+        difference_amount: this.formatNumberWithCommas(difference),
         percentage: percentage.toFixed(2),
       },
       { emitEvent: false }
@@ -167,24 +292,42 @@ export class OperationBudgetImportModalComponent implements OnInit {
   }
 
   formatCurrency(event: Event, index: number, field: 'budget_amount' | 'executed_amount') {
+    const investmentGroup = this.budgetsArray.at(index) as FormGroup;
+    if (!investmentGroup) return;
+    
     const input = event.target as HTMLInputElement;
     let value = input.value.replace(/[^0-9.]/g, '');
-    const control = this.budgetsArray.at(index).get(field);
-    if (control) {
-      control.setValue(value, { emitEvent: false });
-      this.recalculateRow(index);
+    
+    const parts = value.split('.');
+    if (parts.length > 2) {
+      value = parts[0] + '.' + parts.slice(1).join('');
     }
+    
+    if (parts.length === 2 && parts[1].length > 2) {
+      value = parts[0] + '.' + parts[1].substring(0, 2);
+    }
+    
+    const numValue = parseFloat(value) || 0;
+    const formatted = this.formatNumberWithCommas(numValue);
+    
+    input.value = formatted;
+    investmentGroup.patchValue({ [field]: formatted }, { emitEvent: true });
+    this.recalculateRow(index);
+    this.cdr.detectChanges();
   }
 
   formatCurrencyOnBlur(index: number, field: 'budget_amount' | 'executed_amount') {
-    const control = this.budgetsArray.at(index).get(field);
-    if (control) {
-      const value = parseFloat(control.value || '0');
-      if (!isNaN(value)) {
-        control.setValue(value.toFixed(2), { emitEvent: false });
-        this.recalculateRow(index);
-      }
-    }
+    const investmentGroup = this.budgetsArray.at(index) as FormGroup;
+    if (!investmentGroup) return;
+    
+    const control = investmentGroup.get(field);
+    if (!control) return;
+    
+    let value = control.value?.toString().replace(/[^0-9.]/g, '') || '0';
+    const numValue = parseFloat(value) || 0;
+    const formatted = this.formatNumberWithCommas(numValue);
+    control.setValue(formatted, { emitEvent: true });
+    this.recalculateRow(index);
   }
 
   removeBudget(index: number) {
@@ -207,7 +350,8 @@ export class OperationBudgetImportModalComponent implements OnInit {
   getTotalBudget(): number {
     let total = 0;
     this.budgetsArray.controls.forEach((control) => {
-      const budgetAmount = parseFloat(control.get('budget_amount')?.value || '0');
+      const budgetAmountStr = control.get('budget_amount')?.value?.toString().replace(/[^0-9.-]/g, '') || '0';
+      const budgetAmount = parseFloat(budgetAmountStr);
       total += budgetAmount;
     });
     return total;
@@ -216,13 +360,42 @@ export class OperationBudgetImportModalComponent implements OnInit {
   getTotalExecuted(): number {
     let total = 0;
     this.budgetsArray.controls.forEach((control) => {
-      const executedAmount = parseFloat(control.get('executed_amount')?.value || '0');
+      const executedAmountStr = control.get('executed_amount')?.value?.toString().replace(/[^0-9.-]/g, '') || '0';
+      const executedAmount = parseFloat(executedAmountStr);
       total += executedAmount;
     });
     return total;
   }
 
-  onSubmit() {
+  // Check if all required fields are filled
+  areAllFieldsValid(): boolean {
+    if (this.budgetsArray.length === 0) {
+      return false;
+    }
+
+    return this.budgetsArray.controls.every((control) => {
+      const categoryId = control.get('category_id')?.value;
+      const budgetDate = control.get('budget_date')?.value;
+      const budgetAmountStr = control.get('budget_amount')?.value?.toString().replace(/[^0-9.-]/g, '') || '';
+      const executedAmountStr = control.get('executed_amount')?.value?.toString().replace(/[^0-9.-]/g, '') || '';
+
+      const budgetAmount = parseFloat(budgetAmountStr);
+      const executedAmount = parseFloat(executedAmountStr);
+
+      return (
+        categoryId !== null &&
+        categoryId !== undefined &&
+        budgetDate &&
+        budgetDate.trim() !== '' &&
+        !isNaN(budgetAmount) &&
+        budgetAmount > 0 &&
+        !isNaN(executedAmount) &&
+        executedAmount >= 0
+      );
+    });
+  }
+
+  async onSubmit() {
     if (this.budgetForm.invalid) {
       this.budgetForm.markAllAsTouched();
       this.toastr.error('Por favor, completa todos los campos requeridos', 'Error');
@@ -238,9 +411,9 @@ export class OperationBudgetImportModalComponent implements OnInit {
 
     const budgets: BudgetCreate[] = [];
 
-    this.budgetsArray.controls.forEach((control) => {
+    for (const control of this.budgetsArray.controls) {
       if (control.invalid) {
-        return; // Skip invalid rows
+        continue; // Skip invalid rows
       }
 
       const budgetData = control.value;
@@ -271,18 +444,43 @@ export class OperationBudgetImportModalComponent implements OnInit {
       const percentage = budgetAmount > 0 ? (executedAmount / budgetAmount) * 100 : 0;
 
       if (!budgetDate) {
-        return; // Skip if no valid date
+        continue; // Skip if no valid date
       }
 
-      const defaultCategoryId = this.budgetForm.get('default_category_id')?.value;
-      if (!defaultCategoryId) {
-        this.toastr.error('Debe seleccionar una categoría por defecto', 'Error');
-        this.isSubmitting.set(false);
-        return;
+      // Get category ID - use selected category_id or create from category_name_text
+      let categoryId: number | null = null;
+      
+      if (budgetData.category_id) {
+        // Category was selected from dropdown
+        categoryId = budgetData.category_id;
+      } else if (budgetData.category_name_text) {
+        // Category was not selected, try to find similar or create
+        const categoryName = budgetData.category_name_text.trim();
+        if (categoryName) {
+          // Try to find similar category first
+          const similarCategory = this.findSimilarCategory(categoryName);
+          if (similarCategory) {
+            categoryId = similarCategory.id;
+          } else {
+            // Create new category
+            const newCategory = await this.createCategoryIfNeeded(categoryName);
+            if (newCategory) {
+              categoryId = newCategory.id;
+            } else {
+              this.toastr.error(`No se pudo crear la categoría "${categoryName}"`, 'Error');
+              this.isSubmitting.set(false);
+              return;
+            }
+          }
+        }
+      }
+
+      if (!categoryId) {
+        continue; // Skip if no category
       }
 
       budgets.push({
-        operation_budget_category_id: defaultCategoryId,
+        operation_budget_category_id: categoryId,
         company_id: this.companyId(),
         operation_budget_annual_id: this.budgetYearId() || null,
         budget_date: budgetDate,
@@ -291,7 +489,7 @@ export class OperationBudgetImportModalComponent implements OnInit {
         difference_amount: differenceAmount,
         percentage: percentage,
       });
-    });
+    }
 
     if (budgets.length === 0) {
       this.toastr.error('No hay presupuestos válidos para guardar', 'Error');

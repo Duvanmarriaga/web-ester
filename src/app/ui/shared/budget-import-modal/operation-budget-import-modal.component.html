@@ -3,7 +3,7 @@
   <div class="modal-dialog modal-dialog-centered" style="max-width: 95%; width: 900px;">
     <div class="modal-content" (click)="$event.stopPropagation()">
       <div class="modal-header">
-        <h5 class="modal-title">Verificar Datos Importados</h5>
+        <h5 class="modal-title">Agregar Items al Año {{ budgetYear() }}</h5>
         <button
           type="button"
           class="btn-close"
@@ -17,40 +17,50 @@
 
     <form [formGroup]="budgetForm" (ngSubmit)="onSubmit()">
       <div class="modal-body">
-        <div class="mb-3">
-          <label for="default_category_id" class="form-label fw-bold">Categoría por Defecto</label>
-          <ng-select
-            id="default_category_id"
-            [items]="categories()"
-            bindLabel="name"
-            bindValue="id"
-            placeholder="Seleccionar categoría..."
-            formControlName="default_category_id"
-            [searchable]="true"
-            [clearable]="false"
-            [loading]="isLoadingCategories()"
-            appendTo="body"
-          >
-          </ng-select>
-          @if (budgetForm.get('default_category_id')?.invalid && budgetForm.get('default_category_id')?.touched) {
-          <small class="text-danger d-block">Categoría requerida</small>
-          }
-        </div>
         <div class="table-responsive">
           <table class="table table-sm">
             <thead>
               <tr>
-                <th>Fecha</th>
-                <th>Presupuesto</th>
-                <th>Ejecutado</th>
-                <th>Diferencia</th>
-                <th>Porcentaje</th>
+                <th class="table-header">Categoría</th>
+                <th class="table-header">Fecha</th>
+                <th class="table-header">Presupuesto</th>
+                <th class="table-header">Ejecutado</th>
+                <th class="table-header">Diferencia</th>
+                <th class="table-header">Porcentaje</th>
                 <th></th>
               </tr>
             </thead>
             <tbody formArrayName="budgets">
               @for (budget of budgetsArray.controls; track $index) {
               <tr [formGroupName]="$index">
+                <td>
+                  <ng-select
+                    [items]="categories()"
+                    bindLabel="name"
+                    bindValue="id"
+                    formControlName="category_id"
+                    [searchable]="true"
+                    [clearable]="true"
+                    [loading]="isLoadingCategories()"
+                    placeholder="Seleccionar categoría..."
+                    [class.is-invalid]="
+                      budget.get('category_id')?.invalid &&
+                      budget.get('category_id')?.touched
+                    "
+                    appendTo="body"
+                  >
+                  </ng-select>
+                  @if (
+                  budget.get('category_id')?.invalid &&
+                  budget.get('category_id')?.touched
+                  ) {
+                  <small class="text-danger d-block">Categoría requerida</small>
+                  }
+                  <input
+                    type="hidden"
+                    formControlName="category_name_text"
+                  />
+                </td>
                 <td>
                   <input
                     type="month"
@@ -187,7 +197,7 @@
         <button
           type="submit"
           class="btn btn-primary"
-          [disabled]="isSubmitting() || budgetsArray.length === 0"
+          [disabled]="isSubmitting() || !areAllFieldsValid()"
         >
           @if (isSubmitting()) {
           <span

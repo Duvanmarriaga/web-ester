@@ -26,9 +26,19 @@ import { map, catchError, debounceTime, switchMap } from 'rxjs/operators';
 
 export interface ImportedFinancialReport {
   report_date: string | null;
-  income: number | null;
-  expenses: number | null;
-  profit: number | null;
+  current_asset: number | null;
+  current_passive: number | null;
+  inventories: number | null;
+  total_passive: number | null;
+  total_assets: number | null;
+  net_profit: number | null;
+  total_revenue: number | null;
+  current_value_result: number | null;
+  initial_value_of_the_year: number | null;
+  budgeted_value: number | null;
+  executed_value: number | null;
+  current_cash_balance: number | null;
+  average_consumption_of_boxes_over_the_last_3_months: number | null;
 }
 
 @Component({
@@ -75,10 +85,19 @@ export class FinancialReportImportModalComponent implements OnInit {
           this.reportsArray.removeAt(0);
         }
         
+        // Clear date errors
+        this.dateErrors.set(new Map());
+        
         // Populate form with imported data
-        importedData.forEach((data) => {
-          this.addReportRow(data);
+        importedData.forEach((data, index) => {
+          // Only add if data has at least a date
+          if (data.report_date) {
+            this.addReportRow(data);
+          }
         });
+        
+        // Force change detection
+        this.cdr.detectChanges();
       }
     });
   }
@@ -90,32 +109,26 @@ export class FinancialReportImportModalComponent implements OnInit {
 
     // Populate form with imported data if already available
     const importedData = this.importedData();
-    if (importedData.length > 0) {
+    if (importedData.length > 0 && this.isVisible()) {
       importedData.forEach((data) => {
-        this.addReportRow(data);
+        // Only add if data has at least a date
+        if (data.report_date) {
+          this.addReportRow(data);
+        }
       });
+      this.cdr.detectChanges();
     }
   }
 
   addReportRow(data: ImportedFinancialReport): void {
     // Ensure values are properly formatted
-    // Date should already be in YYYY-MM format from the parser
+    // Date should already be in YYYY-MM-DD format from the parser
     let dateValue = data.report_date || '';
     
-    // If date is in YYYY-MM-DD format, convert to YYYY-MM
-    if (dateValue && dateValue.length === 10 && dateValue.includes('-')) {
-      dateValue = dateValue.substring(0, 7); // Take YYYY-MM part
+    // If date is in YYYY-MM format, convert to YYYY-MM-01
+    if (dateValue && dateValue.length === 7 && dateValue.includes('-')) {
+      dateValue = `${dateValue}-01`;
     }
-    
-    
-    // Format income and expenses as currency strings
-    const incomeValue = data.income !== null && data.income !== undefined && !isNaN(data.income) 
-      ? this.formatNumberWithCommas(data.income) 
-      : '';
-    const expensesValue = data.expenses !== null && data.expenses !== undefined && !isNaN(data.expenses) 
-      ? this.formatNumberWithCommas(data.expenses) 
-      : '';
-    const profitValue = this.calculateProfit(data.income, data.expenses);
 
     const index = this.reportsArray.length;
     const reportGroup = this.fb.group({
@@ -124,22 +137,19 @@ export class FinancialReportImportModalComponent implements OnInit {
         [Validators.required],
         [this.createDateExistsValidator(index)],
       ],
-      income: [incomeValue, [Validators.required, this.currencyValidator]],
-      expenses: [expensesValue, [Validators.required, this.currencyValidator]],
-      profit: [{ value: profitValue, disabled: true }],
-    });
-
-    // Calculate profit when income or expenses change
-    reportGroup.get('income')?.valueChanges.subscribe(() => {
-      this.updateProfit(reportGroup);
-      // Trigger change detection for totals
-      this.reportForm.updateValueAndValidity({ emitEvent: false });
-    });
-
-    reportGroup.get('expenses')?.valueChanges.subscribe(() => {
-      this.updateProfit(reportGroup);
-      // Trigger change detection for totals
-      this.reportForm.updateValueAndValidity({ emitEvent: false });
+      current_asset: [this.formatNumberValue(data.current_asset), [Validators.required, this.currencyValidator]],
+      current_passive: [this.formatNumberValue(data.current_passive), [Validators.required, this.currencyValidator]],
+      inventories: [this.formatNumberValue(data.inventories), [this.currencyValidator]],
+      total_passive: [this.formatNumberValue(data.total_passive), [this.currencyValidator]],
+      total_assets: [this.formatNumberValue(data.total_assets), [this.currencyValidator]],
+      net_profit: [this.formatNumberValue(data.net_profit), [this.currencyValidator]],
+      total_revenue: [this.formatNumberValue(data.total_revenue), [this.currencyValidator]],
+      current_value_result: [this.formatNumberValue(data.current_value_result), [this.currencyValidator]],
+      initial_value_of_the_year: [this.formatNumberValue(data.initial_value_of_the_year), [this.currencyValidator]],
+      budgeted_value: [this.formatNumberValue(data.budgeted_value), [this.currencyValidator]],
+      executed_value: [this.formatNumberValue(data.executed_value), [this.currencyValidator]],
+      current_cash_balance: [this.formatNumberValue(data.current_cash_balance), [this.currencyValidator]],
+      average_consumption_of_boxes_over_the_last_3_months: [this.formatNumberValue(data.average_consumption_of_boxes_over_the_last_3_months), [this.currencyValidator]],
     });
 
     // Watch for date validation errors
@@ -158,6 +168,13 @@ export class FinancialReportImportModalComponent implements OnInit {
     this.reportsArray.push(reportGroup);
   }
 
+  formatNumberValue(value: number | null | undefined): string {
+    if (value !== null && value !== undefined && !isNaN(value)) {
+      return this.formatNumberWithCommas(value);
+    }
+    return '';
+  }
+
   createDateExistsValidator(initialIndex: number) {
     return (control: AbstractControl): Observable<ValidationErrors | null> => {
       if (!control.value) {
@@ -169,8 +186,13 @@ export class FinancialReportImportModalComponent implements OnInit {
       const index = currentIndex >= 0 ? currentIndex : initialIndex;
 
       const dateValue = control.value;
-      // Convert YYYY-MM to YYYY-MM-01
-      const reportDate = `${dateValue}-01`;
+      // Date should already be in YYYY-MM-DD format from input type="date"
+      let reportDate = dateValue;
+      
+      // If it's in YYYY-MM format, convert to YYYY-MM-DD
+      if (typeof dateValue === 'string' && dateValue.match(/^\d{4}-\d{2}$/)) {
+        reportDate = `${dateValue}-01`;
+      }
 
       return of(null).pipe(
         debounceTime(500),
@@ -212,7 +234,7 @@ export class FinancialReportImportModalComponent implements OnInit {
     return null;
   }
 
-  formatCurrency(event: Event, index: number, fieldName: 'income' | 'expenses'): void {
+  formatCurrency(event: Event, index: number, fieldName: string): void {
     const reportGroup = this.reportsArray.at(index) as FormGroup;
     if (!reportGroup) return;
     
@@ -240,14 +262,11 @@ export class FinancialReportImportModalComponent implements OnInit {
     // Store formatted value in form and trigger change detection
     reportGroup.patchValue({ [fieldName]: formatted }, { emitEvent: true });
     
-    // Manually trigger profit calculation
-    this.updateProfit(reportGroup);
-    
     // Force change detection to update totals
     this.cdr.detectChanges();
   }
 
-  formatCurrencyOnBlur(index: number, fieldName: 'income' | 'expenses'): void {
+  formatCurrencyOnBlur(index: number, fieldName: string): void {
     const reportGroup = this.reportsArray.at(index) as FormGroup;
     if (!reportGroup) return;
     
@@ -306,48 +325,10 @@ export class FinancialReportImportModalComponent implements OnInit {
     }
   }
 
-  updateProfit(reportGroup: FormGroup): void {
-    const incomeValue = reportGroup.get('income')?.value?.toString().replace(/[^0-9.]/g, '') || '0';
-    const expensesValue = reportGroup.get('expenses')?.value?.toString().replace(/[^0-9.]/g, '') || '0';
-    const income = parseFloat(incomeValue) || 0;
-    const expenses = parseFloat(expensesValue) || 0;
-    const profit = income - expenses;
-    reportGroup.patchValue({ profit }, { emitEvent: false });
-  }
-
-  calculateProfit(income: number | null, expenses: number | null): number {
-    const incomeValue = income !== null && income !== undefined ? income : 0;
-    const expensesValue = expenses !== null && expenses !== undefined ? expenses : 0;
-    return incomeValue - expensesValue;
-  }
-
-  getTotalProfit(): number {
-    let total = 0;
-    this.reportsArray.controls.forEach((control) => {
-      const profit = control.get('profit')?.value || 0;
-      total += profit;
-    });
-    return total;
-  }
-
-  getTotalIncome(): number {
-    let total = 0;
-    this.reportsArray.controls.forEach((control) => {
-      const incomeValue = control.get('income')?.value?.toString().replace(/[^0-9.]/g, '') || '0';
-      const income = parseFloat(incomeValue) || 0;
-      total += income;
-    });
-    return total;
-  }
-
-  getTotalExpenses(): number {
-    let total = 0;
-    this.reportsArray.controls.forEach((control) => {
-      const expensesValue = control.get('expenses')?.value?.toString().replace(/[^0-9.]/g, '') || '0';
-      const expenses = parseFloat(expensesValue) || 0;
-      total += expenses;
-    });
-    return total;
+  getNumericValue(control: AbstractControl | null): number {
+    if (!control) return 0;
+    const value = control.value?.toString().replace(/[^0-9.-]/g, '') || '0';
+    return parseFloat(value) || 0;
   }
 
   onSubmit() {
@@ -373,33 +354,41 @@ export class FinancialReportImportModalComponent implements OnInit {
       
       const reportData = control.value;
       
-      // Convert date from YYYY-MM (month input) to YYYY-MM-01 format for backend
+      // Convert date to YYYY-MM-DD format for backend
       let reportDate = '';
       if (reportData.report_date) {
-        // Input type="month" returns YYYY-MM format
-        if (typeof reportData.report_date === 'string' && reportData.report_date.match(/^\d{4}-\d{2}$/)) {
-          // Add -01 to make it a full date (first day of the month)
-          reportDate = `${reportData.report_date}-01`;
-        } else if (typeof reportData.report_date === 'string' && reportData.report_date.match(/^\d{4}-\d{2}-\d{2}$/)) {
+        if (typeof reportData.report_date === 'string' && reportData.report_date.match(/^\d{4}-\d{2}-\d{2}$/)) {
           // Already in YYYY-MM-DD format
           reportDate = reportData.report_date;
+        } else if (typeof reportData.report_date === 'string' && reportData.report_date.match(/^\d{4}-\d{2}$/)) {
+          // YYYY-MM format, add -01
+          reportDate = `${reportData.report_date}-01`;
         } else {
           // Try to parse as date
           const date = new Date(reportData.report_date);
           if (!isNaN(date.getTime())) {
             const year = date.getFullYear();
             const month = String(date.getMonth() + 1).padStart(2, '0');
-            reportDate = `${year}-${month}-01`;
+            const day = String(date.getDate()).padStart(2, '0');
+            reportDate = `${year}-${month}-${day}`;
           }
         }
       }
 
-      // Parse currency values
-      const incomeValue = reportData.income?.toString().replace(/[^0-9.]/g, '') || '0';
-      const expensesValue = reportData.expenses?.toString().replace(/[^0-9.]/g, '') || '0';
-      const income = parseFloat(incomeValue) || 0;
-      const expenses = parseFloat(expensesValue) || 0;
-      const profit = income - expenses;
+      // Parse all numeric values
+      const current_asset = this.getNumericValue(control.get('current_asset'));
+      const current_passive = this.getNumericValue(control.get('current_passive'));
+      const inventories = this.getNumericValue(control.get('inventories'));
+      const total_passive = this.getNumericValue(control.get('total_passive'));
+      const total_assets = this.getNumericValue(control.get('total_assets'));
+      const net_profit = this.getNumericValue(control.get('net_profit'));
+      const total_revenue = this.getNumericValue(control.get('total_revenue'));
+      const current_value_result = this.getNumericValue(control.get('current_value_result'));
+      const initial_value_of_the_year = this.getNumericValue(control.get('initial_value_of_the_year'));
+      const budgeted_value = this.getNumericValue(control.get('budgeted_value'));
+      const executed_value = this.getNumericValue(control.get('executed_value'));
+      const current_cash_balance = this.getNumericValue(control.get('current_cash_balance'));
+      const average_consumption_of_boxes_over_the_last_3_months = this.getNumericValue(control.get('average_consumption_of_boxes_over_the_last_3_months'));
 
       if (!reportDate) {
         this.toastr.error('Todas las fechas deben estar completas', 'Error');
@@ -411,8 +400,19 @@ export class FinancialReportImportModalComponent implements OnInit {
         company_id: this.companyId(),
         financial_report_category_id: null,
         report_date: reportDate,
-        total_revenue: income,
-        net_profit: profit,
+        current_asset: current_asset || undefined,
+        current_passive: current_passive || undefined,
+        inventories: inventories || undefined,
+        total_passive: total_passive || undefined,
+        total_assets: total_assets || undefined,
+        net_profit: net_profit || undefined,
+        total_revenue: total_revenue || undefined,
+        current_value_result: current_value_result || undefined,
+        initial_value_of_the_year: initial_value_of_the_year || undefined,
+        budgeted_value: budgeted_value || undefined,
+        executed_value: executed_value || undefined,
+        current_cash_balance: current_cash_balance || undefined,
+        average_consumption_of_boxes_over_the_last_3_months: average_consumption_of_boxes_over_the_last_3_months || undefined,
       });
     });
 

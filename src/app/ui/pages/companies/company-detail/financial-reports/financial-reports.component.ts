@@ -1,6 +1,7 @@
 import { Component, OnInit, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute } from '@angular/router';
+import { HttpClient } from '@angular/common/http';
 import { Store } from '@ngrx/store';
 import {
   LucideAngularModule,
@@ -10,6 +11,7 @@ import {
   Plus,
   Pencil,
   Trash2,
+  MoreVertical,
 } from 'lucide-angular';
 import {
   FinancialReportService,
@@ -39,6 +41,7 @@ import * as XLSX from 'xlsx';
 export class FinancialReportsComponent implements OnInit {
   private route = inject(ActivatedRoute);
   private store = inject(Store);
+  private http = inject(HttpClient);
   private financialReportService = inject(FinancialReportService);
   private financialReportCategoryService = inject(FinancialReportCategoryService);
   private toastr = inject(ToastrService);
@@ -50,6 +53,7 @@ export class FinancialReportsComponent implements OnInit {
     Plus,
     Pencil,
     Trash2,
+    MoreVertical,
   };
 
   companyId = signal<number | null>(null);
@@ -66,6 +70,9 @@ export class FinancialReportsComponent implements OnInit {
   deletingReport = signal<FinancialReport | null>(null);
   showImportModal = signal(false);
   importedReports = signal<ImportedFinancialReport[]>([]);
+  openMenuId = signal<number | null>(null);
+  openMenuTop = signal(0);
+  openMenuLeft = signal(0);
 
   ngOnInit() {
     // Get company ID from route
@@ -84,6 +91,33 @@ export class FinancialReportsComponent implements OnInit {
         this.userId.set(user.id);
       }
     });
+  }
+
+  toggleMenu(reportId: number | null | undefined, event?: MouseEvent): void {
+    if (!reportId) return;
+    const current = this.openMenuId();
+    if (current !== reportId && event) {
+      const target = event.currentTarget as HTMLElement | null;
+      if (target) {
+        const rect = target.getBoundingClientRect();
+        const menuWidth = 160;
+        const menuHeight = 120;
+        const spaceBelow = window.innerHeight - rect.bottom;
+        const spaceAbove = rect.top;
+        const shouldOpenUp = spaceBelow < menuHeight && spaceAbove > menuHeight;
+        const rawTop = shouldOpenUp ? rect.top - menuHeight - 8 : rect.bottom + 4;
+        const top = Math.max(8, Math.min(rawTop, window.innerHeight - menuHeight - 8));
+        const rawLeft = rect.right - menuWidth;
+        const left = Math.max(8, Math.min(rawLeft, window.innerWidth - menuWidth - 8));
+        this.openMenuTop.set(top);
+        this.openMenuLeft.set(left);
+      }
+    }
+    this.openMenuId.set(current === reportId ? null : reportId);
+  }
+
+  closeMenu(): void {
+    this.openMenuId.set(null);
   }
 
   loadCategories(): void {
@@ -194,12 +228,14 @@ export class FinancialReportsComponent implements OnInit {
   }
 
   downloadTemplate(): void {
-    this.financialReportService.downloadTemplate().subscribe({
+    this.http.get('assets/templates/plantilla-reportes-financieros.xlsx', {
+      responseType: 'blob'
+    }).subscribe({
       next: (blob: Blob) => {
         const url = window.URL.createObjectURL(blob);
         const link = document.createElement('a');
         link.href = url;
-        link.download = 'plantilla-reportes-financieros.csv';
+        link.download = 'plantilla-reportes-financieros.xlsx';
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
@@ -252,105 +288,183 @@ export class FinancialReportsComponent implements OnInit {
         const jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1, defval: null });
         
         // Process data starting from row 4 (index 3)
+        // Columns: A=0, B=1, C=2, D=3, E=4, F=5, G=6, H=7, I=8, J=9, K=10, L=11, M=12, N=13
         const processedData: ImportedFinancialReport[] = [];
         
-        for (let i = 3; i < jsonData.length; i++) {
-          const row = jsonData[i] as any[];
-          if (!row || row.length === 0) continue;
-          
-          // Column 0: Date (format: 1/01/2025)
-          // Column 1: Income
-          // Column 2: Expenses
-          const dateValue = row[0];
-          const incomeValue = row[1];
-          const expensesValue = row[2];
-          
-          // Check if at least one field is filled
-          const hasDate = dateValue !== null && dateValue !== undefined && dateValue !== '';
-          const hasIncome = incomeValue !== null && incomeValue !== undefined && incomeValue !== '';
-          const hasExpenses = expensesValue !== null && expensesValue !== undefined && expensesValue !== '';
-          
-          if (!hasDate && !hasIncome && !hasExpenses) {
-            continue; // Skip empty rows
+        // Helper function to parse numeric values
+        const parseNumericValue = (value: any): number | null => {
+          if (value === null || value === undefined || value === '') {
+            return null;
+          }
+          const num = typeof value === 'number' 
+            ? value 
+            : parseFloat(String(value).replace(/[^0-9.-]/g, ''));
+          return !isNaN(num) ? num : null;
+        };
+        
+        // Helper function to parse date
+        const parseDate = (dateValue: any): string | null => {
+          if (dateValue === null || dateValue === undefined || dateValue === '') {
+            return null;
           }
           
-          // Parse date - Excel stores dates as serial numbers or in format d/MM/yyyy
-          let parsedDate: string | null = null;
-          if (hasDate) {
-            try {
-              // Check if it's an Excel serial number (numeric value)
-              if (typeof dateValue === 'number') {
-                // Use XLSX to convert Excel serial date to JavaScript Date
-                const excelDate = XLSX.SSF.parse_date_code(dateValue);
-                if (excelDate) {
-                  const year = excelDate.y;
-                  const month = String(excelDate.m).padStart(2, '0');
-                  parsedDate = `${year}-${month}`;
-                } else {
-                  // Fallback: manual conversion
-                  const excelEpoch = new Date(1899, 11, 30); // December 30, 1899
-                  const jsDate = new Date(excelEpoch.getTime() + (dateValue - 1) * 24 * 60 * 60 * 1000);
-                  
-                  if (!isNaN(jsDate.getTime())) {
-                    const year = jsDate.getFullYear();
-                    const month = String(jsDate.getMonth() + 1).padStart(2, '0');
-                    parsedDate = `${year}-${month}`;
-                  }
-                }
+          try {
+            // Check if it's an Excel serial number (numeric value)
+            if (typeof dateValue === 'number') {
+              // Use XLSX to convert Excel serial date to JavaScript Date
+              const excelDate = XLSX.SSF.parse_date_code(dateValue);
+              if (excelDate) {
+                const year = excelDate.y;
+                const month = String(excelDate.m).padStart(2, '0');
+                const day = String(excelDate.d).padStart(2, '0');
+                return `${year}-${month}-${day}`;
               } else {
-                // Try to parse as string in format d/MM/yyyy or dd/MM/yyyy
-                const dateStr = String(dateValue).trim();
+                // Fallback: manual conversion
+                const excelEpoch = new Date(1899, 11, 30); // December 30, 1899
+                const jsDate = new Date(excelEpoch.getTime() + (dateValue - 1) * 24 * 60 * 60 * 1000);
                 
-                const parts = dateStr.split('/');
-                if (parts.length === 3) {
-                  const day = parseInt(parts[0], 10);
-                  const month = parseInt(parts[1], 10);
-                  const year = parseInt(parts[2], 10);
+                if (!isNaN(jsDate.getTime())) {
+                  const year = jsDate.getFullYear();
+                  const month = String(jsDate.getMonth() + 1).padStart(2, '0');
+                  const day = String(jsDate.getDate()).padStart(2, '0');
+                  return `${year}-${month}-${day}`;
+                }
+              }
+            } else if (typeof dateValue === 'string') {
+              // Try to parse as string in format d/MM/yyyy or dd/MM/yyyy
+              const dateStr = dateValue.trim();
+              
+              // Try different date formats
+              const formats = [
+                /^(\d{1,2})\/(\d{1,2})\/(\d{4})$/, // d/M/yyyy or dd/MM/yyyy
+                /^(\d{4})-(\d{2})-(\d{2})$/, // yyyy-MM-dd
+                /^(\d{2})-(\d{2})-(\d{4})$/, // MM-dd-yyyy
+              ];
+              
+              for (const format of formats) {
+                const match = dateStr.match(format);
+                if (match) {
+                  let day: number, month: number, year: number;
+                  
+                  if (format === formats[0]) {
+                    // d/M/yyyy format
+                    day = parseInt(match[1], 10);
+                    month = parseInt(match[2], 10);
+                    year = parseInt(match[3], 10);
+                  } else if (format === formats[1]) {
+                    // yyyy-MM-dd format
+                    year = parseInt(match[1], 10);
+                    month = parseInt(match[2], 10);
+                    day = parseInt(match[3], 10);
+                  } else {
+                    // MM-dd-yyyy format
+                    month = parseInt(match[1], 10);
+                    day = parseInt(match[2], 10);
+                    year = parseInt(match[3], 10);
+                  }
+                  
                   const date = new Date(year, month - 1, day);
                   if (!isNaN(date.getTime())) {
+                    const yearStr = String(year);
                     const monthStr = String(month).padStart(2, '0');
-                    parsedDate = `${year}-${monthStr}`;
+                    const dayStr = String(day).padStart(2, '0');
+                    return `${yearStr}-${monthStr}-${dayStr}`;
                   }
                 }
               }
-            } catch (e) {
-              console.warn('Error parsing date:', dateValue, e);
+            } else if (dateValue instanceof Date) {
+              // Already a Date object
+              const year = dateValue.getFullYear();
+              const month = String(dateValue.getMonth() + 1).padStart(2, '0');
+              const day = String(dateValue.getDate()).padStart(2, '0');
+              return `${year}-${month}-${day}`;
             }
+          } catch (e) {
+            console.warn('Error parsing date:', dateValue, e);
           }
           
-          // Parse income
-          let parsedIncome: number | null = null;
-          if (hasIncome) {
-            const incomeNum = typeof incomeValue === 'number' 
-              ? incomeValue 
-              : parseFloat(String(incomeValue).replace(/[^0-9.-]/g, ''));
-            if (!isNaN(incomeNum)) {
-              parsedIncome = incomeNum;
-            }
+          return null;
+        };
+        
+        // Process each row starting from index 3 (row 4 in Excel)
+        for (let i = 2; i < jsonData.length; i++) {
+          const row = jsonData[i] as any[];
+          
+          // Skip completely empty rows
+          if (!row || row.length === 0 || row.every((cell: any) => cell === null || cell === undefined || cell === '')) {
+            continue;
           }
           
-          // Parse expenses
-          let parsedExpenses: number | null = null;
-          if (hasExpenses) {
-            const expensesNum = typeof expensesValue === 'number'
-              ? expensesValue
-              : parseFloat(String(expensesValue).replace(/[^0-9.-]/g, ''));
-            if (!isNaN(expensesNum)) {
-              parsedExpenses = expensesNum;
-            }
+          // A (0): Fecha reporte
+          // B (1): Corriente Activo (current_asset)
+          // C (2): Corriente pasivo (current_passive)
+          // D (3): Inventarios (inventories)
+          // E (4): Total pasivo (total_passive)
+          // F (5): Total activos (total_assets)
+          // G (6): Utilidad neta (net_profit)
+          // H (7): Ingresos totales (total_revenue)
+          // I (8): Resultado valor actual (current_value_result)
+          // J (9): Valor inicial del año (initial_value_of_the_year)
+          // K (10): Valor presupuestado (budgeted_value)
+          // L (11): Valor ejecutado (executed_value)
+          // M (12): Saldo actual de caja (current_cash_balance)
+          // N (13): Consumo promedio de la caja en los ultimos 3 meses (average_consumption_of_boxes_over_the_last_3_months)
+          
+          const dateValue = row[0];
+          const parsedDate = parseDate(dateValue);
+          
+          // If no date could be parsed, try to use a default date or skip
+          // But first check if there's any other data in the row
+          const hasOtherData = row.slice(1).some((cell: any) => 
+            cell !== null && cell !== undefined && cell !== ''
+          );
+          
+          // If we have data but no date, we still want to include it (date can be edited in modal)
+          // Use a placeholder date that can be edited
+          const finalDate = parsedDate || (hasOtherData ? '1900-01-01' : null);
+          
+          // Only skip if row is completely empty
+          if (!finalDate && !hasOtherData) {
+            continue;
           }
           
+          // Extract all values
+          const currentAssetValue = row[1];
+          const currentPassiveValue = row[2];
+          const inventoriesValue = row[3];
+          const totalPassiveValue = row[4];
+          const totalAssetsValue = row[5];
+          const netProfitValue = row[6];
+          const totalRevenueValue = row[7];
+          const currentValueResultValue = row[8];
+          const initialValueOfTheYearValue = row[9];
+          const budgetedValueValue = row[10];
+          const executedValueValue = row[11];
+          const currentCashBalanceValue = row[12];
+          const averageConsumptionValue = row[13];
+          
+          // Add the row to processed data
           processedData.push({
-            report_date: parsedDate,
-            income: parsedIncome,
-            expenses: parsedExpenses,
-            profit: (parsedIncome || 0) - (parsedExpenses || 0),
+            report_date: finalDate,
+            current_asset: parseNumericValue(currentAssetValue),
+            current_passive: parseNumericValue(currentPassiveValue),
+            inventories: parseNumericValue(inventoriesValue),
+            total_passive: parseNumericValue(totalPassiveValue),
+            total_assets: parseNumericValue(totalAssetsValue),
+            net_profit: parseNumericValue(netProfitValue),
+            total_revenue: parseNumericValue(totalRevenueValue),
+            current_value_result: parseNumericValue(currentValueResultValue),
+            initial_value_of_the_year: parseNumericValue(initialValueOfTheYearValue),
+            budgeted_value: parseNumericValue(budgetedValueValue),
+            executed_value: parseNumericValue(executedValueValue),
+            current_cash_balance: parseNumericValue(currentCashBalanceValue),
+            average_consumption_of_boxes_over_the_last_3_months: parseNumericValue(averageConsumptionValue),
           });
         }
         
         if (processedData.length === 0) {
           this.toastr.warning(
-            'No se encontraron datos válidos en el archivo. Asegúrate de que haya datos a partir de la fila 4.',
+            'No se encontraron datos válidos en el archivo. Asegúrate de que haya datos a partir de la fila 4 (columnas A4 hasta N4).',
             'Advertencia'
           );
           this.isImporting.set(false);

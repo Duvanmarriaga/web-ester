@@ -1,6 +1,7 @@
 import { Component, OnInit, inject, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute } from '@angular/router';
+import { HttpClient } from '@angular/common/http';
 import { Store } from '@ngrx/store';
 import {
   LucideAngularModule,
@@ -12,6 +13,7 @@ import {
   Trash2,
   ChevronDown,
   ChevronUp,
+  MoreVertical,
 } from 'lucide-angular';
 import {
   BudgetService,
@@ -49,6 +51,7 @@ interface BudgetYearWithBudgets extends BudgetYear {
 export class OperationBudgetsComponent implements OnInit {
   private route = inject(ActivatedRoute);
   private store = inject(Store);
+  private http = inject(HttpClient);
   private budgetService = inject(BudgetService);
   private budgetYearService = inject(BudgetYearService);
   private toastr = inject(ToastrService);
@@ -62,6 +65,7 @@ export class OperationBudgetsComponent implements OnInit {
     Trash2,
     ChevronDown,
     ChevronUp,
+    MoreVertical,
   };
 
   companyId = signal<number | null>(null);
@@ -79,6 +83,7 @@ export class OperationBudgetsComponent implements OnInit {
   showImportModal = signal(false);
   importedBudgets = signal<ImportedBudget[]>([]);
   currentImportYearId = signal<number | null>(null);
+  importingBudgetYear = signal<BudgetYear | null>(null);
   currentPage = signal(1);
   selectedBudget = signal<Budget | null>(null);
   selectedBudgetYear = signal<BudgetYear | null>(null);
@@ -86,6 +91,9 @@ export class OperationBudgetsComponent implements OnInit {
   deletingBudget = signal<Budget | null>(null);
   deletingBudgetYear = signal<BudgetYear | null>(null);
   isDeletingBudgetYear = signal(false);
+  openMenuId = signal<string | null>(null);
+  openMenuTop = signal(0);
+  openMenuLeft = signal(0);
 
   ngOnInit() {
     this.route.parent?.paramMap.subscribe((params) => {
@@ -102,6 +110,36 @@ export class OperationBudgetsComponent implements OnInit {
         this.userId.set(user.id);
       }
     });
+  }
+
+  getMenuId(prefix: 'year' | 'budget', id: number | null | undefined): string {
+    return `${prefix}-${id ?? 'unknown'}`;
+  }
+
+  toggleMenu(menuId: string, event?: MouseEvent): void {
+    const current = this.openMenuId();
+    if (current !== menuId && event) {
+      const target = event.currentTarget as HTMLElement | null;
+      if (target) {
+        const rect = target.getBoundingClientRect();
+        const menuWidth = 220;
+        const menuHeight = 220;
+        const spaceBelow = window.innerHeight - rect.bottom;
+        const spaceAbove = rect.top;
+        const shouldOpenUp = spaceBelow < menuHeight && spaceAbove > menuHeight;
+        const rawTop = shouldOpenUp ? rect.top - menuHeight - 8 : rect.bottom + 4;
+        const top = Math.max(8, Math.min(rawTop, window.innerHeight - menuHeight - 8));
+        const rawLeft = rect.right - menuWidth;
+        const left = Math.max(8, Math.min(rawLeft, window.innerWidth - menuWidth - 8));
+        this.openMenuTop.set(top);
+        this.openMenuLeft.set(left);
+      }
+    }
+    this.openMenuId.set(current === menuId ? null : menuId);
+  }
+
+  closeMenu(): void {
+    this.openMenuId.set(null);
   }
 
   loadBudgetYears(): void {
@@ -193,13 +231,15 @@ export class OperationBudgetsComponent implements OnInit {
   }
 
   downloadTemplate(budgetYearId?: number): void {
-    this.budgetService.downloadTemplate().subscribe({
+    this.http.get('assets/templates/plantilla-presupuesto-operaciones.xlsx', {
+      responseType: 'blob'
+    }).subscribe({
       next: (blob: Blob) => {
         const url = window.URL.createObjectURL(blob);
         const link = document.createElement('a');
         const yearSuffix = budgetYearId ? `-${budgetYearId}` : '';
         link.href = url;
-        link.download = `plantilla-presupuestos${yearSuffix}.xls`;
+        link.download = `plantilla-presupuesto-operaciones${yearSuffix}.xlsx`;
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
@@ -254,130 +294,160 @@ export class OperationBudgetsComponent implements OnInit {
         const worksheet = workbook.Sheets[firstSheetName];
         const jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1, defval: null });
 
-        if (jsonData.length < 2) {
-          this.toastr.warning(
-            'El archivo no contiene datos válidos. Asegúrate de que tenga al menos una fila de datos.',
-            'Advertencia'
-          );
-          this.isImporting.set(false);
-          this.importingYearId.set(null);
-          input.value = '';
-          return;
-        }
-
-        // Find header row (usually first row)
-        const headerRow = jsonData[0] as any[];
-        const headerMap: { [key: string]: number } = {};
-        
-        // Map common column names
-        headerRow.forEach((header, index) => {
-          const headerStr = String(header || '').toLowerCase().trim();
-          if (headerStr.includes('fecha') || headerStr.includes('date')) {
-            headerMap['date'] = index;
-          } else if (headerStr.includes('presupuesto') || headerStr.includes('budget')) {
-            headerMap['budget'] = index;
-          } else if (headerStr.includes('ejecutado') || headerStr.includes('executed')) {
-            headerMap['executed'] = index;
-          }
-        });
-
-        const hasDate = 'date' in headerMap;
-        const hasBudget = 'budget' in headerMap;
-        const hasExecuted = 'executed' in headerMap;
-
-        if (!hasDate || !hasBudget || !hasExecuted) {
-          this.toastr.warning(
-            'El archivo no contiene las columnas requeridas: Fecha, Presupuesto, Ejecutado',
-            'Advertencia'
-          );
-          this.isImporting.set(false);
-          this.importingYearId.set(null);
-          input.value = '';
-          return;
-        }
-
-        // Process data rows (skip header row)
+        // Process data starting from row 4 (index 3)
+        // Columns: A=0 (Fecha/Mes), B=1 (Presupuesto)
         const processedData: ImportedBudget[] = [];
 
-        for (let i = 1; i < jsonData.length; i++) {
+        // Helper function to parse date
+        const parseDate = (dateValue: any): string | null => {
+          if (dateValue === null || dateValue === undefined || dateValue === '') {
+            return null;
+          }
+          
+          try {
+            if (typeof dateValue === 'number') {
+              const excelDate = XLSX.SSF.parse_date_code(dateValue);
+              if (excelDate) {
+                const year = excelDate.y;
+                const month = String(excelDate.m).padStart(2, '0');
+                return `${year}-${month}`;
+              } else {
+                const excelEpoch = new Date(1899, 11, 30);
+                const jsDate = new Date(excelEpoch.getTime() + (dateValue - 1) * 24 * 60 * 60 * 1000);
+                if (!isNaN(jsDate.getTime())) {
+                  const year = jsDate.getFullYear();
+                  const month = String(jsDate.getMonth() + 1).padStart(2, '0');
+                  return `${year}-${month}`;
+                }
+              }
+            } else if (typeof dateValue === 'string') {
+              const dateStr = dateValue.trim();
+              // Try different formats
+              const parts = dateStr.split('/');
+              if (parts.length === 3) {
+                const day = parseInt(parts[0], 10);
+                const month = parseInt(parts[1], 10);
+                const year = parseInt(parts[2], 10);
+                const date = new Date(year, month - 1, day);
+                if (!isNaN(date.getTime())) {
+                  const yearStr = String(year);
+                  const monthStr = String(month).padStart(2, '0');
+                  return `${yearStr}-${monthStr}`;
+                }
+              }
+              // Try YYYY-MM format
+              if (dateStr.match(/^\d{4}-\d{2}$/)) {
+                return dateStr;
+              }
+            }
+          } catch (e) {
+            console.warn('Error parsing date:', dateValue, e);
+          }
+          
+          return null;
+        };
+
+        // Helper function to parse numeric values
+        const parseNumericValue = (value: any): number | null => {
+          if (value === null || value === undefined || value === '') {
+            return null;
+          }
+          const num = typeof value === 'number' 
+            ? value 
+            : parseFloat(String(value).replace(/[^0-9.-]/g, ''));
+          return !isNaN(num) ? num : null;
+        };
+
+        // Helper function to parse month (can be number 1-12, month name, or YYYY-MM format)
+        const parseMonth = (monthValue: any, year: number): string | null => {
+          if (monthValue === null || monthValue === undefined || monthValue === '') {
+            return null;
+          }
+          
+          try {
+            if (typeof monthValue === 'number') {
+              // If it's a number between 1-12, treat as month
+              if (monthValue >= 1 && monthValue <= 12) {
+                const monthStr = String(monthValue).padStart(2, '0');
+                return `${year}-${monthStr}`;
+              }
+            } else if (typeof monthValue === 'string') {
+              const monthStr = monthValue.trim();
+              
+              // Try YYYY-MM format
+              if (monthStr.match(/^\d{4}-\d{2}$/)) {
+                return monthStr;
+              }
+              
+              // Try parsing as month number
+              const monthNum = parseInt(monthStr, 10);
+              if (!isNaN(monthNum) && monthNum >= 1 && monthNum <= 12) {
+                const monthPadded = String(monthNum).padStart(2, '0');
+                return `${year}-${monthPadded}`;
+              }
+              
+              // Try month names (Spanish)
+              const monthNames: { [key: string]: number } = {
+                'enero': 1, 'febrero': 2, 'marzo': 3, 'abril': 4,
+                'mayo': 5, 'junio': 6, 'julio': 7, 'agosto': 8,
+                'septiembre': 9, 'octubre': 10, 'noviembre': 11, 'diciembre': 12
+              };
+              const monthLower = monthStr.toLowerCase();
+              if (monthNames[monthLower]) {
+                const monthPadded = String(monthNames[monthLower]).padStart(2, '0');
+                return `${year}-${monthPadded}`;
+              }
+            }
+          } catch (e) {
+            console.warn('Error parsing month:', monthValue, e);
+          }
+          
+          return null;
+        };
+
+        // Get the year from the budget year
+        const currentBudgetYear = this.budgetYears().find(by => by.id === budgetYearId);
+        const year = currentBudgetYear?.year || new Date().getFullYear();
+
+        for (let i = 3; i < jsonData.length; i++) {
           const row = jsonData[i] as any[];
           if (!row || row.length === 0) continue;
 
-          const dateValue = row[headerMap['date']];
-          const budgetValue = row[headerMap['budget']];
-          const executedValue = row[headerMap['executed']];
+          // A (0): Categoría
+          // B (1): Mes
+          // C (2): Presupuesto
+          // D (3): Ejecutado
+          const categoryValue = row[0];
+          const monthValue = row[1];
+          const budgetValue = row[2];
+          const executedValue = row[3];
 
-          // Skip empty rows
-          if (!dateValue && !budgetValue && !executedValue) continue;
+          const hasCategory = categoryValue !== null && categoryValue !== undefined && categoryValue !== '';
+          const hasMonth = monthValue !== null && monthValue !== undefined && monthValue !== '';
+          const hasBudget = budgetValue !== null && budgetValue !== undefined && budgetValue !== '';
+          const hasExecuted = executedValue !== null && executedValue !== undefined && executedValue !== '';
+          const hasAnyData = hasCategory || hasMonth || hasBudget || hasExecuted;
 
-          // Parse date
-          let parsedDate: string | null = null;
-          if (hasDate && dateValue) {
-            try {
-              if (typeof dateValue === 'number') {
-                const excelDate = XLSX.SSF.parse_date_code(dateValue);
-                if (excelDate) {
-                  const year = excelDate.y;
-                  const month = String(excelDate.m).padStart(2, '0');
-                  parsedDate = `${year}-${month}`;
-                } else {
-                  const excelEpoch = new Date(1899, 11, 30);
-                  const jsDate = new Date(excelEpoch.getTime() + (dateValue - 1) * 24 * 60 * 60 * 1000);
-                  if (!isNaN(jsDate.getTime())) {
-                    const year = jsDate.getFullYear();
-                    const month = String(jsDate.getMonth() + 1).padStart(2, '0');
-                    parsedDate = `${year}-${month}`;
-                  }
-                }
-              } else {
-                const dateStr = String(dateValue).trim();
-                const parts = dateStr.split('/');
-                if (parts.length === 3) {
-                  const day = parseInt(parts[0], 10);
-                  const month = parseInt(parts[1], 10);
-                  const year = parseInt(parts[2], 10);
-                  const date = new Date(year, month - 1, day);
-                  if (!isNaN(date.getTime())) {
-                    const monthStr = String(month).padStart(2, '0');
-                    parsedDate = `${year}-${monthStr}`;
-                  }
-                }
-              }
-            } catch (e) {
-              console.warn('Error parsing date:', dateValue, e);
-            }
+          if (!hasAnyData) {
+            continue;
           }
 
-          // Parse budget amount
-          let parsedBudget: number | null = null;
-          if (hasBudget && budgetValue !== null && budgetValue !== undefined) {
-            const budgetNum = typeof budgetValue === 'number'
-              ? budgetValue
-              : parseFloat(String(budgetValue).replace(/[^0-9.-]/g, ''));
-            if (!isNaN(budgetNum)) {
-              parsedBudget = budgetNum;
-            }
-          }
-
-          // Parse executed amount
-          let parsedExecuted: number | null = null;
-          if (hasExecuted && executedValue !== null && executedValue !== undefined) {
-            const executedNum = typeof executedValue === 'number'
-              ? executedValue
-              : parseFloat(String(executedValue).replace(/[^0-9.-]/g, ''));
-            if (!isNaN(executedNum)) {
-              parsedExecuted = executedNum;
-            }
-          }
-
-          if (parsedDate && (parsedBudget !== null || parsedExecuted !== null)) {
+          const categoryName = hasCategory ? String(categoryValue).trim() : null;
+          const parsedMonth = parseMonth(monthValue, year);
+          const parsedBudget = parseNumericValue(budgetValue);
+          const parsedExecuted = parseNumericValue(executedValue);
+          
+          // If we have any data, include the row
+          if (categoryName || parsedMonth || parsedBudget !== null || parsedExecuted !== null) {
             const budgetAmount = parsedBudget || 0;
             const executedAmount = parsedExecuted || 0;
             const difference = budgetAmount - executedAmount;
             const percentage = budgetAmount > 0 ? (executedAmount / budgetAmount) * 100 : 0;
 
             processedData.push({
-              budget_date: parsedDate,
+              category_name: categoryName,
+              month: parsedMonth,
+              budget_date: parsedMonth, // Use parsed month as budget_date
               budget_amount: parsedBudget,
               executed_amount: parsedExecuted,
               difference_amount: difference,
@@ -388,7 +458,7 @@ export class OperationBudgetsComponent implements OnInit {
 
         if (processedData.length === 0) {
           this.toastr.warning(
-            'No se encontraron datos válidos en el archivo.',
+            'No se encontraron datos válidos en el archivo. Asegúrate de que haya datos a partir de la fila 4 (columnas A4 hasta D4: Categoría, Mes, Presupuesto, Ejecutado).',
             'Advertencia'
           );
           this.isImporting.set(false);
@@ -397,9 +467,13 @@ export class OperationBudgetsComponent implements OnInit {
           return;
         }
 
+        // Find the budget year to get the year value
+        const budgetYear = this.budgetYears().find(by => by.id === budgetYearId);
+        
         // Show import modal
         this.importedBudgets.set(processedData);
         this.currentImportYearId.set(budgetYearId);
+        this.importingBudgetYear.set(budgetYear || null);
         this.showImportModal.set(true);
         this.isImporting.set(false);
         this.importingYearId.set(null);
@@ -682,6 +756,7 @@ export class OperationBudgetsComponent implements OnInit {
     this.showImportModal.set(false);
     this.importedBudgets.set([]);
     this.currentImportYearId.set(null);
+    this.importingBudgetYear.set(null);
   }
 
   onSaveImportedBudgets(budgets: BudgetCreate[]): void {

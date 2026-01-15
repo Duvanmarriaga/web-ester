@@ -199,7 +199,7 @@ body {
 
   &:disabled {
     opacity: 0.5;
-    cursor: not-allowed;
+    cursor: default;
     transform: none !important;
   }
 }
@@ -251,7 +251,7 @@ body {
 
   &:disabled {
     background-color: $ester-bg-secondary;
-    cursor: not-allowed;
+    cursor: default;
     opacity: 0.6;
   }
 
@@ -596,7 +596,7 @@ html {
 
 //         &.ng-option-disabled {
 //           opacity: 0.5;
-//           cursor: not-allowed;
+//           cursor: default;
 
 //           &:hover {
 //             background-color: transparent;
@@ -698,7 +698,7 @@ html {
 
         &.ng-option-disabled {
           opacity: 0.5;
-          cursor: not-allowed;
+          cursor: default;
 
           &:hover {
             background-color: transparent;

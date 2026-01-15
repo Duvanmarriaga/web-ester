@@ -1,6 +1,6 @@
 @if (isVisible()) {
 <div class="modal show d-block" (click)="onBackdropClick($event)">
-  <div class="modal-dialog modal-dialog-centered" style="max-width: 95%; width: 760px;">
+  <div class="modal-dialog modal-dialog-centered financial-import-modal">
     <div class="modal-content" (click)="$event.stopPropagation()">
       <div class="modal-header">
         <h5 class="modal-title">Verificar Datos Importados</h5>
@@ -18,14 +18,24 @@
     <form [formGroup]="reportForm" (ngSubmit)="onSubmit()">
       <div class="modal-body">
         <div class="table-responsive">
-          <table class="table table-sm">
+          <table class="table table-sm table-bordered">
             <thead>
               <tr>
-                <th>Fecha</th>
-                <th>Ingresos</th>
-                <th>Egresos</th>
-                <th>Ganancia</th>
-                <th></th>
+                <th class="table-header">Fecha</th>
+                <th class="table-header">Activo Corriente</th>
+                <th class="table-header">Pasivo Corriente</th>
+                <th class="table-header">Inventarios</th>
+                <th class="table-header">Pasivo Total</th>
+                <th class="table-header">Activo Total</th>
+                <th class="table-header">Utilidad Neta</th>
+                <th class="table-header">Ingresos Totales</th>
+                <th class="table-header">Resultado Valor Actual</th>
+                <th class="table-header">Valor Inicial del Año</th>
+                <th class="table-header">Valor Presupuestado</th>
+                <th class="table-header">Valor Ejecutado</th>
+                <th class="table-header">Saldo de Caja Actual</th>
+                <th class="table-header">Consumo Promedio (3 meses)</th>
+                <th class="table-header text-end">Acciones</th>
               </tr>
             </thead>
             <tbody formArrayName="reports">
@@ -33,7 +43,7 @@
               <tr [formGroupName]="$index">
                 <td>
                   <input
-                    type="month"
+                    type="date"
                     class="form-control form-control-sm"
                     formControlName="report_date"
                     [class.is-invalid]="
@@ -58,20 +68,20 @@
                     <input
                       type="text"
                       class="form-control"
-                      formControlName="income"
-                      (input)="formatCurrency($event, $index, 'income')"
-                      (blur)="formatCurrencyOnBlur($index, 'income')"
+                      formControlName="current_asset"
+                      (input)="formatCurrency($event, $index, 'current_asset')"
+                      (blur)="formatCurrencyOnBlur($index, 'current_asset')"
                       [class.is-invalid]="
-                        report.get('income')?.invalid &&
-                        report.get('income')?.touched
+                        report.get('current_asset')?.invalid &&
+                        report.get('current_asset')?.touched
                       "
                     />
                   </div>
                   @if (
-                  report.get('income')?.invalid &&
-                  report.get('income')?.touched
+                  report.get('current_asset')?.invalid &&
+                  report.get('current_asset')?.touched
                   ) {
-                  <small class="text-danger d-block">Ingresos requeridos</small>
+                  <small class="text-danger d-block">Requerido</small>
                   }
                 </td>
                 <td class="align-middle">
@@ -80,30 +90,153 @@
                     <input
                       type="text"
                       class="form-control"
-                      formControlName="expenses"
-                      (input)="formatCurrency($event, $index, 'expenses')"
-                      (blur)="formatCurrencyOnBlur($index, 'expenses')"
+                      formControlName="current_passive"
+                      (input)="formatCurrency($event, $index, 'current_passive')"
+                      (blur)="formatCurrencyOnBlur($index, 'current_passive')"
                       [class.is-invalid]="
-                        report.get('expenses')?.invalid &&
-                        report.get('expenses')?.touched
+                        report.get('current_passive')?.invalid &&
+                        report.get('current_passive')?.touched
                       "
                     />
                   </div>
                   @if (
-                  report.get('expenses')?.invalid &&
-                  report.get('expenses')?.touched
+                  report.get('current_passive')?.invalid &&
+                  report.get('current_passive')?.touched
                   ) {
-                  <small class="text-danger d-block">Egresos requeridos</small>
+                  <small class="text-danger d-block">Requerido</small>
                   }
                 </td>
-                <td class="align-middle text-center">
-                  <span
-                    class="fw-medium"
-                    [class.text-success]="(report.get('profit')?.value || 0) > 0"
-                    [class.text-danger]="(report.get('profit')?.value || 0) < 0"
-                  >
-                    {{ (report.get('profit')?.value || 0) | number : '1.2-2' }}
-                  </span>
+                <td class="align-middle">
+                  <div class="input-group input-group-sm">
+                    <span class="input-group-text">$</span>
+                    <input
+                      type="text"
+                      class="form-control"
+                      formControlName="inventories"
+                      (input)="formatCurrency($event, $index, 'inventories')"
+                      (blur)="formatCurrencyOnBlur($index, 'inventories')"
+                    />
+                  </div>
+                </td>
+                <td class="align-middle">
+                  <div class="input-group input-group-sm">
+                    <span class="input-group-text">$</span>
+                    <input
+                      type="text"
+                      class="form-control"
+                      formControlName="total_passive"
+                      (input)="formatCurrency($event, $index, 'total_passive')"
+                      (blur)="formatCurrencyOnBlur($index, 'total_passive')"
+                    />
+                  </div>
+                </td>
+                <td class="align-middle">
+                  <div class="input-group input-group-sm">
+                    <span class="input-group-text">$</span>
+                    <input
+                      type="text"
+                      class="form-control"
+                      formControlName="total_assets"
+                      (input)="formatCurrency($event, $index, 'total_assets')"
+                      (blur)="formatCurrencyOnBlur($index, 'total_assets')"
+                    />
+                  </div>
+                </td>
+                <td class="align-middle">
+                  <div class="input-group input-group-sm">
+                    <span class="input-group-text">$</span>
+                    <input
+                      type="text"
+                      class="form-control"
+                      formControlName="net_profit"
+                      (input)="formatCurrency($event, $index, 'net_profit')"
+                      (blur)="formatCurrencyOnBlur($index, 'net_profit')"
+                    />
+                  </div>
+                </td>
+                <td class="align-middle">
+                  <div class="input-group input-group-sm">
+                    <span class="input-group-text">$</span>
+                    <input
+                      type="text"
+                      class="form-control"
+                      formControlName="total_revenue"
+                      (input)="formatCurrency($event, $index, 'total_revenue')"
+                      (blur)="formatCurrencyOnBlur($index, 'total_revenue')"
+                    />
+                  </div>
+                </td>
+                <td class="align-middle">
+                  <div class="input-group input-group-sm">
+                    <span class="input-group-text">$</span>
+                    <input
+                      type="text"
+                      class="form-control"
+                      formControlName="current_value_result"
+                      (input)="formatCurrency($event, $index, 'current_value_result')"
+                      (blur)="formatCurrencyOnBlur($index, 'current_value_result')"
+                    />
+                  </div>
+                </td>
+                <td class="align-middle">
+                  <div class="input-group input-group-sm">
+                    <span class="input-group-text">$</span>
+                    <input
+                      type="text"
+                      class="form-control"
+                      formControlName="initial_value_of_the_year"
+                      (input)="formatCurrency($event, $index, 'initial_value_of_the_year')"
+                      (blur)="formatCurrencyOnBlur($index, 'initial_value_of_the_year')"
+                    />
+                  </div>
+                </td>
+                <td class="align-middle">
+                  <div class="input-group input-group-sm">
+                    <span class="input-group-text">$</span>
+                    <input
+                      type="text"
+                      class="form-control"
+                      formControlName="budgeted_value"
+                      (input)="formatCurrency($event, $index, 'budgeted_value')"
+                      (blur)="formatCurrencyOnBlur($index, 'budgeted_value')"
+                    />
+                  </div>
+                </td>
+                <td class="align-middle">
+                  <div class="input-group input-group-sm">
+                    <span class="input-group-text">$</span>
+                    <input
+                      type="text"
+                      class="form-control"
+                      formControlName="executed_value"
+                      (input)="formatCurrency($event, $index, 'executed_value')"
+                      (blur)="formatCurrencyOnBlur($index, 'executed_value')"
+                    />
+                  </div>
+                </td>
+                <td class="align-middle">
+                  <div class="input-group input-group-sm">
+                    <span class="input-group-text">$</span>
+                    <input
+                      type="text"
+                      class="form-control"
+                      formControlName="current_cash_balance"
+                      (input)="formatCurrency($event, $index, 'current_cash_balance')"
+                      (blur)="formatCurrencyOnBlur($index, 'current_cash_balance')"
+                    />
+                  </div>
+                </td>
+                <td class="align-middle">
+                  <div class="input-group input-group-sm">
+                    <span class="input-group-text">$</span>
+                    <input
+                      type="text"
+                      class="form-control"
+                      formControlName="average_consumption_of_boxes_over_the_last_3_months"
+                      (input)="formatCurrency($event, $index, 'average_consumption_of_boxes_over_the_last_3_months')"
+                      (blur)="formatCurrencyOnBlur($index, 'average_consumption_of_boxes_over_the_last_3_months')"
+                    />
+                  </div>
                 </td>
                 <td class="align-middle text-center">
                   <button
@@ -118,20 +251,6 @@
               </tr>
               }
             </tbody>
-            <tfoot>
-              <tr class="fw-bold">
-                <td>Total</td>
-                <td>{{ getTotalIncome() | number : "1.2-2" }}</td>
-                <td>{{ getTotalExpenses() | number : "1.2-2" }}</td>
-                <td
-                  [class.text-success]="getTotalProfit() > 0"
-                  [class.text-danger]="getTotalProfit() < 0"
-                >
-                  {{ getTotalProfit() | number : "1.2-2" }}
-                </td>
-                <td></td>
-              </tr>
-            </tfoot>
           </table>
         </div>
       </div>

@@ -120,7 +120,7 @@
 
     &:disabled {
       opacity: 0.5;
-      cursor: not-allowed;
+      cursor: default;
     }
   }
 
@@ -344,7 +344,7 @@
 
       &.ng-option-disabled {
         opacity: 0.5 !important;
-        cursor: not-allowed !important;
+        cursor: default !important;
 
         &:hover {
           background-color: transparent !important;

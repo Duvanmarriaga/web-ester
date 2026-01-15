@@ -2,9 +2,9 @@
 @use "../../../../styles/variables" as *;
 @use "../../../../styles/mixins" as *;
 
-.financial-import-modal {
-  max-width: 98vw;
-  width: 98vw;
+.investment-import-modal {
+  max-width: 90vw;
+  width: 90vw;
   margin: 1rem auto;
 }
 
@@ -31,7 +31,7 @@
   table {
     margin-bottom: 0;
     width: 100%;
-    min-width: 2400px;
+    min-width: 600px;
     --bs-table-bg: transparent;
     --bs-table-hover-bg: var(--ester-bg-light);
 
@@ -88,7 +88,7 @@
     }
 
     .form-control-sm {
-      min-width: 120px;
+      min-width: 200px;
       font-size: 0.75rem;
       padding: 0.25rem 0.5rem;
     }
@@ -99,10 +99,6 @@
         padding: 0.25rem 0.5rem;
         min-width: 35px;
       }
-    }
-
-    tfoot {
-      border-top: 2px solid #dee2e6;
     }
   }
 }
@@ -124,4 +120,3 @@
 .text-success {
   color: $ester-success !important;
 }
-

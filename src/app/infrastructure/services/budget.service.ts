@@ -38,7 +38,7 @@ export class BudgetService {
 
   getAll(
     page: number = 1, 
-    perPage: number = 15, 
+    perPage: number = 50, 
     companyId?: number,
     dateFrom?: string,
     dateTo?: string

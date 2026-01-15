@@ -88,21 +88,40 @@
               </td>
               <td class="table-cell">{{ getContactName(process.contact_id) || "-" }}</td>
               <td class="text-end">
-                <div class="d-flex gap-2 justify-content-end">
+                <div class="process-actions">
                   <button
-                    class="btn btn-sm btn-link text-primary p-1"
-                    title="Editar"
-                    (click)="editProcess(process)"
+                    class="menu-trigger"
+                    type="button"
+                    title="Acciones"
+                    (click)="toggleMenu(process.id, $event)"
                   >
-                    <lucide-icon [img]="icons.Pencil" [size]="14"></lucide-icon>
+                    <lucide-icon [img]="icons.MoreVertical" [size]="16"></lucide-icon>
                   </button>
-                  <button
-                    class="btn btn-sm btn-link text-danger p-1"
-                    title="Eliminar"
-                    (click)="deleteProcess(process)"
-                  >
-                    <lucide-icon [img]="icons.Trash2" [size]="14"></lucide-icon>
-                  </button>
+                  @if (openMenuId() === process.id) {
+                    <div class="menu-backdrop" (click)="closeMenu()"></div>
+                    <div
+                      class="menu-popover"
+                      [style.top.px]="openMenuTop()"
+                      [style.left.px]="openMenuLeft()"
+                    >
+                      <button
+                        class="menu-item text-primary"
+                        type="button"
+                        (click)="editProcess(process); closeMenu()"
+                      >
+                        <lucide-icon [img]="icons.Pencil" [size]="14"></lucide-icon>
+                        Editar
+                      </button>
+                      <button
+                        class="menu-item text-danger"
+                        type="button"
+                        (click)="deleteProcess(process); closeMenu()"
+                      >
+                        <lucide-icon [img]="icons.Trash2" [size]="14"></lucide-icon>
+                        Eliminar
+                      </button>
+                    </div>
+                  }
                 </div>
               </td>
             </tr>
