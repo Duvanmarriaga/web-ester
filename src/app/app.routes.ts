@@ -4,31 +4,28 @@ import { noAuthGuard } from './infrastructure/guards/no-auth.guard';
 
 export const routes: Routes = [
   {
-    path: 'auth',
+    path: 'login',
     canActivate: [noAuthGuard],
-    children: [
-      {
-        path: 'login',
-        loadComponent: () =>
-          import('./ui/pages/auth/login/login.component').then(
-            (m) => m.LoginComponent
-          ),
-      },
-      {
-        path: 'forgot-password',
-        loadComponent: () =>
-          import(
-            './ui/pages/auth/forgot-password/forgot-password.component'
-          ).then((m) => m.ForgotPasswordComponent),
-      },
-      {
-        path: 'reset-password',
-        loadComponent: () =>
-          import(
-            './ui/pages/auth/reset-password/reset-password.component'
-          ).then((m) => m.ResetPasswordComponent),
-      },
-    ],
+    loadComponent: () =>
+      import('./ui/pages/auth/login/login.component').then(
+        (m) => m.LoginComponent
+      ),
+  },
+  {
+    path: 'forgot-password',
+    canActivate: [noAuthGuard],
+    loadComponent: () =>
+      import('./ui/pages/auth/forgot-password/forgot-password.component').then(
+        (m) => m.ForgotPasswordComponent
+      ),
+  },
+  {
+    path: 'reset-password',
+    canActivate: [noAuthGuard],
+    loadComponent: () =>
+      import('./ui/pages/auth/reset-password/reset-password.component').then(
+        (m) => m.ResetPasswordComponent
+      ),
   },
   {
     path: '',
@@ -73,9 +70,9 @@ export const routes: Routes = [
           {
             path: ':id',
             loadComponent: () =>
-              import('./ui/pages/companies/company-detail/company-detail.component').then(
-                (m) => m.CompanyDetailComponent
-              ),
+              import(
+                './ui/pages/companies/company-detail/company-detail.component'
+              ).then((m) => m.CompanyDetailComponent),
             canActivate: [authGuard],
             children: [
               {
@@ -86,30 +83,30 @@ export const routes: Routes = [
               {
                 path: 'financial',
                 loadComponent: () =>
-                  import('./ui/pages/companies/company-detail/financial-reports/financial-reports.component').then(
-                    (m) => m.FinancialReportsComponent
-                  ),
+                  import(
+                    './ui/pages/companies/company-detail/financial-reports/financial-reports.component'
+                  ).then((m) => m.FinancialReportsComponent),
               },
               {
                 path: 'operations',
                 loadComponent: () =>
-                  import('./ui/pages/companies/company-detail/budgets/operation-budgets.component').then(
-                    (m) => m.OperationBudgetsComponent
-                  ),
+                  import(
+                    './ui/pages/companies/company-detail/budgets/operation-budgets.component'
+                  ).then((m) => m.OperationBudgetsComponent),
               },
               {
                 path: 'legal',
                 loadComponent: () =>
-                  import('./ui/pages/companies/company-detail/legal-processes/legal-processes.component').then(
-                    (m) => m.LegalProcessesComponent
-                  ),
+                  import(
+                    './ui/pages/companies/company-detail/legal-processes/legal-processes.component'
+                  ).then((m) => m.LegalProcessesComponent),
               },
               {
                 path: 'investments',
                 loadComponent: () =>
-                  import('./ui/pages/companies/company-detail/investment-budgets/investment-budgets.component').then(
-                    (m) => m.InvestmentBudgetsComponent
-                  ),
+                  import(
+                    './ui/pages/companies/company-detail/investment-budgets/investment-budgets.component'
+                  ).then((m) => m.InvestmentBudgetsComponent),
               },
             ],
           },

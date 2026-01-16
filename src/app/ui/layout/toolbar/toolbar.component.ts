@@ -13,6 +13,7 @@ import { selectUser } from '../../../infrastructure/store/auth';
 import * as AuthActions from '../../../infrastructure/store/auth/auth.actions';
 import { AuthService } from '../../../infrastructure/services/auth.service';
 import { Menu, LucideAngularModule } from 'lucide-angular';
+import { UserType } from '../../../entities/interfaces';
 
 @Component({
   selector: 'app-toolbar',
@@ -30,7 +31,7 @@ export class ToolbarComponent {
   hamburgeMenu = Menu;
   userFullName = signal('');
   isUserMenuOpen = signal(false);
-
+  userRole = signal('');
   userInitials = computed(() => {
     const name = this.userFullName();
     if (!name) return 'U';
@@ -46,6 +47,7 @@ export class ToolbarComponent {
     this.store.select(selectUser).subscribe((user) => {
       if (user) {
         this.userFullName.set(user.name);
+        this.userRole.set(user.type === UserType.CLIENT ? 'Administrador' : 'Cliente');
       }
     });
   }

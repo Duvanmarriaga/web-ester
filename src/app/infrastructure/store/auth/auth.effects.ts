@@ -52,14 +52,14 @@ export class AuthEffects {
         this.authService.logout().pipe(
           map(() => {
             // Limpiar localStorage después de notificar al backend
-            this.router.navigate(['/auth/login']);
             localStorage.removeItem('token');
+            // No navegar aquí, dejar que logoutSuccess$ maneje la navegación
             return AuthActions.logoutSuccess();
           }),
           catchError((error) => {
             // Aunque falle el backend, limpiar localmente
-            this.router.navigate(['/auth/login']);
             localStorage.removeItem('token');
+            // No navegar aquí, dejar que logoutSuccess$ maneje la navegación
             return of(AuthActions.logoutSuccess());
           })
         )
@@ -71,7 +71,28 @@ export class AuthEffects {
     () =>
       this.actions$.pipe(
         ofType(AuthActions.logoutSuccess),
-        tap(() => this.router.navigate(['/auth/login']))
+        tap(() => {
+          // Obtener la URL completa del navegador (incluye query params)
+          const browserUrl = window.location.pathname + window.location.search;
+          const hasQueryParams = browserUrl.includes('?');
+          
+          // Rutas públicas que no requieren autenticación
+          const publicRoutes = ['/login', '/forgot-password', '/reset-password'];
+          const isPublicRoute = publicRoutes.some(route => browserUrl.startsWith(route));
+          
+          // Si la URL tiene query params, NO navegar (preservar la URL completa)
+          if (hasQueryParams) {
+            return;
+          }
+          
+          // Si ya estamos en una ruta pública, no navegar
+          if (isPublicRoute) {
+            return;
+          }
+          
+          // Solo navegar si no estamos en una ruta pública y no hay query params
+          this.router.navigate(['/login']);
+        })
       ),
     { dispatch: false }
   );
@@ -159,7 +180,7 @@ export class AuthEffects {
     () =>
       this.actions$.pipe(
         ofType(AuthActions.resetPasswordSuccess),
-        tap(() => this.router.navigate(['/auth/login']))
+        tap(() => this.router.navigate(['/login']))
       ),
     { dispatch: false }
   );
@@ -201,9 +222,30 @@ export class AuthEffects {
       this.actions$.pipe(
         ofType(AuthActions.refreshTokenFailure),
         tap(() => {
-          // Remove token and redirect to login
+          // Remove token
           localStorage.removeItem('token');
-          this.router.navigate(['/auth/login']);
+          // Obtener la URL completa del navegador (incluye query params)
+          const browserUrl = window.location.pathname + window.location.search;
+          const hasQueryParams = browserUrl.includes('?');
+          
+          // Rutas públicas que no requieren autenticación
+          const publicRoutes = ['/login', '/forgot-password', '/reset-password'];
+          const isPublicRoute = publicRoutes.some(route => browserUrl.startsWith(route));
+          
+          // Si la URL tiene query params, NO navegar (preservar la URL completa)
+          if (hasQueryParams) {
+            this.store.dispatch(AuthActions.logout());
+            return;
+          }
+          
+          // Si ya estamos en una ruta pública, no navegar
+          if (isPublicRoute) {
+            this.store.dispatch(AuthActions.logout());
+            return;
+          }
+          
+          // Solo navegar si no estamos en una ruta pública y no hay query params
+          this.router.navigate(['/login']);
           // Dispatch logout to clear store state
           this.store.dispatch(AuthActions.logout());
         })

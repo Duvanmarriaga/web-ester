@@ -49,7 +49,20 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
             case CODES.CODES_REFRESH.MESSAGE:
               const refreshToken = localStorage.getItem('token');
               if (!refreshToken) {
-                router.navigate(['/auth/login']);
+                // Obtener la URL completa del navegador (incluye query params)
+                const browserUrl = window.location.pathname + window.location.search;
+                const hasQueryParams = browserUrl.includes('?');
+                
+                // Rutas públicas que no requieren autenticación
+                const publicRoutes = ['/login', '/forgot-password', '/reset-password'];
+                const isPublicRoute = publicRoutes.some(route => browserUrl.startsWith(route));
+                
+                // Si la URL tiene query params o es una ruta pública, NO navegar
+                if (hasQueryParams || isPublicRoute) {
+                  return throwError(() => error);
+                }
+                
+                router.navigate(['/login']);
                 return throwError(() => error);
               }
 
@@ -71,14 +84,40 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
                 catchError((refreshError) => {
                   // If refresh token fails, logout
                   localStorage.removeItem('token');
-                  router.navigate(['/auth/login']);
+                  // Obtener la URL completa del navegador (incluye query params)
+                  const browserUrl = window.location.pathname + window.location.search;
+                  const hasQueryParams = browserUrl.includes('?');
+                  
+                  // Rutas públicas que no requieren autenticación
+                  const publicRoutes = ['/login', '/forgot-password', '/reset-password'];
+                  const isPublicRoute = publicRoutes.some(route => browserUrl.startsWith(route));
+                  
+                  // Si la URL tiene query params o es una ruta pública, NO navegar
+                  if (hasQueryParams || isPublicRoute) {
+                    return throwError(() => refreshError);
+                  }
+                  
+                  router.navigate(['/login']);
                   return throwError(() => refreshError);
                 })
               );
 
             // If Invalid token
             case CODES.CODES_INVALID.MESSAGE:
-              router.navigate(['/auth/login']);
+              // Obtener la URL completa del navegador (incluye query params)
+              const browserUrl = window.location.pathname + window.location.search;
+              const hasQueryParams = browserUrl.includes('?');
+              
+              // Rutas públicas que no requieren autenticación
+              const publicRoutes = ['/login', '/forgot-password', '/reset-password'];
+              const isPublicRoute = publicRoutes.some(route => browserUrl.startsWith(route));
+              
+              // Si la URL tiene query params o es una ruta pública, NO navegar
+              if (hasQueryParams || isPublicRoute) {
+                return throwError(() => error);
+              }
+              
+              router.navigate(['/login']);
               return throwError(() => error);
           }
         }

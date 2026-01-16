@@ -31,7 +31,7 @@
           <div class="toolbar__user-name">
             {{ userFullName() }}
           </div>
-          <small class="toolbar__user-role">Administrador</small>
+          <small class="toolbar__user-role"> {{ userRole() }} </small>
         </div>
         <span
           [innerHTML]="getIconSvg('chevron-down')"

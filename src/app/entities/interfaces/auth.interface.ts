@@ -21,9 +21,10 @@ export interface VerifyCodeRequest {
 }
 
 export interface ResetPasswordRequest {
+  token: string;
   email: string;
-  code: string;
-  newPassword: string;
+  password: string;
+  password_confirmation: string;
 }
 
 export interface RefreshTokenRequest {

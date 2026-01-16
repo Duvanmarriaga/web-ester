@@ -509,7 +509,7 @@
         "type": "http",
         "scheme": "bearer",
         "bearerFormat": "Token",
-        "description": "Ingresa el token Bearer obtenido en /api/auth/login",
+        "description": "Ingresa el token Bearer obtenido en /api/login",
         "name": "Authorization",
         "in": "header"
       }
