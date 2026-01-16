@@ -1,4 +1,4 @@
-import { Component, OnInit, inject, signal, computed } from '@angular/core';
+import { Component, OnInit, inject, signal, computed, viewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
@@ -97,12 +97,14 @@ export class InvestmentBudgetsComponent implements OnInit {
   selectedInvestment = signal<Investment | null>(null);
   selectedBudgetYear = signal<InvestmentBudgetYear | null>(null);
   showConfirmDialog = signal(false);
+  budgetYearModalComponent = viewChild<InvestmentBudgetYearModalComponent>('budgetYearModal');
   deletingInvestment = signal<Investment | null>(null);
   deletingBudgetYear = signal<InvestmentBudgetYear | null>(null);
   isDeletingBudgetYear = signal(false);
   openMenuId = signal<string | null>(null);
   openMenuTop = signal(0);
   openMenuLeft = signal(0);
+  investmentModalComponent = viewChild<InvestmentBudgetModalComponent>('investmentModal');
   showImportModal = signal(false);
   importedInvestments = signal<ImportedInvestment[]>([]);
   importingBudgetYear = signal<InvestmentBudgetYear | null>(null);
@@ -317,10 +319,17 @@ export class InvestmentBudgetsComponent implements OnInit {
     this.selectedBudgetYear.set(null);
   }
 
-  onSaveInvestment(investmentData: InvestmentCreate): void {
+  async onSaveInvestment(investmentData: InvestmentCreate): Promise<void> {
     this.investmentService.create(investmentData).subscribe({
-      next: () => {
+      next: async (createdInvestment) => {
         this.toastr.success('Presupuesto de inversión creado correctamente', 'Éxito');
+        
+        // Upload pending files for the new investment
+        const modalComponent = this.investmentModalComponent();
+        if (modalComponent && createdInvestment.id) {
+          await modalComponent.uploadFilesForNewInvestment(createdInvestment.id);
+        }
+        
         this.closeModal();
         this.loadInvestments(this.currentPage());
         this.loadBudgetYears();
@@ -365,8 +374,13 @@ export class InvestmentBudgetsComponent implements OnInit {
 
   onSaveBudgetYear(budgetYearData: InvestmentBudgetYearCreate): void {
     this.budgetYearService.create(budgetYearData).subscribe({
-      next: () => {
+      next: (newBudgetYear) => {
         this.toastr.success('Presupuesto anual de inversión creado correctamente', 'Éxito');
+        // Upload files after successful creation
+        const modal = this.budgetYearModalComponent();
+        if (modal && newBudgetYear.id) {
+          modal.uploadFilesForNewBudgetYear(newBudgetYear.id);
+        }
         this.closeBudgetYearModal();
         this.loadBudgetYears();
       },
@@ -383,8 +397,13 @@ export class InvestmentBudgetsComponent implements OnInit {
 
   onUpdateBudgetYear(updateData: { id: number; data: InvestmentBudgetYearUpdate }): void {
     this.budgetYearService.update(updateData.id, updateData.data).subscribe({
-      next: () => {
+      next: (updatedBudgetYear) => {
         this.toastr.success('Presupuesto anual de inversión actualizado correctamente', 'Éxito');
+        // Upload files after successful update
+        const modal = this.budgetYearModalComponent();
+        if (modal && updatedBudgetYear.id) {
+          modal.uploadFilesForNewBudgetYear(updatedBudgetYear.id);
+        }
         this.closeBudgetYearModal();
         this.loadBudgetYears();
       },

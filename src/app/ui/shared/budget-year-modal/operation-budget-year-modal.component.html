@@ -53,6 +53,14 @@
           <small class="form-error">El monto es requerido y debe ser un número válido</small>
           }
         </div>
+
+        <div class="mb-3">
+          <app-file-upload
+            #fileUpload
+            [tableName]="'operation_budgets_annuals'"
+            [recordId]="isEditMode() && budgetYear()?.id ? budgetYear()!.id! : currentBudgetYearId()"
+          ></app-file-upload>
+        </div>
       </div>
 
       <div class="modal-footer">

@@ -142,6 +142,7 @@
 
 @if (companyId()) {
 <app-process-modal
+  #processModal
   [defaultType]="'juridico'"
   [isVisible]="showModal()"
   [companyId]="companyId()!"

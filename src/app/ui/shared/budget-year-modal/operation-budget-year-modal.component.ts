@@ -6,6 +6,7 @@ import {
   output,
   signal,
   effect,
+  viewChild,
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import {
@@ -23,10 +24,11 @@ import {
 import { LucideAngularModule, X } from 'lucide-angular';
 import { ToastrService } from 'ngx-toastr';
 import { firstValueFrom } from 'rxjs';
+import { FileUploadComponent } from '../file-upload/file-upload.component';
 
 @Component({
   selector: 'app-operation-budget-year-modal',
-  imports: [CommonModule, ReactiveFormsModule, LucideAngularModule],
+  imports: [CommonModule, ReactiveFormsModule, LucideAngularModule, FileUploadComponent],
   templateUrl: './operation-budget-year-modal.component.html',
   styleUrl: './operation-budget-year-modal.component.scss',
 })
@@ -50,6 +52,8 @@ export class OperationBudgetYearModalComponent implements OnInit {
   isSubmitting = signal(false);
   isEditMode = signal(false);
   yearExistsError = signal<string | null>(null);
+  fileUploadComponent = viewChild<FileUploadComponent>('fileUpload');
+  currentBudgetYearId = signal<number | null>(null);
 
   constructor() {
     effect(() => {
@@ -58,6 +62,7 @@ export class OperationBudgetYearModalComponent implements OnInit {
 
       if (isVisible && currentBudgetYear) {
         this.isEditMode.set(true);
+        this.currentBudgetYearId.set(currentBudgetYear.id || null);
         setTimeout(() => {
           if (this.budgetYearForm) {
             this.populateForm(currentBudgetYear);
@@ -237,6 +242,7 @@ export class OperationBudgetYearModalComponent implements OnInit {
       const updateData: BudgetYearUpdate = {
         amount,
       };
+      this.currentBudgetYearId.set(this.budgetYear()!.id!);
       this.update.emit({ id: this.budgetYear()!.id!, data: updateData });
       this.isSubmitting.set(false);
     } else {
@@ -261,6 +267,7 @@ export class OperationBudgetYearModalComponent implements OnInit {
           year,
           amount,
         };
+        // Note: We'll set the ID after creation in the parent component
         this.save.emit(createData);
         this.isSubmitting.set(false);
       } catch (error) {
@@ -278,7 +285,16 @@ export class OperationBudgetYearModalComponent implements OnInit {
 
   onClose(): void {
     this.yearExistsError.set(null);
+    this.currentBudgetYearId.set(null);
     this.close.emit();
+  }
+
+  uploadFilesForNewBudgetYear(budgetYearId: number): void {
+    this.currentBudgetYearId.set(budgetYearId);
+    const fileUpload = this.fileUploadComponent();
+    if (fileUpload) {
+      fileUpload.uploadPendingFiles(budgetYearId);
+    }
   }
 }
 

@@ -7,6 +7,7 @@ import {
   signal,
   effect,
   computed,
+  viewChild,
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import {
@@ -40,6 +41,7 @@ import {
   distinctUntilChanged,
 } from 'rxjs/operators';
 import { ToastrService } from 'ngx-toastr';
+import { FileUploadComponent } from '../file-upload/file-upload.component';
 
 @Component({
   selector: 'app-process-modal',
@@ -48,6 +50,7 @@ import { ToastrService } from 'ngx-toastr';
     ReactiveFormsModule,
     LucideAngularModule,
     NgSelectModule,
+    FileUploadComponent,
   ],
   templateUrl: './process-modal.component.html',
   styleUrl: './process-modal.component.scss',
@@ -69,10 +72,14 @@ export class ProcessModalComponent implements OnInit {
   save = output<ProcessCreate>();
   update = output<{ id: number; data: ProcessCreate }>();
 
+  // File upload component reference
+  fileUploadComponent = viewChild<FileUploadComponent>('fileUpload');
+
   processForm!: FormGroup;
   readonly icons = { X };
   isSubmitting = signal(false);
   isEditMode = signal(false);
+  currentProcessId = signal<number | null>(null);
   statuses = signal<ProcessStatus[]>([]);
   contacts = signal<ProcessContact[]>([]);
   contactInput$ = new Subject<string>();
@@ -346,6 +353,9 @@ export class ProcessModalComponent implements OnInit {
   }
 
   populateForm(process: Process): void {
+    // Set the current process ID for file upload component
+    this.currentProcessId.set(process.id || null);
+
     const startDate = process.start_date
       ? process.start_date.substring(0, 10)
       : '';
@@ -597,22 +607,51 @@ export class ProcessModalComponent implements OnInit {
       process_status_date: statusId ? new Date().toISOString() : null,
     };
 
-    if (this.isEditMode() && this.process()?.id) {
-      this.update.emit({
-        id: this.process()!.id!,
-        data: processData,
-      });
-    } else {
-      this.save.emit(processData);
+    try {
+      if (this.isEditMode() && this.process()?.id) {
+        this.update.emit({
+          id: this.process()!.id!,
+          data: processData,
+        });
+        
+        // Upload pending files after update
+        const fileUpload = this.fileUploadComponent();
+        if (fileUpload) {
+          await fileUpload.uploadPendingFiles(this.process()!.id!);
+        }
+      } else {
+        // For new processes, emit save and let parent handle file upload after creation
+        this.save.emit(processData);
+      }
+    } catch (error) {
+      console.error('Error in submit:', error);
+      this.toastr.error('Error al guardar el proceso', 'Error');
+    } finally {
+      this.isSubmitting.set(false);
     }
-
-    this.isSubmitting.set(false);
   }
 
   onClose() {
     this.processForm.reset();
     this.isEditMode.set(false);
+    this.currentProcessId.set(null);
+    
+    // Clear pending files
+    const fileUpload = this.fileUploadComponent();
+    if (fileUpload) {
+      fileUpload.clearPendingFiles();
+    }
+    
     this.close.emit();
+  }
+
+  // Public method to upload files after process creation
+  async uploadFilesForNewProcess(processId: number): Promise<boolean> {
+    const fileUpload = this.fileUploadComponent();
+    if (fileUpload) {
+      return await fileUpload.uploadPendingFiles(processId);
+    }
+    return true;
   }
 
   onBackdropClick(event: MouseEvent) {

@@ -330,6 +330,7 @@
 
 @if (companyId() && userId()) {
 <app-operation-budget-modal
+  #budgetModal
   [isVisible]="showModal()"
   [companyId]="companyId()!"
   [userId]="userId()!"
@@ -340,6 +341,7 @@
 ></app-operation-budget-modal>
 } @if (companyId()) {
 <app-operation-budget-year-modal
+  #budgetYearModal
   [isVisible]="showBudgetYearModal()"
   [companyId]="companyId()!"
   [budgetYear]="selectedBudgetYear()"

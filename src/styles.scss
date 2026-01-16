@@ -330,6 +330,9 @@ textarea.form-control {
   border-radius: $border-radius-md !important;
   box-shadow: $ester-shadow-xl;
   border: 1px solid $ester-border-primary;
+  max-height: 80vh;
+  display: flex;
+  flex-direction: column;
   overflow: hidden;
 }
 
@@ -339,6 +342,7 @@ textarea.form-control {
   height: 50px;
   border-bottom: 1px solid $ester-border-primary;
   background-color: white;
+  flex-shrink: 0;
 }
 
 .modal-title {
@@ -350,6 +354,10 @@ textarea.form-control {
 
 .modal-body {
   padding: map.get($spacing-scale, 4);
+  overflow-y: auto;
+  overflow-x: hidden;
+  flex: 1;
+  min-height: 0;
 }
 
 .modal-footer {
@@ -357,6 +365,7 @@ textarea.form-control {
   padding: map.get($spacing-scale, 3) map.get($spacing-scale, 4);
   border-top: 1px solid $ester-border-primary;
   background-color: $ester-bg-secondary;
+  flex-shrink: 0;
 }
 
 .btn-close {

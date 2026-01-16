@@ -1,0 +1,103 @@
+<div class="file-upload-section">
+  <div class="file-upload-header">
+    <h6 class="file-upload-title">Archivos Adjuntos</h6>
+    <label class="btn btn-sm btn-outline-primary" [class.disabled]="disabled() || isUploading()">
+      <lucide-icon [img]="icons.Upload" [size]="16"></lucide-icon>
+      <span class="ms-1">Cargar Archivo</span>
+      <input
+        type="file"
+        class="d-none"
+        accept=".xlsx,.pdf,.csv"
+        multiple
+        (change)="onFileSelected($event)"
+        [disabled]="disabled() || isUploading()"
+      />
+    </label>
+  </div>
+
+  @if (isLoading()) {
+    <div class="text-center py-3">
+      <div class="spinner-border spinner-border-sm" role="status">
+        <span class="visually-hidden">Cargando...</span>
+      </div>
+    </div>
+  }
+
+  <div class="file-list">
+    <!-- Existing Files -->
+    @for (file of existingFiles(); track file.id) {
+      <div class="file-item">
+        <div class="file-icon" [style.color]="getFileIconColor(file.name)">
+          <lucide-icon [img]="getFileIcon(file.name)" [size]="20"></lucide-icon>
+        </div>
+        <div class="file-info">
+          <div class="file-name" [title]="file.name">{{ file.name }}</div>
+          <div class="file-meta">
+            {{ file.created_at | date: 'dd/MM/yyyy HH:mm' }}
+          </div>
+        </div>
+        <div class="file-actions">
+          <button
+            type="button"
+            class="btn btn-sm btn-link text-primary p-0"
+            (click)="downloadFile(file.id, file.name)"
+            [disabled]="isLoading() || disabled()"
+            title="Descargar"
+          >
+            <lucide-icon [img]="icons.Download" [size]="16"></lucide-icon>
+          </button>
+          <button
+            type="button"
+            class="btn btn-sm btn-link text-danger p-0"
+            (click)="removeExistingFile(file.id)"
+            [disabled]="isLoading() || disabled()"
+            title="Eliminar"
+          >
+            <lucide-icon [img]="icons.X" [size]="16"></lucide-icon>
+          </button>
+        </div>
+      </div>
+    }
+
+    <!-- Pending Files -->
+    @for (pendingFile of pendingFiles(); track pendingFile.id) {
+      <div class="file-item file-item-pending">
+        <div class="file-icon" [style.color]="getFileIconColor(pendingFile.file.name)">
+          <lucide-icon [img]="getFileIcon(pendingFile.file.name)" [size]="20"></lucide-icon>
+        </div>
+        <div class="file-info">
+          <div class="file-name" [title]="pendingFile.file.name">
+            {{ pendingFile.file.name }}
+          </div>
+          <div class="file-meta text-warning">
+            <small>Pendiente de subir</small>
+          </div>
+        </div>
+        <div class="file-actions">
+          <button
+            type="button"
+            class="btn btn-sm btn-link text-danger p-0"
+            (click)="removePendingFile(pendingFile.id)"
+            [disabled]="disabled()"
+            title="Eliminar"
+          >
+            <lucide-icon [img]="icons.X" [size]="16"></lucide-icon>
+          </button>
+        </div>
+      </div>
+    }
+
+    @if (existingFiles().length === 0 && pendingFiles().length === 0) {
+      <div class="text-center text-muted py-3">
+        <small>No hay archivos adjuntos</small>
+      </div>
+    }
+  </div>
+
+  @if (isUploading()) {
+    <div class="upload-progress">
+      <div class="spinner-border spinner-border-sm me-2" role="status"></div>
+      <small>Subiendo archivos...</small>
+    </div>
+  }
+</div>

@@ -7,6 +7,7 @@ import {
   signal,
   effect,
   computed,
+  viewChild,
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import {
@@ -40,6 +41,7 @@ import {
   distinctUntilChanged,
 } from 'rxjs/operators';
 import { ToastrService } from 'ngx-toastr';
+import { FileUploadComponent } from '../file-upload/file-upload.component';
 
 @Component({
   selector: 'app-investment-budget-modal',
@@ -48,6 +50,7 @@ import { ToastrService } from 'ngx-toastr';
     ReactiveFormsModule,
     LucideAngularModule,
     NgSelectModule,
+    FileUploadComponent,
   ],
   templateUrl: './investment-budget-modal.component.html',
   styleUrl: './investment-budget-modal.component.scss',
@@ -70,10 +73,14 @@ export class InvestmentBudgetModalComponent implements OnInit {
   save = output<InvestmentCreate>();
   update = output<{ id: number; data: InvestmentCreate }>();
 
+  // File upload component reference
+  fileUploadComponent = viewChild<FileUploadComponent>('fileUpload');
+
   investmentForm!: FormGroup;
   readonly icons = { X };
   isSubmitting = signal(false);
   isEditMode = signal(false);
+  currentInvestmentId = signal<number | null>(null);
   categories = signal<InvestmentCategory[]>([]);
   budgetYears = signal<InvestmentBudgetYear[]>([]);
   categoryInput$ = new Subject<string>();
@@ -396,6 +403,9 @@ export class InvestmentBudgetModalComponent implements OnInit {
 
 
   populateForm(investment: Investment): void {
+    // Set the current investment ID for file upload component
+    this.currentInvestmentId.set(investment.id || null);
+
     const amount =
       typeof investment.amount === 'number'
         ? investment.amount
@@ -529,22 +539,51 @@ export class InvestmentBudgetModalComponent implements OnInit {
       amount: parseFloat(amountValue) || 0,
     };
 
-    if (this.isEditMode() && this.investment()?.id) {
-      this.update.emit({
-        id: this.investment()!.id!,
-        data: investmentData,
-      });
-    } else {
-      this.save.emit(investmentData);
+    try {
+      if (this.isEditMode() && this.investment()?.id) {
+        this.update.emit({
+          id: this.investment()!.id!,
+          data: investmentData,
+        });
+        
+        // Upload pending files after update
+        const fileUpload = this.fileUploadComponent();
+        if (fileUpload) {
+          await fileUpload.uploadPendingFiles(this.investment()!.id!);
+        }
+      } else {
+        // For new investments, emit save and let parent handle file upload after creation
+        this.save.emit(investmentData);
+      }
+    } catch (error) {
+      console.error('Error in submit:', error);
+      this.toastr.error('Error al guardar el presupuesto de inversión', 'Error');
+    } finally {
+      this.isSubmitting.set(false);
     }
-
-    this.isSubmitting.set(false);
   }
 
   onClose() {
     this.investmentForm.reset();
     this.isEditMode.set(false);
+    this.currentInvestmentId.set(null);
+    
+    // Clear pending files
+    const fileUpload = this.fileUploadComponent();
+    if (fileUpload) {
+      fileUpload.clearPendingFiles();
+    }
+    
     this.close.emit();
+  }
+
+  // Public method to upload files after investment creation
+  async uploadFilesForNewInvestment(investmentId: number): Promise<boolean> {
+    const fileUpload = this.fileUploadComponent();
+    if (fileUpload) {
+      return await fileUpload.uploadPendingFiles(investmentId);
+    }
+    return true;
   }
 
   onBackdropClick(event: MouseEvent) {

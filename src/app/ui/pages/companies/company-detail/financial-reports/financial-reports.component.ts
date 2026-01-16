@@ -1,4 +1,4 @@
-import { Component, OnInit, inject, signal } from '@angular/core';
+import { Component, OnInit, inject, signal, viewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
@@ -18,10 +18,6 @@ import {
   FinancialReportCreate,
   FinancialReport,
 } from '../../../../../infrastructure/services/financial-report.service';
-import {
-  FinancialReportCategoryService,
-  FinancialReportCategory,
-} from '../../../../../infrastructure/services/financial-report-category.service';
 import { FinancialReportModalComponent } from '../../../../shared/financial-report-modal/financial-report-modal.component';
 import { FinancialReportImportModalComponent, ImportedFinancialReport } from '../../../../shared/financial-report-import-modal/financial-report-import-modal.component';
 import { selectUser } from '../../../../../infrastructure/store/auth/auth.selectors';
@@ -43,7 +39,6 @@ export class FinancialReportsComponent implements OnInit {
   private store = inject(Store);
   private http = inject(HttpClient);
   private financialReportService = inject(FinancialReportService);
-  private financialReportCategoryService = inject(FinancialReportCategoryService);
   private toastr = inject(ToastrService);
 
   readonly icons = {
@@ -61,7 +56,6 @@ export class FinancialReportsComponent implements OnInit {
   showModal = signal(false);
   isImporting = signal(false);
   reports = signal<FinancialReport[]>([]);
-  categories = signal<FinancialReportCategory[]>([]);
   pagination = signal<PaginatedResponse<FinancialReport> | null>(null);
   isLoading = signal(false);
   currentPage = signal(1);
@@ -73,6 +67,7 @@ export class FinancialReportsComponent implements OnInit {
   openMenuId = signal<number | null>(null);
   openMenuTop = signal(0);
   openMenuLeft = signal(0);
+  reportModalComponent = viewChild<FinancialReportModalComponent>('reportModal');
 
   ngOnInit() {
     // Get company ID from route
@@ -81,7 +76,6 @@ export class FinancialReportsComponent implements OnInit {
       if (id) {
         this.companyId.set(parseInt(id, 10));
         this.loadReports();
-        this.loadCategories();
       }
     });
 
@@ -118,26 +112,6 @@ export class FinancialReportsComponent implements OnInit {
 
   closeMenu(): void {
     this.openMenuId.set(null);
-  }
-
-  loadCategories(): void {
-    const companyId = this.companyId();
-    if (!companyId) return;
-
-    this.financialReportCategoryService.getByCompany(companyId).subscribe({
-      next: (categories) => {
-        this.categories.set(categories);
-      },
-      error: () => {
-        this.toastr.error('Error al cargar las categorías', 'Error');
-      },
-    });
-  }
-
-  getCategoryName(categoryId: number | null | undefined): string {
-    if (!categoryId) return 'Sin categoría';
-    const category = this.categories().find((c) => c.id === categoryId);
-    return category?.name || 'Sin categoría';
   }
 
   loadReports(page: number = 1): void {

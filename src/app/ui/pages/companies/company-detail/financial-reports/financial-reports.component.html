@@ -64,7 +64,6 @@
           <thead class="table-light">
             <tr>
               <th class="table-header">Fecha</th>
-              <th class="table-header">Categoría</th>
               <th class="table-header">Activo Corriente</th>
               <th class="table-header">Pasivo Corriente</th>
               <th class="table-header">Inventarios</th>
@@ -86,9 +85,6 @@
             <tr>
               <td class="table-cell">
                 {{ report.report_date | date : "dd/MM/yyyy" }}
-              </td>
-              <td class="table-cell">
-                {{ getCategoryName(report.financial_report_category_id) }}
               </td>
               <td class="table-cell fw-medium">
                 ${{ (report.current_asset || 0) | number }}
@@ -186,6 +182,7 @@
 
 @if (companyId() && userId()) {
 <app-financial-report-modal
+  #reportModal
   [isVisible]="showModal()"
   [companyId]="companyId()!"
   [userId]="userId()!"

@@ -163,6 +163,7 @@ export class UserModalComponent implements OnInit {
             email: formValue.email,
             type: formValue.type,
             companies_ids: companyIds,
+            clients_ids: [],
           },
         });
       } else {

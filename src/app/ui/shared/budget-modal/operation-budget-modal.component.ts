@@ -7,6 +7,7 @@ import {
   signal,
   effect,
   computed,
+  viewChild,
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import {
@@ -42,6 +43,7 @@ import {
   distinctUntilChanged,
 } from 'rxjs/operators';
 import { ToastrService } from 'ngx-toastr';
+import { FileUploadComponent } from '../file-upload/file-upload.component';
 
 @Component({
   selector: 'app-operation-budget-modal',
@@ -50,6 +52,7 @@ import { ToastrService } from 'ngx-toastr';
     ReactiveFormsModule,
     LucideAngularModule,
     NgSelectModule,
+    FileUploadComponent,
   ],
   templateUrl: './operation-budget-modal.component.html',
   styleUrl: './operation-budget-modal.component.scss',
@@ -72,6 +75,9 @@ export class OperationBudgetModalComponent implements OnInit {
   save = output<BudgetCreate>();
   update = output<{ id: number; data: BudgetCreate }>();
 
+  // File upload component reference
+  fileUploadComponent = viewChild<FileUploadComponent>('fileUpload');
+
   budgetForm!: FormGroup;
   readonly icons = { X };
   isSubmitting = signal(false);
@@ -84,6 +90,7 @@ export class OperationBudgetModalComponent implements OnInit {
   isLoadingBudgetYears = signal(false);
   currentSearchTerm = signal<string>('');
   isCreatingCategory = signal(false);
+  currentBudgetId = signal<number | null>(null);
   
   // Computed signal to ensure it's always an array
   categoriesList = computed(() => {
@@ -529,7 +536,7 @@ export class OperationBudgetModalComponent implements OnInit {
     
     const budget = parseFloat(budgetValue) || 0;
     const executed = parseFloat(executedValue) || 0;
-    const difference = executed - budget;
+    const difference = budget - executed;
     
     let percentage = 0;
     if (budget > 0) {
@@ -546,6 +553,9 @@ export class OperationBudgetModalComponent implements OnInit {
   }
 
   populateForm(budget: Budget): void {
+    // Set the current budget ID for file upload component
+    this.currentBudgetId.set(budget.id || null);
+
     // Extract month from budget_date (format: YYYY-MM-DD)
     let budgetMonth = '';
     if (budget.budget_date) {
@@ -720,7 +730,7 @@ export class OperationBudgetModalComponent implements OnInit {
 
     const budgetAmount = parseFloat(budgetAmountValue) || 0;
     const executedAmount = parseFloat(executedAmountValue) || 0;
-    const difference = executedAmount - budgetAmount;
+    const difference = budgetAmount - executedAmount;
     const percentage = budgetAmount > 0 ? (executedAmount / budgetAmount) * 100 : 0;
 
     const budgetData: BudgetCreate = {
@@ -734,22 +744,51 @@ export class OperationBudgetModalComponent implements OnInit {
       percentage: percentage,
     };
 
-    if (this.isEditMode() && this.budget()?.id) {
-      this.update.emit({
-        id: this.budget()!.id!,
-        data: budgetData,
-      });
-    } else {
-      this.save.emit(budgetData);
+    try {
+      if (this.isEditMode() && this.budget()?.id) {
+        this.update.emit({
+          id: this.budget()!.id!,
+          data: budgetData,
+        });
+        
+        // Upload pending files after update
+        const fileUpload = this.fileUploadComponent();
+        if (fileUpload) {
+          await fileUpload.uploadPendingFiles(this.budget()!.id!);
+        }
+      } else {
+        // For new budgets, emit save and let parent handle file upload after creation
+        this.save.emit(budgetData);
+      }
+    } catch (error) {
+      console.error('Error in submit:', error);
+      this.toastr.error('Error al guardar el presupuesto', 'Error');
+    } finally {
+      this.isSubmitting.set(false);
     }
-
-    this.isSubmitting.set(false);
   }
 
   onClose() {
     this.budgetForm.reset();
     this.isEditMode.set(false);
+    this.currentBudgetId.set(null);
+    
+    // Clear pending files
+    const fileUpload = this.fileUploadComponent();
+    if (fileUpload) {
+      fileUpload.clearPendingFiles();
+    }
+    
     this.close.emit();
+  }
+
+  // Public method to upload files after budget creation
+  async uploadFilesForNewBudget(budgetId: number): Promise<boolean> {
+    const fileUpload = this.fileUploadComponent();
+    if (fileUpload) {
+      return await fileUpload.uploadPendingFiles(budgetId);
+    }
+    return true;
   }
 
   onBackdropClick(event: MouseEvent) {

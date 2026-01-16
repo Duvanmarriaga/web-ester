@@ -26,11 +26,17 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
 
   // Clone request and add authorization header if token exists
   const token = localStorage.getItem('token');
+  
+  // Check if body is FormData - don't set Content-Type for FormData (browser will set it automatically)
+  const isFormData = req.body instanceof FormData;
+  
   const authReq = token
     ? req.clone({
-        headers: req.headers
-          .set('Content-Type', 'application/json')
-          .set('Authorization', `Bearer ${token}`),
+        headers: isFormData
+          ? req.headers.set('Authorization', `Bearer ${token}`)
+          : req.headers
+              .set('Content-Type', 'application/json')
+              .set('Authorization', `Bearer ${token}`),
       })
     : req;
 
@@ -52,10 +58,13 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
                   // Update token in localStorage
                   localStorage.setItem('token', response.access_token);
                   // Retry the original request with the new token
+                  const isFormData = req.body instanceof FormData;
                   const retryRequest = req.clone({
-                    headers: req.headers
-                      .set('Content-Type', 'application/json')
-                      .set('Authorization', `Bearer ${response.access_token}`),
+                    headers: isFormData
+                      ? req.headers.set('Authorization', `Bearer ${response.access_token}`)
+                      : req.headers
+                          .set('Content-Type', 'application/json')
+                          .set('Authorization', `Bearer ${response.access_token}`),
                   });
                   return next(retryRequest);
                 }),

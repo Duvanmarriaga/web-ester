@@ -126,6 +126,16 @@
                 placeholder="Descripción del proceso"
               ></textarea>
             </div>
+
+            <!-- File Upload Section -->
+            <div class="col-12">
+              <app-file-upload
+                #fileUpload
+                [tableName]="'processes'"
+                [recordId]="currentProcessId()"
+                [disabled]="isSubmitting()"
+              ></app-file-upload>
+            </div>
           </div>
           <div class="d-flex gap-2 justify-content-end mt-4">
             <button

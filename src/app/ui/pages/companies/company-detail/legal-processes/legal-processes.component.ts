@@ -1,4 +1,4 @@
-import { Component, OnInit, inject, signal } from '@angular/core';
+import { Component, OnInit, inject, signal, viewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute } from '@angular/router';
 import {
@@ -81,6 +81,7 @@ export class LegalProcessesComponent implements OnInit {
   openMenuId = signal<number | null>(null);
   openMenuTop = signal(0);
   openMenuLeft = signal(0);
+  processModalComponent = viewChild<ProcessModalComponent>('processModal');
 
   ngOnInit() {
     this.route.parent?.paramMap.subscribe((params) => {
@@ -192,10 +193,17 @@ export class LegalProcessesComponent implements OnInit {
     this.selectedProcess.set(null);
   }
 
-  onSaveProcess(processData: ProcessCreate): void {
+  async onSaveProcess(processData: ProcessCreate): Promise<void> {
     this.processService.create(processData).subscribe({
-      next: () => {
+      next: async (createdProcess) => {
         this.toastr.success('Proceso jurídico creado correctamente', 'Éxito');
+        
+        // Upload pending files for the new process
+        const modalComponent = this.processModalComponent();
+        if (modalComponent && createdProcess.id) {
+          await modalComponent.uploadFilesForNewProcess(createdProcess.id);
+        }
+        
         this.closeModal();
         this.loadContacts();
         this.loadProcesses(this.currentPage());
