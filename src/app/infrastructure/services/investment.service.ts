@@ -8,23 +8,32 @@ import { PaginatedResponse } from '../../entities/interfaces/pagination.interfac
 export interface Investment {
   id?: number;
   investment_budget_annual_id?: number | null;
-  investment_budget_category_id: number;
   company_id: number;
+  description?: string | null;
   amount: number;
+  executed_amount?: number;
+  variance?: number;
+  percentage_variance?: number;
 }
 
 export interface InvestmentCreate {
   investment_budget_annual_id?: number | null;
-  investment_budget_category_id: number;
   company_id: number;
+  description?: string | null;
   amount: number;
+  executed_amount?: number;
+  variance?: number;
+  percentage_variance?: number;
 }
 
 export interface InvestmentUpdate {
   investment_budget_annual_id?: number | null;
-  investment_budget_category_id?: number;
   company_id?: number;
+  description?: string | null;
   amount?: number;
+  executed_amount?: number;
+  variance?: number;
+  percentage_variance?: number;
 }
 
 @Injectable({

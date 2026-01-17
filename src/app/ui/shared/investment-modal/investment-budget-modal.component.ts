@@ -22,24 +22,11 @@ import {
   Investment,
 } from '../../../infrastructure/services/investment.service';
 import {
-  InvestmentCategoryService,
-  InvestmentCategory,
-  InvestmentCategoryCreate,
-} from '../../../infrastructure/services/investment-category.service';
-import {
   InvestmentBudgetYearService,
   InvestmentBudgetYear,
 } from '../../../infrastructure/services/investment-budget-year.service';
 import { LucideAngularModule, X } from 'lucide-angular';
-import { NgSelectModule } from '@ng-select/ng-select';
-import { firstValueFrom, Observable, of, Subject } from 'rxjs';
-import {
-  map,
-  catchError,
-  debounceTime,
-  switchMap,
-  distinctUntilChanged,
-} from 'rxjs/operators';
+import { firstValueFrom } from 'rxjs';
 import { ToastrService } from 'ngx-toastr';
 import { FileUploadComponent } from '../file-upload/file-upload.component';
 
@@ -49,7 +36,6 @@ import { FileUploadComponent } from '../file-upload/file-upload.component';
     CommonModule,
     ReactiveFormsModule,
     LucideAngularModule,
-    NgSelectModule,
     FileUploadComponent,
   ],
   templateUrl: './investment-budget-modal.component.html',
@@ -58,7 +44,6 @@ import { FileUploadComponent } from '../file-upload/file-upload.component';
 export class InvestmentBudgetModalComponent implements OnInit {
   private fb = inject(FormBuilder);
   private investmentService = inject(InvestmentService);
-  private investmentCategoryService = inject(InvestmentCategoryService);
   private budgetYearService = inject(InvestmentBudgetYearService);
   private toastr = inject(ToastrService);
 
@@ -81,19 +66,8 @@ export class InvestmentBudgetModalComponent implements OnInit {
   isSubmitting = signal(false);
   isEditMode = signal(false);
   currentInvestmentId = signal<number | null>(null);
-  categories = signal<InvestmentCategory[]>([]);
   budgetYears = signal<InvestmentBudgetYear[]>([]);
-  categoryInput$ = new Subject<string>();
-  isLoadingCategories = signal(false);
   isLoadingBudgetYears = signal(false);
-  currentSearchTerm = signal<string>('');
-  isCreatingCategory = signal(false);
-
-  // Computed signal to ensure it's always an array
-  categoriesList = computed(() => {
-    const cats = this.categories();
-    return Array.isArray(cats) ? cats : [];
-  });
 
   constructor() {
     effect(() => {
@@ -116,9 +90,10 @@ export class InvestmentBudgetModalComponent implements OnInit {
             const annualId = tempInvestment?.investment_budget_annual_id || null;
             
             this.investmentForm.reset({
-              investment_budget_category_id: '',
               investment_budget_annual_id: annualId,
+              description: '',
               amount: '0',
+              executed_amount: '0',
             });
           }
         }, 0);
@@ -127,16 +102,25 @@ export class InvestmentBudgetModalComponent implements OnInit {
   }
 
   ngOnInit() {
-    this.setupTypeahead();
-
     this.investmentForm = this.fb.group({
-      investment_budget_category_id: ['', [Validators.required]],
       investment_budget_annual_id: [null],
+      description: ['', [Validators.required]],
       amount: ['0', [Validators.required, this.currencyValidator]],
+      executed_amount: ['0', [Validators.required, this.currencyValidator]],
+      variance: [0],
+      percentage_variance: [0],
     });
 
-    // Load initial categories and budget years
-    this.loadCategories();
+    // Calculate variance and percentage when amount or executed_amount changes
+    this.investmentForm.get('amount')?.valueChanges.subscribe(() => {
+      this.recalculateVariance();
+    });
+
+    this.investmentForm.get('executed_amount')?.valueChanges.subscribe(() => {
+      this.recalculateVariance();
+    });
+
+    // Load budget years
     this.loadBudgetYears();
 
     if (this.investment() && this.isVisible()) {
@@ -145,63 +129,29 @@ export class InvestmentBudgetModalComponent implements OnInit {
     }
   }
 
-  setupTypeahead(): void {
-    this.categoryInput$
-      .pipe(
-        debounceTime(300),
-        distinctUntilChanged(),
-        switchMap((term: string) => {
-          this.isLoadingCategories.set(true);
-          this.currentSearchTerm.set(term || '');
-          const companyId = this.companyId();
-          if (!companyId) {
-            this.isLoadingCategories.set(false);
-            return of([]);
-          }
-          // If term is empty, load all categories
-          if (!term || term.trim().length === 0) {
-            return this.investmentCategoryService.getByCompany(companyId).pipe(
-              catchError(() => {
-                this.isLoadingCategories.set(false);
-                return of([]);
-              })
-            );
-          }
-          // Otherwise search
-          return this.investmentCategoryService.search(companyId, term).pipe(
-            catchError(() => {
-              this.isLoadingCategories.set(false);
-              return of([]);
-            })
-          );
-        })
-      )
-      .subscribe((categories) => {
-        this.categories.set(Array.isArray(categories) ? categories : []);
-        this.isLoadingCategories.set(false);
-      });
-  }
-
-  loadCategories(): void {
-    const companyId = this.companyId();
-    if (!companyId) {
-      this.categories.set([]);
-      return;
-    }
+  recalculateVariance(): void {
+    const amountControl = this.investmentForm.get('amount');
+    const executedAmountControl = this.investmentForm.get('executed_amount');
     
-    this.isLoadingCategories.set(true);
-    this.investmentCategoryService.getByCompany(companyId).subscribe({
-      next: (categories) => {
-        this.categories.set(Array.isArray(categories) ? categories : []);
-        this.isLoadingCategories.set(false);
-        // Trigger typeahead with empty term to show initial categories
-        this.categoryInput$.next('');
-      },
-      error: () => {
-        this.categories.set([]);
-        this.isLoadingCategories.set(false);
-      },
-    });
+    if (!amountControl || !executedAmountControl) return;
+
+    const amountStr = amountControl.value?.toString().replace(/[^0-9.]/g, '') || '0';
+    const executedAmountStr = executedAmountControl.value?.toString().replace(/[^0-9.]/g, '') || '0';
+    
+    const amount = parseFloat(amountStr) || 0;
+    const executedAmount = parseFloat(executedAmountStr) || 0;
+    
+    // Calculate variance: amount - executed_amount
+    const variance = amount - executedAmount;
+    
+    // Calculate percentage variance: (variance / amount) * 100
+    const percentageVariance = amount > 0 ? (variance / amount) * 100 : 0;
+    
+    // Store calculated values (they will be sent to API)
+    this.investmentForm.patchValue({
+      variance: variance,
+      percentage_variance: percentageVariance,
+    }, { emitEvent: false });
   }
 
   loadBudgetYears(): void {
@@ -224,86 +174,6 @@ export class InvestmentBudgetModalComponent implements OnInit {
     });
   }
 
-  onCreateCategoryFromTag(term: string | any): void {
-    let categoryName: string;
-
-    if (typeof term === 'string') {
-      categoryName = term;
-    } else if (term && typeof term === 'object' && term.name) {
-      categoryName = term.name;
-    } else if (term && typeof term === 'object' && term.value) {
-      categoryName = term.value;
-    } else {
-      categoryName = this.currentSearchTerm();
-    }
-
-    if (!categoryName || categoryName.trim().length === 0) {
-      return;
-    }
-
-    // Check if category already exists
-    const existingCategory = this.categoriesList().find(
-      (cat) => cat.name.toLowerCase() === categoryName.trim().toLowerCase()
-    );
-
-    if (existingCategory) {
-      this.investmentForm.patchValue({
-        investment_budget_category_id: existingCategory.id,
-      });
-      return;
-    }
-
-    // Create the category
-    this.createCategory(categoryName.trim());
-  }
-
-  createCategory(term: string): void {
-    const companyId = this.companyId();
-
-    if (
-      !companyId ||
-      !term ||
-      term.trim().length === 0 ||
-      this.isCreatingCategory()
-    ) {
-      return;
-    }
-
-    // Generate code from name
-    const code = term
-      .trim()
-      .toUpperCase()
-      .replace(/\s+/g, '_')
-      .replace(/[^A-Z0-9_]/g, '')
-      .substring(0, 20);
-
-    const categoryData: InvestmentCategoryCreate = {
-      code: code || 'CAT_' + Date.now(),
-      name: term.trim(),
-      company_id: companyId,
-    };
-
-    this.isCreatingCategory.set(true);
-    this.isLoadingCategories.set(true);
-
-    this.investmentCategoryService.create(categoryData).subscribe({
-      next: (newCategory) => {
-        const currentCategories = this.categories();
-        this.categories.set([...currentCategories, newCategory]);
-        this.investmentForm.patchValue({ investment_budget_category_id: newCategory.id });
-        this.toastr.success('Categoría creada exitosamente', 'Éxito');
-        this.isLoadingCategories.set(false);
-        this.isCreatingCategory.set(false);
-        this.currentSearchTerm.set('');
-      },
-      error: (error) => {
-        this.toastr.error('Error al crear la categoría', 'Error');
-        this.isLoadingCategories.set(false);
-        this.isCreatingCategory.set(false);
-        this.investmentForm.patchValue({ investment_budget_category_id: '' });
-      },
-    });
-  }
 
   currencyValidator(control: any) {
     if (!control.value) return null;
@@ -325,7 +195,7 @@ export class InvestmentBudgetModalComponent implements OnInit {
 
   formatCurrency(
     event: Event,
-    fieldName: 'amount'
+    fieldName: 'amount' | 'executed_amount'
   ): void {
     const input = event.target as HTMLInputElement;
     let value = input.value.replace(/[^0-9.]/g, '');
@@ -352,7 +222,7 @@ export class InvestmentBudgetModalComponent implements OnInit {
 
   formatNumber(
     event: Event,
-    fieldName: 'amount'
+    fieldName: 'amount' | 'executed_amount'
   ): void {
     const input = event.target as HTMLInputElement;
     let value = input.value.replace(/[^0-9.]/g, '');
@@ -368,7 +238,7 @@ export class InvestmentBudgetModalComponent implements OnInit {
     );
   }
 
-  formatCurrencyOnBlur(fieldName: 'amount'): void {
+  formatCurrencyOnBlur(fieldName: 'amount' | 'executed_amount'): void {
     const control = this.investmentForm.get(fieldName);
     if (!control) return;
 
@@ -411,59 +281,23 @@ export class InvestmentBudgetModalComponent implements OnInit {
         ? investment.amount
         : parseFloat(investment.amount as any) || 0;
 
-    // Buscar la categoría por ID para obtener el nombre
-    const categoryId = investment.investment_budget_category_id;
-    this.investmentCategoryService.getById(categoryId).subscribe({
-      next: (category) => {
-        // Agregar la categoría a la lista si no está presente
-        const currentCategories = this.categories();
-        const categoryExists = currentCategories.some(
-          (cat) => cat.id === category.id
-        );
-        if (!categoryExists) {
-          this.categories.set([...currentCategories, category]);
-        }
+    const executedAmount =
+      typeof investment.executed_amount === 'number'
+        ? investment.executed_amount
+        : parseFloat((investment.executed_amount as any) || '0') || 0;
 
-        // Establecer el valor del formulario con el objeto completo de la categoría
-        // para que ng-select pueda mostrarlo correctamente
-        this.investmentForm.patchValue(
-          {
-            investment_budget_category_id: category,
-            investment_budget_annual_id: investment.investment_budget_annual_id || null,
-            amount: this.formatNumberWithCommas(amount),
-          },
-          { emitEvent: false }
-        );
+    this.investmentForm.patchValue(
+      {
+        investment_budget_annual_id: investment.investment_budget_annual_id || null,
+        description: investment.description || '',
+        amount: this.formatNumberWithCommas(amount),
+        executed_amount: this.formatNumberWithCommas(executedAmount),
       },
-      error: () => {
-        // Si falla la búsqueda, intentar encontrar la categoría en la lista actual
-        const currentCategories = this.categories();
-        const foundCategory = currentCategories.find(
-          (cat) => cat.id === categoryId
-        );
-        
-        if (foundCategory) {
-          this.investmentForm.patchValue(
-            {
-              investment_budget_category_id: foundCategory,
-              investment_budget_annual_id: investment.investment_budget_annual_id || null,
-              amount: this.formatNumberWithCommas(amount),
-            },
-            { emitEvent: false }
-          );
-        } else {
-          // Si no se encuentra, establecer solo el ID como último recurso
-          this.investmentForm.patchValue(
-            {
-              investment_budget_category_id: categoryId,
-              investment_budget_annual_id: investment.investment_budget_annual_id || null,
-              amount: this.formatNumberWithCommas(amount),
-            },
-            { emitEvent: false }
-          );
-        }
-      },
-    });
+      { emitEvent: false }
+    );
+
+    // Recalculate variance after populating form
+    this.recalculateVariance();
   }
 
   async onSubmit() {
@@ -474,69 +308,33 @@ export class InvestmentBudgetModalComponent implements OnInit {
 
     this.isSubmitting.set(true);
 
+    // Recalculate variance before submitting
+    this.recalculateVariance();
+
     let formValue = { ...this.investmentForm.value };
-
-    // Si investment_budget_category_id es un objeto con name pero sin id, buscar la categoría en la lista
-    if (
-      formValue.investment_budget_category_id &&
-      typeof formValue.investment_budget_category_id === 'object' &&
-      formValue.investment_budget_category_id.name &&
-      !formValue.investment_budget_category_id.id
-    ) {
-      const categoryName = formValue.investment_budget_category_id.name;
-      const foundCategory = this.categoriesList().find(
-        (cat) => cat.name === categoryName
-      );
-
-      if (foundCategory) {
-        formValue.investment_budget_category_id = foundCategory.id;
-      } else {
-        // Si no encontramos la categoría, crear una nueva
-        const code = categoryName
-          .trim()
-          .toUpperCase()
-          .replace(/\s+/g, '_')
-          .replace(/[^A-Z0-9_]/g, '')
-          .substring(0, 20);
-
-        const categoryData: InvestmentCategoryCreate = {
-          code: code || 'CAT_' + Date.now(),
-          name: categoryName.trim(),
-          company_id: this.companyId(),
-        };
-
-        this.isCreatingCategory.set(true);
-        this.isLoadingCategories.set(true);
-
-        const newCategory = await firstValueFrom(
-          this.investmentCategoryService.create(categoryData)
-        );
-        formValue.investment_budget_category_id = newCategory.id;
-      }
-    }
-
-    // Extraer el ID de la categoría si es un objeto
-    let categoryId: number;
-    if (typeof formValue.investment_budget_category_id === 'object' && formValue.investment_budget_category_id.id) {
-      categoryId = formValue.investment_budget_category_id.id;
-    } else if (typeof formValue.investment_budget_category_id === 'number') {
-      categoryId = formValue.investment_budget_category_id;
-    } else {
-      categoryId = parseInt(formValue.investment_budget_category_id, 10);
-    }
 
     const amountValue =
       formValue.amount?.toString().replace(/[^0-9.]/g, '') || '0';
+    const executedAmountValue =
+      formValue.executed_amount?.toString().replace(/[^0-9.]/g, '') || '0';
 
     // Always get investment_budget_annual_id from the investment input (context)
     const currentInvestment = this.investment();
     const annualId = currentInvestment?.investment_budget_annual_id || formValue.investment_budget_annual_id || null;
 
+    const amount = parseFloat(amountValue) || 0;
+    const executedAmount = parseFloat(executedAmountValue) || 0;
+    const variance = amount - executedAmount;
+    const percentageVariance = amount > 0 ? (variance / amount) * 100 : 0;
+
     const investmentData: InvestmentCreate = {
-      investment_budget_category_id: categoryId,
       investment_budget_annual_id: annualId,
       company_id: this.companyId(),
-      amount: parseFloat(amountValue) || 0,
+      description: formValue.description?.trim() || null,
+      amount: amount,
+      executed_amount: executedAmount,
+      variance: variance,
+      percentage_variance: percentageVariance,
     };
 
     try {
@@ -593,29 +391,5 @@ export class InvestmentBudgetModalComponent implements OnInit {
     }
   }
 
-  compareCategories(category1: any, category2: any): boolean {
-    // Comparar por ID para que funcione correctamente con objetos de categoría
-    if (!category1 || !category2) return false;
-    
-    // Si ambos son objetos con id, comparar por id
-    if (typeof category1 === 'object' && typeof category2 === 'object') {
-      if (category1.id && category2.id) {
-        return category1.id === category2.id;
-      }
-      // Fallback: comparar por nombre si no tienen id
-      return category1.name === category2.name;
-    }
-    
-    // Si uno es número (ID) y el otro es objeto, comparar el ID del objeto con el número
-    if (typeof category1 === 'number' && typeof category2 === 'object' && category2.id) {
-      return category1 === category2.id;
-    }
-    if (typeof category2 === 'number' && typeof category1 === 'object' && category1.id) {
-      return category2 === category1.id;
-    }
-    
-    // Comparación directa
-    return category1 === category2;
-  }
 }
 

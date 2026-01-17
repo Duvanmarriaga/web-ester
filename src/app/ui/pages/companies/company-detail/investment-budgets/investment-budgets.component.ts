@@ -26,10 +26,6 @@ import {
   InvestmentBudgetYearCreate,
   InvestmentBudgetYearUpdate,
 } from '../../../../../infrastructure/services/investment-budget-year.service';
-import {
-  InvestmentCategoryService,
-  InvestmentCategory,
-} from '../../../../../infrastructure/services/investment-category.service';
 import { InvestmentBudgetModalComponent } from '../../../../shared/investment-modal/investment-budget-modal.component';
 import { InvestmentBudgetYearModalComponent } from '../../../../shared/investment-modal/investment-budget-year-modal.component';
 import { InvestmentImportModalComponent, ImportedInvestment } from '../../../../shared/investment-modal/investment-import-modal.component';
@@ -65,7 +61,6 @@ export class InvestmentBudgetsComponent implements OnInit {
   private http = inject(HttpClient);
   private investmentService = inject(InvestmentService);
   private budgetYearService = inject(InvestmentBudgetYearService);
-  private investmentCategoryService = inject(InvestmentCategoryService);
   private toastr = inject(ToastrService);
 
   readonly icons = {
@@ -88,7 +83,6 @@ export class InvestmentBudgetsComponent implements OnInit {
   budgetYears = signal<InvestmentBudgetYear[]>([]);
   budgetYearsWithInvestments = signal<InvestmentBudgetYearWithInvestments[]>([]);
   investmentsWithoutYear = signal<Investment[]>([]);
-  categories = signal<InvestmentCategory[]>([]);
   pagination = signal<PaginatedResponse<Investment> | null>(null);
   isLoading = signal(false);
   isImporting = signal(false);
@@ -116,7 +110,6 @@ export class InvestmentBudgetsComponent implements OnInit {
         this.companyId.set(parseInt(id, 10));
         this.loadBudgetYears();
         this.loadInvestments();
-        this.loadCategories();
       }
     });
 
@@ -282,9 +275,9 @@ export class InvestmentBudgetsComponent implements OnInit {
       // Si se pasa budgetYearId, crear un investment temporal con ese año para pre-seleccionarlo
       const tempInvestment: Investment = {
         investment_budget_annual_id: budgetYearId,
-        investment_budget_category_id: 0,
         company_id: this.companyId()!,
         amount: 0,
+        executed_amount: 0,
       };
       this.selectedInvestment.set(tempInvestment);
     }
@@ -348,10 +341,12 @@ export class InvestmentBudgetsComponent implements OnInit {
   onUpdateInvestment(updateData: { id: number; data: InvestmentCreate }): void {
     // Convert InvestmentCreate to InvestmentUpdate (all fields optional)
     const updatePayload = {
-      investment_budget_category_id: updateData.data.investment_budget_category_id,
       investment_budget_annual_id: updateData.data.investment_budget_annual_id,
       company_id: updateData.data.company_id,
       amount: updateData.data.amount,
+      executed_amount: updateData.data.executed_amount,
+      variance: updateData.data.variance,
+      percentage_variance: updateData.data.percentage_variance,
     };
     
     this.investmentService.update(updateData.id, updatePayload).subscribe({
@@ -546,24 +541,6 @@ export class InvestmentBudgetsComponent implements OnInit {
     return !budgetYearWithInvestments || budgetYearWithInvestments.investments.length === 0;
   }
 
-  loadCategories(): void {
-    const companyId = this.companyId();
-    if (!companyId) return;
-
-    this.investmentCategoryService.getByCompany(companyId).subscribe({
-      next: (categories) => {
-        this.categories.set(categories);
-      },
-      error: () => {
-        this.toastr.error('Error al cargar las categorías', 'Error');
-      },
-    });
-  }
-
-  getCategoryName(categoryId: number): string {
-    const category = this.categories().find((c) => c.id === categoryId);
-    return category?.name || 'Sin categoría';
-  }
 
   triggerFileInput(budgetYear: InvestmentBudgetYear): void {
     const input = document.createElement('input');
@@ -601,7 +578,7 @@ export class InvestmentBudgetsComponent implements OnInit {
         const worksheet = workbook.Sheets[firstSheetName];
         const jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1, defval: null });
 
-        // Read from row 4 (index 3): A4-B4 and down
+        // Read from row 4 (index 3): A4 (Descripción), B4 (Presupuesto) and C4 (Ejecutado) and down
         const processedData: ImportedInvestment[] = [];
         
         const parseNumericValue = (value: any): number | null => {
@@ -618,26 +595,29 @@ export class InvestmentBudgetsComponent implements OnInit {
           const row = jsonData[i] as any[];
           if (!row || row.length === 0) continue;
 
-          const categoryName = row[0]; // Column A
-          const amountValue = row[1]; // Column B
+          const descriptionValue = row[0]; // Column A - Descripción
+          const amountValue = row[1]; // Column B - Presupuesto
+          const executedAmountValue = row[2]; // Column C - Ejecutado
 
-          const hasCategory = categoryName !== null && categoryName !== undefined && categoryName !== '';
+          const hasDescription = descriptionValue !== null && descriptionValue !== undefined && descriptionValue !== '';
           const hasAmount = amountValue !== null && amountValue !== undefined && amountValue !== '';
-          const hasAnyData = hasCategory || hasAmount;
+          const hasExecutedAmount = executedAmountValue !== null && executedAmountValue !== undefined && executedAmountValue !== '';
+          const hasAnyData = hasDescription || hasAmount || hasExecutedAmount;
 
           if (!hasAnyData) {
             continue;
           }
 
           processedData.push({
-            category_name: hasCategory ? String(categoryName).trim() : null,
+            description: hasDescription ? String(descriptionValue).trim() : null,
             amount: parseNumericValue(amountValue),
+            executed_amount: parseNumericValue(executedAmountValue),
           });
         }
 
         if (processedData.length === 0) {
           this.toastr.warning(
-            'No se encontraron datos válidos en el archivo. Asegúrate de que haya datos a partir de la fila 4 (columnas A4 hasta B4).',
+            'No se encontraron datos válidos en el archivo. Asegúrate de que haya datos a partir de la fila 4 (columnas A4: Descripción, B4: Presupuesto, C4: Ejecutado).',
             'Advertencia'
           );
           this.isImporting.set(false);

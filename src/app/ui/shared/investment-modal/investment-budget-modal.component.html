@@ -23,33 +23,25 @@
         <form [formGroup]="investmentForm" (ngSubmit)="onSubmit()">
           <div class="row g-3">
             <div class="col-12">
-              <label for="investment_budget_category_id" class="form-label"
-                >Categoría</label
-              >
-              <ng-select
-                id="investment_budget_category_id"
-                [items]="categoriesList()"
-                bindLabel="name"
-                [compareWith]="compareCategories"
-                placeholder="Escribe para buscar o presiona Enter para crear..."
-                formControlName="investment_budget_category_id"
-                [searchable]="true"
-                [clearable]="true"
-                [loading]="isLoadingCategories()"
-                [typeahead]="categoryInput$"
-                [addTag]="true"
-                [addTagText]="'Crear: '"
-                (onAddTag)="onCreateCategoryFromTag($event)"
-                appendTo="body"
-              >
-              </ng-select>
-              @if (investmentForm.get('investment_budget_category_id')?.invalid &&
-              investmentForm.get('investment_budget_category_id')?.touched) {
-              <small class="form-error">Categoría requerida</small>
+              <label for="description" class="form-label">Descripción</label>
+              <input
+                type="text"
+                class="form-control"
+                id="description"
+                formControlName="description"
+                placeholder="Ingrese una descripción"
+                [class.is-invalid]="
+                  investmentForm.get('description')?.invalid &&
+                  investmentForm.get('description')?.touched
+                "
+              />
+              @if (investmentForm.get('description')?.invalid &&
+              investmentForm.get('description')?.touched) {
+              <small class="form-error">Descripción requerida</small>
               }
             </div>
             <div class="col-12">
-              <label for="amount" class="form-label">Monto</label>
+              <label for="amount" class="form-label">Presupuesto</label>
               <div class="input-group">
                 <span class="input-group-text">$</span>
                 <input
@@ -65,9 +57,62 @@
               @if (investmentForm.get('amount')?.invalid &&
               investmentForm.get('amount')?.touched) {
               <small class="form-error"
-                >Monto requerido (mínimo 0)</small
+                >Presupuesto requerido (mínimo 0)</small
               >
               }
+            </div>
+            <div class="col-12">
+              <label for="executed_amount" class="form-label">Ejecutado</label>
+              <div class="input-group">
+                <span class="input-group-text">$</span>
+                <input
+                  type="text"
+                  class="form-control"
+                  id="executed_amount"
+                  formControlName="executed_amount"
+                  placeholder="000"
+                  (input)="formatCurrency($event, 'executed_amount')"
+                  (blur)="formatCurrencyOnBlur('executed_amount')"
+                />
+              </div>
+              @if (investmentForm.get('executed_amount')?.invalid &&
+              investmentForm.get('executed_amount')?.touched) {
+              <small class="form-error"
+                >Ejecutado requerido (mínimo 0)</small
+              >
+              }
+            </div>
+            <div class="col-12">
+              <div class="row g-2">
+                <div class="col-6">
+                  <label class="form-label">Variación</label>
+                  <div class="input-group">
+                    <span class="input-group-text">$</span>
+                    <input
+                      type="text"
+                      class="form-control"
+                      [value]="investmentForm.get('variance')?.value | number : '1.2-2'"
+                      readonly
+                      [class.text-success]="(investmentForm.get('variance')?.value || 0) > 0"
+                      [class.text-danger]="(investmentForm.get('variance')?.value || 0) < 0"
+                    />
+                  </div>
+                </div>
+                <div class="col-6">
+                  <label class="form-label">% Variación</label>
+                  <div class="input-group">
+                    <input
+                      type="text"
+                      class="form-control"
+                      [value]="(investmentForm.get('percentage_variance')?.value || 0) | number : '1.2-2'"
+                      readonly
+                      [class.text-success]="(investmentForm.get('percentage_variance')?.value || 0) > 0"
+                      [class.text-danger]="(investmentForm.get('percentage_variance')?.value || 0) < 0"
+                    />
+                    <span class="input-group-text">%</span>
+                  </div>
+                </div>
+              </div>
             </div>
 
             <!-- File Upload Section -->

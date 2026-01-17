@@ -171,20 +171,39 @@
                     @for (investment of budgetYear.investments; track
                     investment.id) {
                     <div class="budget-month-item">
-                      <div class="budget-month-date-col">
-                        <span class="budget-month-date fw-medium">
-                          {{
-                            getCategoryName(
-                              investment.investment_budget_category_id
-                            )
-                          }}
-                        </span>
-                      </div>
                       <div class="budget-month-data-col">
                         <div class="budget-month-data-item">
-                          <span class="budget-data-label">Monto</span>
+                          <span class="budget-data-label">Descripción</span>
+                          <span class="budget-data-value fw-medium">
+                            {{ investment.description || 'Presupuesto de Inversión' }}
+                          </span>
+                        </div>
+                        <div class="budget-month-data-item">
+                          <span class="budget-data-label">Presupuesto</span>
                           <span class="budget-data-value fw-medium">
                             ${{ investment.amount | number : "1.2-2" }}
+                          </span>
+                        </div>
+                        <div class="budget-month-data-item">
+                          <span class="budget-data-label">Ejecutado</span>
+                          <span class="budget-data-value fw-medium">
+                            ${{ (investment.executed_amount || 0) | number : "1.2-2" }}
+                          </span>
+                        </div>
+                        <div class="budget-month-data-item">
+                          <span class="budget-data-label">Variación</span>
+                          <span class="budget-data-value fw-medium"
+                            [class.text-success]="(investment.variance || 0) > 0"
+                            [class.text-danger]="(investment.variance || 0) < 0">
+                            ${{ (investment.variance || 0) | number : "1.2-2" }}
+                          </span>
+                        </div>
+                        <div class="budget-month-data-item">
+                          <span class="budget-data-label">% Variación</span>
+                          <span class="budget-data-value fw-medium"
+                            [class.text-success]="(investment.percentage_variance || 0) > 0"
+                            [class.text-danger]="(investment.percentage_variance || 0) < 0">
+                            {{ (investment.percentage_variance || 0) | number : "1.2-2" }}%
                           </span>
                         </div>
                       </div>
@@ -259,72 +278,112 @@
               </td>
             </tr>
             @for (investment of investmentsWithoutYear(); track investment.id) {
-            <tr>
+            <tr class="budget-month-row">
               <td class="table-cell"></td>
-              <td class="table-cell" colspan="2">
-                <div class="d-flex flex-column">
-                  <span class="fw-medium">Presupuesto de Inversión</span>
-                  <div class="d-flex gap-3 mt-1">
-                    <small>
-                      <span class="text-muted">Monto:</span>
-                      <span class="fw-medium"
-                        >${{ investment.amount | number : "1.2-2" }}</span
-                      >
-                    </small>
+              <td colspan="3" class="p-0">
+                <div class="budget-months-container">
+                  <div class="budget-months-list">
+                    <div class="budget-month-item">
+                      <div class="budget-month-data-col">
+                        <div class="budget-month-data-item">
+                          <span class="budget-data-label">Descripción</span>
+                          <span class="budget-data-value fw-medium">
+                            {{ investment.description || 'Presupuesto de Inversión' }}
+                          </span>
+                        </div>
+                        <div class="budget-month-data-item">
+                          <span class="budget-data-label">Presupuesto</span>
+                          <span class="budget-data-value fw-medium">
+                            ${{ investment.amount | number : "1.2-2" }}
+                          </span>
+                        </div>
+                        <div class="budget-month-data-item">
+                          <span class="budget-data-label">Ejecutado</span>
+                          <span class="budget-data-value fw-medium">
+                            ${{ (investment.executed_amount || 0) | number : "1.2-2" }}
+                          </span>
+                        </div>
+                        <div class="budget-month-data-item">
+                          <span class="budget-data-label">Variación</span>
+                          <span class="budget-data-value fw-medium"
+                            [class.text-success]="(investment.variance || 0) > 0"
+                            [class.text-danger]="(investment.variance || 0) < 0">
+                            ${{ (investment.variance || 0) | number : "1.2-2" }}
+                          </span>
+                        </div>
+                        <div class="budget-month-data-item">
+                          <span class="budget-data-label">% Variación</span>
+                          <span class="budget-data-value fw-medium"
+                            [class.text-success]="(investment.percentage_variance || 0) > 0"
+                            [class.text-danger]="(investment.percentage_variance || 0) < 0">
+                            {{ (investment.percentage_variance || 0) | number : "1.2-2" }}%
+                          </span>
+                        </div>
+                      </div>
+                      <div class="budget-month-actions-col">
+                        <div class="row-actions">
+                          <button
+                            class="menu-trigger"
+                            type="button"
+                            title="Acciones"
+                            (click)="
+                              toggleMenu(
+                                getMenuId('investment', investment.id),
+                                $event
+                              )
+                            "
+                          >
+                            <lucide-icon
+                              [img]="icons.MoreVertical"
+                              [size]="16"
+                            ></lucide-icon>
+                          </button>
+                          @if (openMenuId() === getMenuId('investment',
+                          investment.id)) {
+                          <div
+                            class="menu-backdrop"
+                            (click)="closeMenu()"
+                          ></div>
+                          <div
+                            class="menu-popover"
+                            [style.top.px]="openMenuTop()"
+                            [style.left.px]="openMenuLeft()"
+                          >
+                            <button
+                              class="menu-item text-primary"
+                              type="button"
+                              (click)="editInvestment(investment); closeMenu()"
+                            >
+                              <lucide-icon
+                                [img]="icons.Pencil"
+                                [size]="14"
+                              ></lucide-icon>
+                              Editar
+                            </button>
+                            <button
+                              class="menu-item text-danger"
+                              type="button"
+                              (click)="
+                                deleteInvestment(investment); closeMenu()
+                              "
+                            >
+                              <lucide-icon
+                                [img]="icons.Trash2"
+                                [size]="14"
+                              ></lucide-icon>
+                              Eliminar
+                            </button>
+                          </div>
+                          }
+                        </div>
+                      </div>
+                    </div>
                   </div>
-                </div>
-              </td>
-              <td class="text-end">
-                <div class="row-actions">
-                  <button
-                    class="menu-trigger"
-                    type="button"
-                    title="Acciones"
-                    (click)="
-                      toggleMenu(getMenuId('investment', investment.id), $event)
-                    "
-                  >
-                    <lucide-icon
-                      [img]="icons.MoreVertical"
-                      [size]="16"
-                    ></lucide-icon>
-                  </button>
-                  @if (openMenuId() === getMenuId('investment', investment.id))
-                  {
-                  <div class="menu-backdrop" (click)="closeMenu()"></div>
-                  <div
-                    class="menu-popover"
-                    [style.top.px]="openMenuTop()"
-                    [style.left.px]="openMenuLeft()"
-                  >
-                    <button
-                      class="menu-item text-primary"
-                      type="button"
-                      (click)="editInvestment(investment); closeMenu()"
-                    >
-                      <lucide-icon
-                        [img]="icons.Pencil"
-                        [size]="14"
-                      ></lucide-icon>
-                      Editar
-                    </button>
-                    <button
-                      class="menu-item text-danger"
-                      type="button"
-                      (click)="deleteInvestment(investment); closeMenu()"
-                    >
-                      <lucide-icon
-                        [img]="icons.Trash2"
-                        [size]="14"
-                      ></lucide-icon>
-                      Eliminar
-                    </button>
-                  </div>
-                  }
                 </div>
               </td>
             </tr>
-            } }
+            }
+            }
           </tbody>
         </table>
       </div>

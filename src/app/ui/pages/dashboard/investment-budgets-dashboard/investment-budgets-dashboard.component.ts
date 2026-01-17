@@ -33,10 +33,6 @@ import {
   Investment,
 } from '../../../../infrastructure/services/investment.service';
 import {
-  InvestmentCategoryService,
-  InvestmentCategory,
-} from '../../../../infrastructure/services/investment-category.service';
-import {
   InvestmentBudgetYearService,
   InvestmentBudgetYear,
 } from '../../../../infrastructure/services/investment-budget-year.service';
@@ -61,7 +57,6 @@ import * as CompanyActions from '../../../../infrastructure/store/company';
 export class InvestmentBudgetsDashboardComponent implements OnInit {
   private route = inject(ActivatedRoute);
   private investmentService = inject(InvestmentService);
-  private investmentCategoryService = inject(InvestmentCategoryService);
   private budgetYearService = inject(InvestmentBudgetYearService);
   private toastr = inject(ToastrService);
   private fb = inject(FormBuilder);
@@ -83,7 +78,6 @@ export class InvestmentBudgetsDashboardComponent implements OnInit {
   isLoadingCompanies = signal(false);
   investments = signal<Investment[]>([]);
   companies = signal<Company[]>([]);
-  categories = signal<InvestmentCategory[]>([]);
   budgetYears = signal<InvestmentBudgetYear[]>([]);
   currentUser = signal<any>(null);
   isAdmin = computed(() => this.currentUser()?.type === UserType.CLIENT);
@@ -123,7 +117,7 @@ export class InvestmentBudgetsDashboardComponent implements OnInit {
       return {
         id: investment.id || index + 1,
         rank: index + 1,
-        name: this.getCategoryName(investment.investment_budget_category_id),
+        name: `Inversión #${investment.id || index + 1}`,
         amount,
         tone: this.getAmountTone(amount, maxAmount),
       };
@@ -381,8 +375,7 @@ export class InvestmentBudgetsDashboardComponent implements OnInit {
 
     this.isLoading.set(true);
 
-    // Load categories and all budget years first
-    this.loadCategories(companyId);
+    // Load all budget years first
     this.loadBudgetYears(companyId);
 
     // Load ALL investments for the company (no year filter) to enable comparisons
@@ -462,16 +455,6 @@ export class InvestmentBudgetsDashboardComponent implements OnInit {
     return 'low';
   }
 
-  loadCategories(companyId: number): void {
-    this.investmentCategoryService.getByCompany(companyId).subscribe({
-      next: (categories) => {
-        this.categories.set(categories || []);
-      },
-      error: () => {
-        this.categories.set([]);
-      },
-    });
-  }
 
   loadBudgetYears(companyId: number, year?: number): void {
     this.budgetYearService.getAll(companyId, year).subscribe({
@@ -555,10 +538,6 @@ export class InvestmentBudgetsDashboardComponent implements OnInit {
     });
   }
 
-  getCategoryName(categoryId: number): string {
-    const category = this.categories().find((c) => c.id === categoryId);
-    return category?.name || `Categoría ${categoryId}`;
-  }
 
   getYearFromAnnualId(annualId: number | null | undefined): number | null {
     if (!annualId) return null;
@@ -760,26 +739,6 @@ export class InvestmentBudgetsDashboardComponent implements OnInit {
       }
 
       grouped[yearKey] += budgetYear.amount || 0;
-    });
-
-    return grouped;
-  }
-
-  private groupByCategory(investments: Investment[]): {
-    [key: string]: number;
-  } {
-    const grouped: {
-      [key: string]: number;
-    } = {};
-
-    investments.forEach((investment) => {
-      const categoryName = this.getCategoryName(investment.investment_budget_category_id);
-
-      if (!grouped[categoryName]) {
-        grouped[categoryName] = 0;
-      }
-
-      grouped[categoryName] += investment.amount || 0;
     });
 
     return grouped;
