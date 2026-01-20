@@ -1,0 +1,115 @@
+<div class="tab-panel">
+  <div class="tab-panel-header">
+    <div>
+      <h4 class="tab-panel-title">Documentos</h4>
+    </div>
+    <div class="tab-panel-actions">
+      <button
+        type="button"
+        class="btn btn-sm btn-primary"
+        (click)="openCreateModal()"
+        title="Subir nuevo documento"
+      >
+        <lucide-icon [img]="icons.Plus" [size]="16"></lucide-icon>
+        <span>Subir Documento</span>
+      </button>
+    </div>
+  </div>
+  @if (isLoading()) {
+  <div class="text-center py-5">
+    <div class="spinner-border text-primary" role="status">
+      <span class="visually-hidden">Cargando...</span>
+    </div>
+  </div>
+  } @else if (documents().length === 0) {
+  <div class="empty-state">
+    <lucide-icon
+      [img]="icons.FileText"
+      [size]="48"
+      class="empty-icon"
+    ></lucide-icon>
+    <p>No hay documentos disponibles</p>
+  </div>
+  } @else {
+  <div class="card border-0 shadow-sm">
+    <div class="card-body p-0">
+      <div class="table-responsive">
+        <table class="table table-hover mb-0">
+          <thead class="table-light">
+            <tr>
+              <th class="table-header">Título</th>
+              <th class="table-header">Fecha</th>
+              <th class="table-header">Descripción</th>
+              <th class="table-header text-end">Acciones</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (document of documents(); track document.id) {
+            <tr>
+              <td class="table-cell fw-medium">{{ document.title }}</td>
+              <td class="table-cell">
+                {{ document.report_date | date : "dd/MM/yyyy" }}
+              </td>
+              <td class="table-cell">
+                <span class="text-muted">
+                  {{ document.description || "Sin descripción" }}
+                </span>
+              </td>
+              <td class="text-end">
+                <div class="d-flex justify-content-end gap-2">
+                  <button
+                    class="btn btn-sm btn-link text-primary p-0"
+                    type="button"
+                    title="Descargar documento"
+                    (click)="downloadDocument(document)"
+                  >
+                    <lucide-icon
+                      [img]="icons.Download"
+                      [size]="16"
+                    ></lucide-icon>
+                  </button>
+                  <button
+                    class="btn btn-sm btn-link text-danger p-0"
+                    type="button"
+                    title="Eliminar documento"
+                    (click)="deleteDocument(document)"
+                  >
+                    <lucide-icon
+                      [img]="icons.Trash2"
+                      [size]="16"
+                    ></lucide-icon>
+                  </button>
+                </div>
+              </td>
+            </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+  }
+</div>
+
+@if (companyId()) {
+<app-document-modal
+  #documentModal
+  [isVisible]="showModal()"
+  [companyId]="companyId()!"
+  [document]="selectedDocument()"
+  (close)="closeModal()"
+  (save)="onSaveDocument($event)"
+  (update)="onUpdateDocument($event)"
+></app-document-modal>
+}
+
+<app-confirm-dialog
+  [isVisible]="showConfirmDialog()"
+  title="Eliminar Documento"
+  [message]="getDeleteMessage()"
+  confirmText="Eliminar"
+  cancelText="Cancelar"
+  variant="danger"
+  (confirmed)="onConfirmDelete()"
+  (cancelled)="onCancelDelete()"
+></app-confirm-dialog>

@@ -1,0 +1,116 @@
+@if (isVisible()) {
+<div class="modal show d-block" (click)="onBackdropClick($event)">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">
+          {{ isEditMode() ? "Editar Documento" : "Nuevo Documento" }}
+        </h5>
+        <button
+          type="button"
+          class="btn-close"
+          (click)="onClose()"
+          aria-label="Close"
+        >
+          <lucide-icon [img]="icons.X" [size]="16"></lucide-icon>
+        </button>
+      </div>
+      <div class="modal-body">
+        <form [formGroup]="documentForm" (ngSubmit)="onSubmit()">
+          <div class="row g-3">
+            <div class="col-12">
+              <label for="title" class="form-label">Título <span class="text-danger">*</span></label>
+              <input
+                type="text"
+                class="form-control"
+                id="title"
+                formControlName="title"
+                placeholder="Ingrese el título del documento"
+              />
+              @if (documentForm.get('title')?.invalid && documentForm.get('title')?.touched) {
+                <small class="form-error">Título requerido</small>
+              }
+            </div>
+            <div class="col-12">
+              <label for="report_date" class="form-label">Fecha <span class="text-danger">*</span></label>
+              <input
+                type="date"
+                class="form-control"
+                id="report_date"
+                formControlName="report_date"
+              />
+              @if (documentForm.get('report_date')?.invalid && documentForm.get('report_date')?.touched) {
+                <small class="form-error">Fecha requerida</small>
+              }
+            </div>
+            <div class="col-12">
+              <label for="description" class="form-label">Descripción</label>
+              <textarea
+                class="form-control"
+                id="description"
+                formControlName="description"
+                rows="3"
+                placeholder="Ingrese una descripción del documento (opcional)"
+              ></textarea>
+            </div>
+            <div class="col-12">
+              <label for="document_file" class="form-label">
+                Documento
+                @if (!isEditMode()) {
+                  <span class="text-danger">*</span>
+                }
+              </label>
+              <input
+                type="file"
+                class="form-control"
+                id="document_file"
+                accept=".xlsx,.pdf,.csv,.doc,.docx"
+                (change)="onFileSelected($event)"
+                [disabled]="isSubmitting()"
+              />
+              <small class="form-text text-muted">
+                Formatos permitidos: XLSX, PDF, CSV, DOC, DOCX (máx. 10MB)
+              </small>
+              @if (selectedFile()) {
+                <div class="mt-2 d-flex align-items-center gap-2">
+                  <lucide-icon [img]="icons.FileText" [size]="16"></lucide-icon>
+                  <span class="text-truncate" style="max-width: 300px;">{{ selectedFile()!.name }}</span>
+                  <button
+                    type="button"
+                    class="btn btn-sm btn-link text-danger p-0"
+                    (click)="removeFile()"
+                    [disabled]="isSubmitting()"
+                  >
+                    <lucide-icon [img]="icons.X" [size]="14"></lucide-icon>
+                  </button>
+                </div>
+              }
+            </div>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button
+          type="button"
+          class="btn btn-secondary"
+          (click)="onClose()"
+          [disabled]="isSubmitting()"
+        >
+          Cancelar
+        </button>
+        <button
+          type="button"
+          class="btn btn-primary"
+          (click)="onSubmit()"
+          [disabled]="isSubmitting() || documentForm.invalid"
+        >
+          @if (isSubmitting()) {
+            <span class="spinner-border spinner-border-sm me-2" role="status"></span>
+          }
+          {{ isEditMode() ? "Actualizar" : "Crear" }}
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+}

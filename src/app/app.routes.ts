@@ -108,6 +108,13 @@ export const routes: Routes = [
                     './ui/pages/companies/company-detail/investment-budgets/investment-budgets.component'
                   ).then((m) => m.InvestmentBudgetsComponent),
               },
+              {
+                path: 'documents',
+                loadComponent: () =>
+                  import(
+                    './ui/pages/companies/company-detail/documents/documents.component'
+                  ).then((m) => m.DocumentsComponent),
+              },
             ],
           },
         ],

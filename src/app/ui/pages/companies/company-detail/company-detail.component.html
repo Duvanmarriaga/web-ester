@@ -87,6 +87,15 @@
         <lucide-icon [img]="icons.Scale" [size]="14"></lucide-icon>
         <span>Procesos Jurídicos</span>
       </a>
+      <a
+        [routerLink]="getTabRoute('documents')"
+        routerLinkActive="active"
+        [routerLinkActiveOptions]="{ exact: false }"
+        class="tab-button"
+      >
+        <lucide-icon [img]="icons.FolderOpen" [size]="14"></lucide-icon>
+        <span>Documentos</span>
+      </a>
     </div>
 
     <div class="tabs-content">

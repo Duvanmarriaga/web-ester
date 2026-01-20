@@ -14,6 +14,7 @@ import {
   DollarSign,
   Scale,
   TrendingDown,
+  FolderOpen,
 } from 'lucide-angular';
 import {
   selectSelectedCompany,
@@ -50,6 +51,7 @@ export class CompanyDetailComponent implements OnInit {
     DollarSign,
     Scale,
     TrendingDown,
+    FolderOpen,
   };
 
   // Computed property to determine active tab from URL
@@ -59,6 +61,7 @@ export class CompanyDetailComponent implements OnInit {
     if (url.includes('/operations')) return 'operations';
     if (url.includes('/legal')) return 'legal';
     if (url.includes('/investments')) return 'investments';
+    if (url.includes('/documents')) return 'documents';
     return 'financial';
   });
 
@@ -112,7 +115,7 @@ export class CompanyDetailComponent implements OnInit {
     this.router.navigate(['/companies']);
   }
 
-  getTabRoute(tab: 'financial' | 'operations' | 'legal' | 'investments'): string[] {
+  getTabRoute(tab: 'financial' | 'operations' | 'legal' | 'investments' | 'documents'): string[] {
     const id = this.companyId();
     return id ? ['/companies', id, tab] : ['/companies'];
   }
