@@ -239,22 +239,38 @@ export class InvestmentBudgetsComponent implements OnInit {
   }
 
   downloadTemplate(budgetYearId?: number): void {
-    this.http.get('assets/templates/plantilla-presupuesto-inversiones.xlsx', {
-      responseType: 'blob'
+    // Use absolute path starting with /assets/ to ensure it works in production
+    const templatePath = '/assets/templates/plantilla-presupuesto-inversiones.xlsx';
+    this.http.get(templatePath, {
+      responseType: 'blob',
+      observe: 'response'
     }).subscribe({
-      next: (blob: Blob) => {
-        const url = window.URL.createObjectURL(blob);
-        const link = document.createElement('a');
+      next: (response) => {
+        const blob = response.body;
+        if (!blob || blob.size === 0) {
+          this.toastr.error('El archivo descargado está vacío o es inválido', 'Error');
+          return;
+        }
+
+        // Create a new blob with the correct MIME type for Excel files
+        // This ensures Excel can open the file even if the server returns wrong content-type
+        const excelBlob = new Blob([blob], {
+          type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+        });
+
+        const url = window.URL.createObjectURL(excelBlob);
+        const link = window.document.createElement('a');
         const yearSuffix = budgetYearId ? `-${budgetYearId}` : '';
         link.href = url;
         link.download = `plantilla-presupuesto-inversiones${yearSuffix}.xlsx`;
-        document.body.appendChild(link);
+        window.document.body.appendChild(link);
         link.click();
-        document.body.removeChild(link);
+        window.document.body.removeChild(link);
         window.URL.revokeObjectURL(url);
         this.toastr.success('Plantilla descargada correctamente', 'Éxito');
       },
       error: (error: unknown) => {
+        console.error('Error downloading template:', error);
         const errorMessage =
           (error as { error?: { message?: string }; message?: string })?.error
             ?.message ||
