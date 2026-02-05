@@ -60,31 +60,45 @@
                   <span class="text-danger">*</span>
                 }
               </label>
-              <input
-                type="file"
-                class="form-control"
-                id="document_file"
-                accept=".xlsx,.pdf,.csv,.doc,.docx"
-                (change)="onFileSelected($event)"
-                [disabled]="isSubmitting()"
-              />
+              <div
+                class="document-dropzone"
+                [class.document-dropzone--over]="isDragOver()"
+                [class.document-dropzone--disabled]="isSubmitting()"
+                (dragover)="onDragOver($event)"
+                (dragleave)="onDragLeave($event)"
+                (drop)="onDrop($event)"
+                (click)="fileInputRef.click()"
+              >
+                <input
+                  #fileInputRef
+                  type="file"
+                  class="d-none"
+                  id="document_file"
+                  accept=".xlsx,.pdf,.csv,.doc,.docx"
+                  (change)="onFileSelected($event)"
+                  [disabled]="isSubmitting()"
+                  (click)="$event.stopPropagation()"
+                />
+                @if (selectedFile()) {
+                  <div class="d-flex align-items-center gap-2 flex-wrap">
+                    <lucide-icon [img]="icons.FileText" [size]="20"></lucide-icon>
+                    <span class="text-truncate flex-grow-1" style="max-width: 280px;">{{ selectedFile()!.name }}</span>
+                    <button
+                      type="button"
+                      class="btn btn-sm btn-link text-danger p-0"
+                      (click)="removeFile(); $event.stopPropagation()"
+                      [disabled]="isSubmitting()"
+                    >
+                      <lucide-icon [img]="icons.X" [size]="14"></lucide-icon>
+                    </button>
+                  </div>
+                } @else {
+                  <span class="document-dropzone__text">Arrastra el documento aquí o haz clic para seleccionar</span>
+                }
+              </div>
               <small class="form-text text-muted">
-                Formatos permitidos: XLSX, PDF, CSV, DOC, DOCX (máx. 10MB)
+                Formatos permitidos: XLSX, PDF, CSV, DOC, DOCX (máx. 25MB)
               </small>
-              @if (selectedFile()) {
-                <div class="mt-2 d-flex align-items-center gap-2">
-                  <lucide-icon [img]="icons.FileText" [size]="16"></lucide-icon>
-                  <span class="text-truncate" style="max-width: 300px;">{{ selectedFile()!.name }}</span>
-                  <button
-                    type="button"
-                    class="btn btn-sm btn-link text-danger p-0"
-                    (click)="removeFile()"
-                    [disabled]="isSubmitting()"
-                  >
-                    <lucide-icon [img]="icons.X" [size]="14"></lucide-icon>
-                  </button>
-                </div>
-              }
             </div>
           </div>
         </form>

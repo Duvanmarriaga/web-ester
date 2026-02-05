@@ -51,6 +51,7 @@ export class FileUploadComponent {
     'application/pdf',
     'text/csv'
   ];
+  private readonly maxFileSizeBytes = 25 * 1024 * 1024; // 25MB
 
   constructor() {
     // Load existing files when recordId changes
@@ -86,6 +87,13 @@ export class FileUploadComponent {
     const validFiles: File[] = [];
 
     for (const file of files) {
+      if (file.size > this.maxFileSizeBytes) {
+        this.toastr.warning(
+          `El archivo ${file.name} no puede ser mayor a 25MB.`,
+          'Archivo muy grande'
+        );
+        continue;
+      }
       if (this.isValidFile(file)) {
         validFiles.push(file);
       } else {

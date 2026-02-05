@@ -52,6 +52,9 @@ export class DocumentModalComponent implements OnInit {
   isSubmitting = signal(false);
   isEditMode = signal(false);
   selectedFile = signal<File | null>(null);
+  isDragOver = signal(false);
+
+  private readonly maxFileSizeBytes = 25 * 1024 * 1024; // 25MB
 
   constructor() {
     // Watch for document and visibility changes to populate form in edit mode
@@ -111,30 +114,48 @@ export class DocumentModalComponent implements OnInit {
   onFileSelected(event: Event) {
     const input = event.target as HTMLInputElement;
     if (!input.files || input.files.length === 0) return;
+    this.setFileFromFile(input.files[0]);
+    input.value = '';
+  }
 
-    const file = input.files[0];
-    
-    // Validate file type
+  onDragOver(event: DragEvent) {
+    event.preventDefault();
+    event.stopPropagation();
+    this.isDragOver.set(true);
+  }
+
+  onDragLeave(event: DragEvent) {
+    event.preventDefault();
+    event.stopPropagation();
+    this.isDragOver.set(false);
+  }
+
+  onDrop(event: DragEvent) {
+    event.preventDefault();
+    event.stopPropagation();
+    this.isDragOver.set(false);
+    const files = event.dataTransfer?.files;
+    if (!files || files.length === 0) return;
+    this.setFileFromFile(files[0]);
+  }
+
+  private setFileFromFile(file: File) {
     const allowedExtensions = ['xlsx', 'pdf', 'csv', 'doc', 'docx'];
     const fileExtension = file.name.split('.').pop()?.toLowerCase();
-    
+
     if (!fileExtension || !allowedExtensions.includes(fileExtension)) {
       this.toastr.warning(
         'Solo se permiten archivos XLSX, PDF, CSV, DOC y DOCX',
         'Archivo no válido'
       );
-      input.value = '';
       return;
     }
 
-    // Validate file size (max 10MB)
-    const maxSize = 10 * 1024 * 1024; // 10MB
-    if (file.size > maxSize) {
+    if (file.size > this.maxFileSizeBytes) {
       this.toastr.warning(
-        'El archivo no puede ser mayor a 10MB',
+        'El archivo no puede ser mayor a 25MB',
         'Archivo muy grande'
       );
-      input.value = '';
       return;
     }
 
