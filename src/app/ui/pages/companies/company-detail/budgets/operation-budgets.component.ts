@@ -93,8 +93,8 @@ export class OperationBudgetsComponent implements OnInit {
   deletingBudgetYear = signal<BudgetYear | null>(null);
   isDeletingBudgetYear = signal(false);
   openMenuId = signal<string | null>(null);
-  openMenuTop = signal(0);
-  openMenuLeft = signal(0);
+  openMenuOnLeft = signal(false);
+  openMenuAbove = signal(false);
   budgetModalComponent = viewChild<OperationBudgetModalComponent>('budgetModal');
 
   ngOnInit() {
@@ -126,15 +126,11 @@ export class OperationBudgetsComponent implements OnInit {
         const rect = target.getBoundingClientRect();
         const menuWidth = 220;
         const menuHeight = 220;
+        const gap = 4;
+        const spaceRight = window.innerWidth - rect.right;
         const spaceBelow = window.innerHeight - rect.bottom;
-        const spaceAbove = rect.top;
-        const shouldOpenUp = spaceBelow < menuHeight && spaceAbove > menuHeight;
-        const rawTop = shouldOpenUp ? rect.top - menuHeight - 8 : rect.bottom + 4;
-        const top = Math.max(8, Math.min(rawTop, window.innerHeight - menuHeight - 8));
-        const rawLeft = rect.right - menuWidth;
-        const left = Math.max(8, Math.min(rawLeft, window.innerWidth - menuWidth - 8));
-        this.openMenuTop.set(top);
-        this.openMenuLeft.set(left);
+        this.openMenuOnLeft.set(spaceRight < menuWidth + gap);
+        this.openMenuAbove.set(spaceBelow < menuHeight + gap);
       }
     }
     this.openMenuId.set(current === menuId ? null : menuId);
@@ -189,16 +185,45 @@ export class OperationBudgetsComponent implements OnInit {
     });
   }
 
+  /**
+   * Extrae el año numérico de budget_date (formato YYYY-MM o YYYY-MM-DD).
+   * Así un presupuesto de diciembre 2024 se agrupa bajo el año 2024, no bajo otro año.
+   */
+  private getYearFromBudgetDate(budgetDate: string): number | null {
+    if (!budgetDate || typeof budgetDate !== 'string') return null;
+    const trimmed = budgetDate.trim();
+    const match = trimmed.match(/^(\d{4})/);
+    if (match) {
+      const year = parseInt(match[1], 10);
+      return !isNaN(year) ? year : null;
+    }
+    return null;
+  }
+
   groupBudgetsByYear(): void {
     const budgets = this.budgets();
     const budgetYears = this.budgetYears();
 
-    // Agrupar budgets por operation_budget_annual_id
+    // Agrupar por el año que corresponde a la fecha del presupuesto (budget_date),
+    // no solo por operation_budget_annual_id, para que dic 2024 aparezca en 2024.
     const budgetsByYear = new Map<number, Budget[]>();
     const budgetsWithoutYear: Budget[] = [];
 
     budgets.forEach((budget) => {
-      if (budget.operation_budget_annual_id) {
+      const yearFromDate = this.getYearFromBudgetDate(budget.budget_date);
+      console.log(yearFromDate);
+      console.log(budget);
+      const matchingBudgetYear = yearFromDate != null
+        ? budgetYears.find((by) => by.year === yearFromDate)
+        : null;
+
+      if (matchingBudgetYear) {
+        if (!budgetsByYear.has(matchingBudgetYear.id)) {
+          budgetsByYear.set(matchingBudgetYear.id, []);
+        }
+        budgetsByYear.get(matchingBudgetYear.id)!.push(budget);
+      } else if (budget.operation_budget_annual_id) {
+        // Sin año en la fecha o sin año coincidente: usar operation_budget_annual_id
         if (!budgetsByYear.has(budget.operation_budget_annual_id)) {
           budgetsByYear.set(budget.operation_budget_annual_id, []);
         }
@@ -208,12 +233,16 @@ export class OperationBudgetsComponent implements OnInit {
       }
     });
 
-    // Crear array de BudgetYearWithBudgets
-    const budgetYearsWithBudgets: BudgetYearWithBudgets[] = budgetYears.map((year) => ({
-      ...year,
-      budgets: budgetsByYear.get(year.id) || [],
-      isExpanded: false,
-    }));
+    // Crear array de BudgetYearWithBudgets (preservar isExpanded si ya existía)
+    const previous = this.budgetYearsWithBudgets();
+    const budgetYearsWithBudgets: BudgetYearWithBudgets[] = budgetYears.map((year) => {
+      const prevYear = previous.find((p) => p.id === year.id);
+      return {
+        ...year,
+        budgets: budgetsByYear.get(year.id) || [],
+        isExpanded: prevYear?.isExpanded ?? false,
+      };
+    });
 
     this.budgetYearsWithBudgets.set(budgetYearsWithBudgets);
     this.budgetsWithoutYear.set(budgetsWithoutYear);
@@ -689,6 +718,7 @@ export class OperationBudgetsComponent implements OnInit {
       return;
     }
 
+    this.deletingBudget.set(null);
     this.deletingBudgetYear.set(budgetYear);
     this.isDeletingBudgetYear.set(true);
     this.showConfirmDialog.set(true);
@@ -714,15 +744,32 @@ export class OperationBudgetsComponent implements OnInit {
       return;
     }
 
-    // Aquí necesitaríamos un método delete en el servicio, pero no está en la API
-    // Por ahora solo mostramos un mensaje
-    this.toastr.info('La funcionalidad de eliminar presupuesto anual estará disponible próximamente', 'Info');
-    this.showConfirmDialog.set(false);
-    this.deletingBudgetYear.set(null);
-    this.isDeletingBudgetYear.set(false);
+    this.budgetYearService.delete(budgetYear.id).subscribe({
+      next: () => {
+        this.toastr.success('Presupuesto anual eliminado correctamente', 'Éxito');
+        this.showConfirmDialog.set(false);
+        this.deletingBudgetYear.set(null);
+        this.isDeletingBudgetYear.set(false);
+        this.loadBudgetYears();
+        this.loadBudgets(this.currentPage());
+      },
+      error: (error: unknown) => {
+        const errorMessage =
+          (error as { error?: { message?: string }; message?: string })?.error
+            ?.message ||
+          (error as { message?: string })?.message ||
+          'Error al eliminar el presupuesto anual';
+        this.toastr.error(errorMessage, 'Error');
+        this.showConfirmDialog.set(false);
+        this.deletingBudgetYear.set(null);
+        this.isDeletingBudgetYear.set(false);
+      },
+    });
   }
 
   deleteBudget(budget: Budget): void {
+    this.deletingBudgetYear.set(null);
+    this.isDeletingBudgetYear.set(false);
     this.deletingBudget.set(budget);
     this.showConfirmDialog.set(true);
   }

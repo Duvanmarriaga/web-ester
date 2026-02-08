@@ -228,7 +228,7 @@ export class FinancialReportImportModalComponent implements OnInit {
   currencyValidator(control: any) {
     if (!control.value) return null;
     const value = parseFloat(control.value.toString().replace(/[^0-9.-]/g, ''));
-    if (isNaN(value) || value < 0) {
+    if (isNaN(value)) {
       return { invalidCurrency: true };
     }
     return null;
@@ -239,7 +239,9 @@ export class FinancialReportImportModalComponent implements OnInit {
     if (!reportGroup) return;
     
     const input = event.target as HTMLInputElement;
-    let value = input.value.replace(/[^0-9.]/g, '');
+    const isNegative = input.value.trimStart().startsWith('-');
+    let value = input.value.replace(/[^0-9.-]/g, '');
+    if (isNegative && !value.startsWith('-')) value = '-' + value;
     
     // Remove multiple dots
     const parts = value.split('.');
@@ -252,7 +254,7 @@ export class FinancialReportImportModalComponent implements OnInit {
       value = parts[0] + '.' + parts[1].substring(0, 2);
     }
     
-    // Format with thousand separators
+    // Format with thousand separators (permite negativos)
     const numValue = parseFloat(value) || 0;
     const formatted = this.formatNumberWithCommas(numValue);
     
@@ -273,35 +275,36 @@ export class FinancialReportImportModalComponent implements OnInit {
     const control = reportGroup.get(fieldName);
     if (!control) return;
     
-    let value = control.value?.toString().replace(/[^0-9.]/g, '') || '0';
+    const raw = control.value?.toString() || '0';
+    const isNegative = raw.trimStart().startsWith('-');
+    let value = raw.replace(/[^0-9.-]/g, '');
+    if (isNegative && !value.startsWith('-')) value = '-' + value;
     const numValue = parseFloat(value) || 0;
     
-    // Format with thousand separators (without forcing .00 if it's a whole number)
+    // Format with thousand separators (permite negativos)
     const formatted = this.formatNumberWithCommas(numValue);
     control.setValue(formatted, { emitEvent: true });
   }
 
   formatNumberWithCommas(value: number | string): string {
-    // Convert to number if it's a string
     const numValue = typeof value === 'string' ? parseFloat(value.replace(/[^0-9.-]/g, '')) : value;
     
     if (isNaN(numValue) || numValue === null || numValue === undefined) return '';
     
-    // Check if it's a whole number
-    if (numValue % 1 === 0) {
-      // It's a whole number, format without decimals
-      return numValue.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
-    }
+    const isNegative = numValue < 0;
+    const absValue = Math.abs(numValue);
     
-    // Has decimals, format with 2 decimal places
-    const parts = numValue.toFixed(2).split('.');
-    const integerPart = parts[0];
-    const decimalPart = parts[1];
+    const formatAbs = (n: number): string => {
+      if (n % 1 === 0) {
+        return n.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+      }
+      const parts = n.toFixed(2).split('.');
+      const integerPart = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+      return `${integerPart}.${parts[1]}`;
+    };
     
-    // Add thousand separators
-    const formattedInteger = integerPart.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
-    
-    return `${formattedInteger}.${decimalPart}`;
+    const formatted = formatAbs(absValue);
+    return isNegative ? `-${formatted}` : formatted;
   }
 
   removeReport(index: number): void {

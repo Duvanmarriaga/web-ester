@@ -101,8 +101,8 @@
                     <div class="menu-backdrop" (click)="closeMenu()"></div>
                     <div
                       class="menu-popover"
-                      [style.top.px]="openMenuTop()"
-                      [style.left.px]="openMenuLeft()"
+                      [class.menu-popover--left]="openMenuOnLeft()"
+                      [class.menu-popover--above]="openMenuAbove()"
                     >
                       <button
                         class="menu-item text-primary"

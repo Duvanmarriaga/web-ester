@@ -56,6 +56,12 @@ export class BudgetYearService {
       budgetYearData
     );
   }
+
+  delete(id: number): Observable<void> {
+    return this.http.delete<void>(
+      `${this.apiUrl}/operation-budget-annuals/${id}`
+    );
+  }
 }
 
 

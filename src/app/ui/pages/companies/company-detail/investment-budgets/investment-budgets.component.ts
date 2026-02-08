@@ -96,8 +96,8 @@ export class InvestmentBudgetsComponent implements OnInit {
   deletingBudgetYear = signal<InvestmentBudgetYear | null>(null);
   isDeletingBudgetYear = signal(false);
   openMenuId = signal<string | null>(null);
-  openMenuTop = signal(0);
-  openMenuLeft = signal(0);
+  openMenuOnLeft = signal(false);
+  openMenuAbove = signal(false);
   investmentModalComponent = viewChild<InvestmentBudgetModalComponent>('investmentModal');
   showImportModal = signal(false);
   importedInvestments = signal<ImportedInvestment[]>([]);
@@ -132,15 +132,11 @@ export class InvestmentBudgetsComponent implements OnInit {
         const rect = target.getBoundingClientRect();
         const menuWidth = 200;
         const menuHeight = 200;
+        const gap = 4;
+        const spaceRight = window.innerWidth - rect.right;
         const spaceBelow = window.innerHeight - rect.bottom;
-        const spaceAbove = rect.top;
-        const shouldOpenUp = spaceBelow < menuHeight && spaceAbove > menuHeight;
-        const rawTop = shouldOpenUp ? rect.top - menuHeight - 8 : rect.bottom + 4;
-        const top = Math.max(8, Math.min(rawTop, window.innerHeight - menuHeight - 8));
-        const rawLeft = rect.right - menuWidth;
-        const left = Math.max(8, Math.min(rawLeft, window.innerWidth - menuWidth - 8));
-        this.openMenuTop.set(top);
-        this.openMenuLeft.set(left);
+        this.openMenuOnLeft.set(spaceRight < menuWidth + gap);
+        this.openMenuAbove.set(spaceBelow < menuHeight + gap);
       }
     }
     this.openMenuId.set(current === menuId ? null : menuId);

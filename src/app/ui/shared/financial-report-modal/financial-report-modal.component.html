@@ -57,7 +57,7 @@
               </div>
               @if (reportForm.get('current_asset')?.invalid &&
               reportForm.get('current_asset')?.touched) {
-              <small class="form-error">Activo corriente requerido (mínimo 0)</small>
+              <small class="form-error">Activo corriente requerido (puede ser negativo)</small>
               }
             </div>
             <div class="col-md-6">
@@ -76,7 +76,7 @@
               </div>
               @if (reportForm.get('current_passive')?.invalid &&
               reportForm.get('current_passive')?.touched) {
-              <small class="form-error">Pasivo corriente requerido (mínimo 0)</small>
+              <small class="form-error">Pasivo corriente requerido (puede ser negativo)</small>
               }
             </div>
             <div class="col-md-6">
@@ -95,7 +95,7 @@
               </div>
               @if (reportForm.get('inventories')?.invalid &&
               reportForm.get('inventories')?.touched) {
-              <small class="form-error">Inventarios requeridos (mínimo 0)</small>
+              <small class="form-error">Inventarios requeridos (puede ser negativo)</small>
               }
             </div>
             <div class="col-md-6">
@@ -114,7 +114,7 @@
               </div>
               @if (reportForm.get('total_passive')?.invalid &&
               reportForm.get('total_passive')?.touched) {
-              <small class="form-error">Pasivo total requerido (mínimo 0)</small>
+              <small class="form-error">Pasivo total requerido (puede ser negativo)</small>
               }
             </div>
             <div class="col-md-6">
@@ -133,7 +133,7 @@
               </div>
               @if (reportForm.get('total_assets')?.invalid &&
               reportForm.get('total_assets')?.touched) {
-              <small class="form-error">Activo total requerido (mínimo 0)</small>
+              <small class="form-error">Activo total requerido (puede ser negativo)</small>
               }
             </div>
             <div class="col-md-6">
@@ -152,7 +152,7 @@
               </div>
               @if (reportForm.get('net_profit')?.invalid &&
               reportForm.get('net_profit')?.touched) {
-              <small class="form-error">Ganancia neta requerida (mínimo 0)</small>
+              <small class="form-error">Ganancia neta requerida (puede ser negativo)</small>
               }
             </div>
             <div class="col-md-6">
@@ -171,7 +171,7 @@
               </div>
               @if (reportForm.get('total_revenue')?.invalid &&
               reportForm.get('total_revenue')?.touched) {
-              <small class="form-error">Ingresos totales requeridos (mínimo 0)</small>
+              <small class="form-error">Ingresos totales requeridos (puede ser negativo)</small>
               }
             </div>
             <div class="col-md-6">
@@ -190,7 +190,7 @@
               </div>
               @if (reportForm.get('current_value_result')?.invalid &&
               reportForm.get('current_value_result')?.touched) {
-              <small class="form-error">Resultado valor corriente requerido (mínimo 0)</small>
+              <small class="form-error">Resultado valor corriente requerido (puede ser negativo)</small>
               }
             </div>
             <div class="col-md-6">
@@ -209,7 +209,7 @@
               </div>
               @if (reportForm.get('initial_value_of_the_year')?.invalid &&
               reportForm.get('initial_value_of_the_year')?.touched) {
-              <small class="form-error">Valor inicial del año requerido (mínimo 0)</small>
+              <small class="form-error">Valor inicial del año requerido (puede ser negativo)</small>
               }
             </div>
             <div class="col-md-6">
@@ -228,7 +228,7 @@
               </div>
               @if (reportForm.get('budgeted_value')?.invalid &&
               reportForm.get('budgeted_value')?.touched) {
-              <small class="form-error">Valor presupuestado requerido (mínimo 0)</small>
+              <small class="form-error">Valor presupuestado requerido (puede ser negativo)</small>
               }
             </div>
             <div class="col-md-6">
@@ -247,7 +247,7 @@
               </div>
               @if (reportForm.get('executed_value')?.invalid &&
               reportForm.get('executed_value')?.touched) {
-              <small class="form-error">Valor ejecutado requerido (mínimo 0)</small>
+              <small class="form-error">Valor ejecutado requerido (puede ser negativo)</small>
               }
             </div>
             <div class="col-md-6">
@@ -266,7 +266,7 @@
               </div>
               @if (reportForm.get('current_cash_balance')?.invalid &&
               reportForm.get('current_cash_balance')?.touched) {
-              <small class="form-error">Saldo de caja actual requerido (mínimo 0)</small>
+              <small class="form-error">Saldo de caja actual requerido (puede ser negativo)</small>
               }
             </div>
             <div class="col-md-6">
@@ -285,7 +285,7 @@
               </div>
               @if (reportForm.get('average_consumption_of_boxes_over_the_last_3_months')?.invalid &&
               reportForm.get('average_consumption_of_boxes_over_the_last_3_months')?.touched) {
-              <small class="form-error">Consumo promedio requerido (mínimo 0)</small>
+              <small class="form-error">Consumo promedio requerido (puede ser negativo)</small>
               }
             </div>
 

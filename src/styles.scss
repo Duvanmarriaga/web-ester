@@ -104,6 +104,10 @@ body {
     z-index: 1000000 !important;
   }
 }
+.table-responsive {
+  /* overflow: visible para que los popovers de acciones en la tabla no se recorten */
+  overflow: visible;
+}
 
 /* ==================================================
    Scrollbar Personalizado

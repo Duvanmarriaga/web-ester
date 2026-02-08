@@ -231,7 +231,7 @@ export class UserModalComponent implements OnInit {
     const errors: { [key: string]: boolean } = {};
 
     // Mínimo 6 caracteres
-    if (password.length < 6) {
+    if (password.length < 8) {
       errors['passwordMinLength'] = true;
     }
 

@@ -173,7 +173,7 @@ export class FinancialReportModalComponent implements OnInit {
   currencyValidator(control: any) {
     if (!control.value) return null;
     const value = parseFloat(control.value.toString().replace(/[^0-9.-]/g, ''));
-    if (isNaN(value) || value < 0) {
+    if (isNaN(value)) {
       return { invalidCurrency: true };
     }
     return null;
@@ -181,7 +181,9 @@ export class FinancialReportModalComponent implements OnInit {
 
   formatCurrency(event: Event, fieldName: 'current_asset' | 'current_passive' | 'inventories' | 'total_passive' | 'total_assets' | 'net_profit' | 'total_revenue' | 'current_value_result' | 'initial_value_of_the_year' | 'budgeted_value' | 'executed_value' | 'current_cash_balance' | 'average_consumption_of_boxes_over_the_last_3_months'): void {
     const input = event.target as HTMLInputElement;
-    let value = input.value.replace(/[^0-9.]/g, '');
+    const isNegative = input.value.trimStart().startsWith('-');
+    let value = input.value.replace(/[^0-9.-]/g, '');
+    if (isNegative && !value.startsWith('-')) value = '-' + value;
 
     // Remove multiple dots
     const parts = value.split('.');
@@ -194,7 +196,7 @@ export class FinancialReportModalComponent implements OnInit {
       value = parts[0] + '.' + parts[1].substring(0, 2);
     }
 
-    // Store raw numeric value for calculations
+    // Store raw numeric value for calculations (permite negativos)
     const numValue = parseFloat(value) || 0;
 
     // Format with thousand separators for display
@@ -214,16 +216,18 @@ export class FinancialReportModalComponent implements OnInit {
     const control = this.reportForm.get(fieldName);
     if (!control) return;
 
-    let value = control.value?.toString().replace(/[^0-9.]/g, '') || '0';
+    const raw = control.value?.toString() || '0';
+    const isNegative = raw.trimStart().startsWith('-');
+    let value = raw.replace(/[^0-9.-]/g, '');
+    if (isNegative && !value.startsWith('-')) value = '-' + value;
     const numValue = parseFloat(value) || 0;
 
-    // Format with thousand separators (without forcing .00 if it's a whole number)
+    // Format with thousand separators (permite negativos)
     const formatted = this.formatNumberWithCommas(numValue);
     control.setValue(formatted, { emitEvent: true });
   }
 
   formatNumberWithCommas(value: number | string): string {
-    // Convert to number if it's a string
     const numValue =
       typeof value === 'string'
         ? parseFloat(value.replace(/[^0-9.-]/g, ''))
@@ -232,21 +236,20 @@ export class FinancialReportModalComponent implements OnInit {
     if (isNaN(numValue) || numValue === null || numValue === undefined)
       return '0';
 
-    // Check if it's a whole number
-    if (numValue % 1 === 0) {
-      // It's a whole number, format without decimals
-      return numValue.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
-    }
+    const isNegative = numValue < 0;
+    const absValue = Math.abs(numValue);
 
-    // Has decimals, format with 2 decimal places
-    const parts = numValue.toFixed(2).split('.');
-    const integerPart = parts[0];
-    const decimalPart = parts[1];
+    const formatAbs = (n: number): string => {
+      if (n % 1 === 0) {
+        return n.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+      }
+      const parts = n.toFixed(2).split('.');
+      const integerPart = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+      return `${integerPart}.${parts[1]}`;
+    };
 
-    // Add thousand separators
-    const formattedInteger = integerPart.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
-
-    return `${formattedInteger}.${decimalPart}`;
+    const formatted = formatAbs(absValue);
+    return isNegative ? `-${formatted}` : formatted;
   }
 
   populateForm(report: FinancialReport): void {
@@ -315,9 +318,9 @@ export class FinancialReportModalComponent implements OnInit {
 
     let formValue = { ...this.reportForm.value };
     
-    // Helper function to parse currency value
+    // Helper function to parse currency value (permite negativos)
     const parseCurrency = (value: any): number => {
-      return parseFloat(value?.toString().replace(/[^0-9.]/g, '') || '0') || 0;
+      return parseFloat(value?.toString().replace(/[^0-9.-]/g, '') || '0') || 0;
     };
 
     // Report date should be in YYYY-MM-DD format

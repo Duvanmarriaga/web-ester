@@ -185,10 +185,19 @@
   }
 }
 
+/* Evitar que la tabla recorte el popover */
+:host ::ng-deep .table-responsive table,
+:host ::ng-deep .table-responsive tbody,
+:host ::ng-deep .table-responsive tr,
+:host ::ng-deep .table-responsive td {
+  overflow: visible !important;
+}
+
 .row-actions {
   position: relative;
   display: inline-flex;
   justify-content: flex-end;
+  overflow: visible;
 }
 
 .menu-trigger {
@@ -219,7 +228,10 @@
 }
 
 .menu-popover {
-  position: fixed;
+  position: absolute;
+  top: 0;
+  left: 100%;
+  margin-left: 4px;
   z-index: 1000;
   min-width: 140px;
   background: white;
@@ -227,6 +239,20 @@
   border-radius: 6px;
   box-shadow: 0 8px 20px rgba(15, 23, 42, 0.12);
   padding: 4px;
+
+  &--left {
+    left: auto;
+    right: 100%;
+    margin-left: 0;
+    margin-right: 4px;
+  }
+
+  &--above {
+    top: auto;
+    bottom: 100%;
+    margin-top: 0;
+    margin-bottom: 4px;
+  }
 }
 
 .menu-item {

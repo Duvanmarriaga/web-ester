@@ -79,8 +79,8 @@ export class LegalProcessesComponent implements OnInit {
   showConfirmDialog = signal(false);
   deletingProcess = signal<Process | null>(null);
   openMenuId = signal<number | null>(null);
-  openMenuTop = signal(0);
-  openMenuLeft = signal(0);
+  openMenuOnLeft = signal(false);
+  openMenuAbove = signal(false);
   processModalComponent = viewChild<ProcessModalComponent>('processModal');
 
   ngOnInit() {
@@ -147,15 +147,11 @@ export class LegalProcessesComponent implements OnInit {
         const rect = target.getBoundingClientRect();
         const menuWidth = 160;
         const menuHeight = 120;
+        const gap = 4;
+        const spaceRight = window.innerWidth - rect.right;
         const spaceBelow = window.innerHeight - rect.bottom;
-        const spaceAbove = rect.top;
-        const shouldOpenUp = spaceBelow < menuHeight && spaceAbove > menuHeight;
-        const rawTop = shouldOpenUp ? rect.top - menuHeight - 8 : rect.bottom + 4;
-        const top = Math.max(8, Math.min(rawTop, window.innerHeight - menuHeight - 8));
-        const rawLeft = rect.right - menuWidth;
-        const left = Math.max(8, Math.min(rawLeft, window.innerWidth - menuWidth - 8));
-        this.openMenuTop.set(top);
-        this.openMenuLeft.set(left);
+        this.openMenuOnLeft.set(spaceRight < menuWidth + gap);
+        this.openMenuAbove.set(spaceBelow < menuHeight + gap);
       }
     }
     this.openMenuId.set(current === processId ? null : processId);

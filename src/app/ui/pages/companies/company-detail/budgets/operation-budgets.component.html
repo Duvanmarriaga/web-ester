@@ -94,8 +94,8 @@
                     <div class="menu-backdrop" (click)="closeMenu()"></div>
                     <div
                       class="menu-popover"
-                      [style.top.px]="openMenuTop()"
-                      [style.left.px]="openMenuLeft()"
+                      [class.menu-popover--left]="openMenuOnLeft()"
+                      [class.menu-popover--above]="openMenuAbove()"
                     >
                       <button
                         class="menu-item"
@@ -160,7 +160,7 @@
                     <div class="budget-month-item">
                       <div class="budget-month-date-col">
                         <span class="budget-month-date fw-medium">
-                          {{ budget.budget_date | date : "MM/yyyy" }}
+                          {{ budget.budget_date | date : "MM/yyyy" : "UTC" }}
                         </span>
                       </div>
                       <div class="budget-month-data-col">
@@ -207,8 +207,8 @@
                             <div class="menu-backdrop" (click)="closeMenu()"></div>
                             <div
                               class="menu-popover"
-                              [style.top.px]="openMenuTop()"
-                              [style.left.px]="openMenuLeft()"
+                              [class.menu-popover--left]="openMenuOnLeft()"
+                              [class.menu-popover--above]="openMenuAbove()"
                             >
                               <button
                                 class="menu-item text-primary"
@@ -252,7 +252,7 @@
                     <div class="budget-month-item">
                       <div class="budget-month-date-col">
                         <span class="budget-month-date fw-medium">
-                          {{ budget.budget_date | date : "MM/yyyy" }}
+                          {{ budget.budget_date | date : "MM/yyyy" : "UTC" }}
                         </span>
                       </div>
                       <div class="budget-month-data-col">
@@ -299,8 +299,8 @@
                             <div class="menu-backdrop" (click)="closeMenu()"></div>
                             <div
                               class="menu-popover"
-                              [style.top.px]="openMenuTop()"
-                              [style.left.px]="openMenuLeft()"
+                              [class.menu-popover--left]="openMenuOnLeft()"
+                              [class.menu-popover--above]="openMenuAbove()"
                             >
                               <button
                                 class="menu-item text-primary"
