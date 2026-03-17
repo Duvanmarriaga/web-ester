@@ -47,16 +47,16 @@
         <table class="table table-hover mb-0">
           <thead class="table-light">
             <tr>
-              <th class="table-header" style="width: 40px"></th>
-              <th class="table-header">Año</th>
-              <th class="table-header">Monto Anual</th>
-              <th class="table-header text-end">Acciones</th>
+              <th class="table-header col-expand"></th>
+              <th class="table-header col-ano">Año</th>
+              <th class="table-header col-monto">Monto Anual</th>
+              <th class="table-header col-acciones text-end">Acciones</th>
             </tr>
           </thead>
           <tbody>
             @for (budgetYear of budgetYearsWithBudgets(); track budgetYear.id) {
             <tr class="budget-year-row">
-              <td class="table-cell">
+              <td class="table-cell col-expand">
                 <button
                   type="button"
                   class="btn btn-sm btn-link p-0"
@@ -76,11 +76,11 @@
                   }
                 </button>
               </td>
-              <td class="table-cell fw-medium">{{ budgetYear.year }}</td>
-              <td class="table-cell fw-medium">
+              <td class="table-cell fw-medium col-ano">{{ budgetYear.year }}</td>
+              <td class="table-cell fw-medium col-monto">
                 ${{ budgetYear.allocated_budget | number : "1.2-2" }}
               </td>
-              <td class="text-end">
+              <td class="text-end col-acciones">
                 <div class="row-actions">
                   <button
                     class="menu-trigger"
@@ -245,7 +245,7 @@
             </tr>
             @for (budget of budgetsWithoutYear(); track budget.id) {
             <tr class="budget-month-row">
-              <td class="table-cell"></td>
+              <td class="table-cell col-expand"></td>
               <td colspan="3" class="p-0">
                 <div class="budget-months-container">
                   <div class="budget-months-list">

@@ -69,27 +69,34 @@
   }
 }
 
+.table-responsive {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
 .companies-table {
-  th {
+  min-width: 850px;
+
+  th,
+  td {
     &.col-company {
-      width: 25%;
-      min-width: 250px;
+      min-width: 180px;
     }
 
     &.col-email {
-      width: 20%;
+      min-width: 200px;
     }
 
     &.col-phone {
-      width: 15%;
+      min-width: 120px;
     }
 
     &.col-address {
-      width: 25%;
+      min-width: 220px;
     }
 
     &.col-actions {
-      width: 15%;
+      min-width: 100px;
     }
   }
 
@@ -208,7 +215,6 @@
 
 @media (max-width: 768px) {
   .companies-table {
-    min-width: 800px;
     font-size: map.get($font-sizes, xs);
 
     th,

@@ -139,12 +139,33 @@
   border-radius: $border-radius-lg;
 }
 
+.table-responsive {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
 .table {
+  min-width: 1800px;
   --bs-table-bg: transparent;
   --bs-table-hover-bg: var(--ester-bg-light);
 
   th,
   td {
+    &.col-fecha { min-width: 100px; }
+    &.col-activo-corriente { min-width: 120px; }
+    &.col-pasivo-corriente { min-width: 120px; }
+    &.col-inventarios { min-width: 110px; }
+    &.col-pasivo-total { min-width: 110px; }
+    &.col-activo-total { min-width: 110px; }
+    &.col-ganancia-neta { min-width: 120px; }
+    &.col-ingresos-totales { min-width: 130px; }
+    &.col-resultado-valor { min-width: 170px; }
+    &.col-valor-inicial { min-width: 150px; }
+    &.col-valor-presupuestado { min-width: 140px; }
+    &.col-valor-ejecutado { min-width: 130px; }
+    &.col-saldo-caja { min-width: 150px; }
+    &.col-consumo-promedio { min-width: 220px; }
+    &.col-acciones { min-width: 90px; }
     padding: map.get($spacing-scale, 2) map.get($spacing-scale, 3);
     border-bottom: 1px solid $ester-border-primary;
     vertical-align: middle;

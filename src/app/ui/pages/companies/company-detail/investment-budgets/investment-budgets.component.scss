@@ -80,6 +80,23 @@
   gap: map.get($spacing-scale, 1);
 }
 
+.table-responsive {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.table {
+  min-width: 450px;
+
+  th,
+  td {
+    &.col-expand { min-width: 40px; width: 40px; }
+    &.col-ano { min-width: 90px; }
+    &.col-monto { min-width: 130px; }
+    &.col-acciones { min-width: 90px; }
+  }
+}
+
 /* Evitar que la tabla recorte el popover */
 :host ::ng-deep .table-responsive table,
 :host ::ng-deep .table-responsive tbody,

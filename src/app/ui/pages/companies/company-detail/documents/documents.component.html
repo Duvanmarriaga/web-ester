@@ -37,25 +37,25 @@
         <table class="table table-hover mb-0">
           <thead class="table-light">
             <tr>
-              <th class="table-header">Título</th>
-              <th class="table-header">Fecha</th>
-              <th class="table-header">Descripción</th>
-              <th class="table-header text-end">Acciones</th>
+              <th class="table-header col-titulo">Título</th>
+              <th class="table-header col-fecha">Fecha</th>
+              <th class="table-header col-descripcion">Descripción</th>
+              <th class="table-header col-acciones text-end">Acciones</th>
             </tr>
           </thead>
           <tbody>
             @for (document of documents(); track document.id) {
             <tr>
-              <td class="table-cell fw-medium">{{ document.title }}</td>
-              <td class="table-cell">
+              <td class="table-cell fw-medium col-titulo">{{ document.title }}</td>
+              <td class="table-cell col-fecha">
                 {{ document.report_date | date : "dd/MM/yyyy" }}
               </td>
-              <td class="table-cell">
+              <td class="table-cell col-descripcion">
                 <span class="text-muted">
                   {{ document.description || "Sin descripción" }}
                 </span>
               </td>
-              <td class="text-end">
+              <td class="text-end col-acciones">
                 <div class="d-flex justify-content-end gap-2">
                   <button
                     class="btn btn-sm btn-link text-primary p-0"
