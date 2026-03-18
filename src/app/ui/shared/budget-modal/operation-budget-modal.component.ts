@@ -142,20 +142,20 @@ export class OperationBudgetModalComponent implements OnInit {
       const currentBudget = this.budget();
       const isVisible = this.isVisible();
 
-      if (isVisible && currentBudget) {
+      // Solo modo editar cuando hay un presupuesto guardado con id (no temp budget)
+      if (isVisible && currentBudget?.id) {
         this.isEditMode.set(true);
         setTimeout(() => {
           if (this.budgetForm) {
             this.populateForm(currentBudget);
           }
         }, 0);
-      } else if (isVisible && !currentBudget) {
+      } else if (isVisible) {
+        // Nuevo presupuesto (null) o temp budget (sin id, solo para pre-seleccionar año)
         this.isEditMode.set(false);
         setTimeout(() => {
           if (this.budgetForm) {
-            // Si el budget input tiene operation_budget_annual_id (año viene por parámetros), mantenerlo
-            const budgetInput = this.budget();
-            const annualId = budgetInput?.operation_budget_annual_id || null;
+            const annualId = currentBudget?.operation_budget_annual_id ?? null;
             this.budgetForm.reset({
               operation_budget_category_id: '',
               operation_budget_annual_id: annualId,
@@ -165,7 +165,6 @@ export class OperationBudgetModalComponent implements OnInit {
               difference_amount: 0,
               percentage: 0,
             });
-            // Si hay annualId, establecerlo en el formulario para que el validador funcione
             if (annualId) {
               this.budgetForm.patchValue({ operation_budget_annual_id: annualId });
             }
@@ -221,7 +220,7 @@ export class OperationBudgetModalComponent implements OnInit {
     this.loadCategories();
     this.loadBudgetYears();
 
-    if (this.budget() && this.isVisible()) {
+    if (this.budget()?.id && this.isVisible()) {
       this.isEditMode.set(true);
       this.populateForm(this.budget()!);
     }
@@ -733,8 +732,17 @@ export class OperationBudgetModalComponent implements OnInit {
     const difference = budgetAmount - executedAmount;
     const percentage = budgetAmount > 0 ? (executedAmount / budgetAmount) * 100 : 0;
 
+    // Si la categoría no existe o es inválida (0, NaN, vacío), enviar null en lugar de 0
+    const rawCat = formValue.operation_budget_category_id;
+    const parsedCatId = rawCat != null && rawCat !== ''
+      ? (typeof rawCat === 'object' && rawCat?.id != null ? rawCat.id : parseInt(String(rawCat), 10))
+      : null;
+    const categoryIdForPayload = (parsedCatId != null && !isNaN(parsedCatId) && parsedCatId > 0)
+      ? parsedCatId
+      : null;
+
     const budgetData: BudgetCreate = {
-      operation_budget_category_id: parseInt(formValue.operation_budget_category_id.toString(), 10),
+      operation_budget_category_id: categoryIdForPayload,
       company_id: this.companyId(),
       operation_budget_annual_id: formValue.operation_budget_annual_id || null,
       budget_date: budgetDate,

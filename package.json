@@ -1,6 +1,6 @@
 {
   "name": "ester",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "scripts": {
     "ng": "ng",
     "start": "ng serve --port 4200 --host 0.0.0.0 --ssl -o",

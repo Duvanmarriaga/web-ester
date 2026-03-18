@@ -19,7 +19,7 @@ export interface Budget {
 }
 
 export interface BudgetCreate {
-  operation_budget_category_id: number;
+  operation_budget_category_id: number | null;
   company_id: number;
   operation_budget_annual_id?: number | null;
   budget_date: string;

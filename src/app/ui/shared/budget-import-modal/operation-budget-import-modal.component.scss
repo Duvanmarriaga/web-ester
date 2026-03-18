@@ -15,10 +15,29 @@
   .table-responsive {
     max-height: 400px;
     overflow-y: auto;
+    overflow-x: auto;
   }
 
   table {
     margin-bottom: 0;
+
+    th,
+    td {
+      &.col-categoria {
+        min-width: 170px;
+        max-width: 170px;
+      }
+      &.col-fecha,
+      &.col-presupuesto,
+      &.col-ejecutado,
+      &.col-diferencia,
+      &.col-porcentaje {
+        min-width: 200px;
+      }
+      &.col-actions {
+        min-width: 50px;
+      }
+    }
 
     thead {
       position: sticky;

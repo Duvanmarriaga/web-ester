@@ -1,4 +1,4 @@
-@if (isVisible()) {
+@if (isVisible() && budgetForm) {
 <div class="modal show d-block" (click)="onBackdropClick($event)">
   <div class="modal-dialog modal-dialog-centered" style="max-width: 95%; width: 900px;">
     <div class="modal-content" (click)="$event.stopPropagation()">
@@ -21,38 +21,42 @@
           <table class="table table-sm">
             <thead>
               <tr>
-                <th class="table-header">Categoría</th>
-                <th class="table-header">Fecha</th>
-                <th class="table-header">Presupuesto</th>
-                <th class="table-header">Ejecutado</th>
-                <th class="table-header">Diferencia</th>
-                <th class="table-header">Porcentaje</th>
-                <th></th>
+                <th class="table-header col-categoria">Categoría</th>
+                <th class="table-header col-fecha">Fecha</th>
+                <th class="table-header col-presupuesto">Presupuesto</th>
+                <th class="table-header col-ejecutado">Ejecutado</th>
+                <th class="table-header col-diferencia">Diferencia</th>
+                <th class="table-header col-porcentaje">Porcentaje</th>
+                <th class="col-actions"></th>
               </tr>
             </thead>
             <tbody formArrayName="budgets">
               @for (budget of budgetsArray.controls; track $index) {
               <tr [formGroupName]="$index">
-                <td>
+                <td class="col-categoria">
                   <ng-select
-                    [items]="categories()"
+                    [items]="categoriesList()"
                     bindLabel="name"
-                    bindValue="id"
+                    [compareWith]="compareCategories"
                     formControlName="category_id"
                     [searchable]="true"
                     [clearable]="true"
                     [loading]="isLoadingCategories()"
-                    placeholder="Seleccionar categoría..."
+                    [typeahead]="categoryInput$"
+                    [addTag]="true"
+                    [addTagText]="'Crear: '"
+                    (onAddTag)="onCreateCategoryFromTag($event, $index)"
+                    placeholder="Escribe para buscar o presiona Enter para crear..."
                     [class.is-invalid]="
-                      budget.get('category_id')?.invalid &&
-                      budget.get('category_id')?.touched
+                      ((budget.get('category_id')?.invalid && budget.get('category_id')?.touched) ||
+                        (budget.hasError('categoryRequired') && budget.touched))
                     "
                     appendTo="body"
                   >
                   </ng-select>
                   @if (
-                  budget.get('category_id')?.invalid &&
-                  budget.get('category_id')?.touched
+                  (budget.get('category_id')?.invalid && budget.get('category_id')?.touched) ||
+                  (budget.hasError('categoryRequired') && budget.touched)
                   ) {
                   <small class="text-danger d-block">Categoría requerida</small>
                   }
@@ -61,7 +65,7 @@
                     formControlName="category_name_text"
                   />
                 </td>
-                <td>
+                <td class="col-fecha">
                   <input
                     type="month"
                     class="form-control form-control-sm"
@@ -82,7 +86,7 @@
                     }
                   }
                 </td>
-                <td class="align-middle">
+                <td class="align-middle col-presupuesto">
                   <div class="input-group input-group-sm">
                     <span class="input-group-text">$</span>
                     <input
@@ -104,7 +108,7 @@
                   <small class="text-danger d-block">Presupuesto requerido</small>
                   }
                 </td>
-                <td class="align-middle">
+                <td class="align-middle col-ejecutado">
                   <div class="input-group input-group-sm">
                     <span class="input-group-text">$</span>
                     <input
@@ -126,7 +130,7 @@
                   <small class="text-danger d-block">Ejecutado requerido</small>
                   }
                 </td>
-                <td class="align-middle">
+                <td class="align-middle col-diferencia">
                   <div class="input-group input-group-sm">
                     <span class="input-group-text">$</span>
                     <input
@@ -137,7 +141,7 @@
                     />
                   </div>
                 </td>
-                <td class="align-middle">
+                <td class="align-middle col-porcentaje">
                   <div class="input-group input-group-sm">
                     <input
                       type="text"
@@ -148,7 +152,7 @@
                     <span class="input-group-text">%</span>
                   </div>
                 </td>
-                <td class="align-middle">
+                <td class="align-middle col-actions">
                   <button
                     type="button"
                     class="btn btn-sm btn-link text-danger p-0"

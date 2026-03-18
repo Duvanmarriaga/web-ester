@@ -7,6 +7,7 @@ import {
   OnInit,
   effect,
   ChangeDetectorRef,
+  computed,
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import {
@@ -15,12 +16,25 @@ import {
   FormArray,
   ReactiveFormsModule,
   Validators,
+  AbstractControl,
 } from '@angular/forms';
 import { LucideAngularModule, X, Trash2 } from 'lucide-angular';
 import { BudgetService, BudgetCreate } from '../../../infrastructure/services/budget.service';
-import { BudgetCategoryService, BudgetCategory } from '../../../infrastructure/services/budget-category.service';
+import {
+  BudgetCategoryService,
+  BudgetCategory,
+  BudgetCategoryCreate,
+} from '../../../infrastructure/services/budget-category.service';
 import { ToastrService } from 'ngx-toastr';
 import { NgSelectModule } from '@ng-select/ng-select';
+import { Subject, of, EMPTY } from 'rxjs';
+import {
+  debounceTime,
+  distinctUntilChanged,
+  switchMap,
+  catchError,
+  map,
+} from 'rxjs/operators';
 import { firstValueFrom } from 'rxjs';
 
 export interface ImportedBudget {
@@ -63,56 +77,177 @@ export class OperationBudgetImportModalComponent implements OnInit {
   readonly icons = { X, Trash2 };
   isSubmitting = signal(false);
   dateErrors = signal<Map<number, string>>(new Map());
+  /** Lista completa de categorías (solo se carga una vez al abrir el modal con datos). */
   categories = signal<BudgetCategory[]>([]);
+  /** Categorías creadas localmente hasta guardar (id: -1). */
+  pendingCategories = signal<Array<{ id: number; name: string; code: string; company_id: number }>>([]);
+  /** Resultado del typeahead al escribir; null = mostrar categories sin nueva petición. */
+  typeaheadSearchResults = signal<BudgetCategory[] | null>(null);
   isLoadingCategories = signal(false);
+  categoryInput$ = new Subject<string>();
+  currentSearchTerm = signal<string>('');
+
+  /** Items del ng-select: búsqueda actual o lista completa + pendientes. */
+  categoriesList = computed(() => {
+    const searchResults = this.typeaheadSearchResults();
+    const cats = this.categories();
+    const base = searchResults !== null ? searchResults : cats;
+    const pending = this.pendingCategories();
+    return [...(Array.isArray(base) ? base : []), ...pending];
+  });
 
   get budgetsArray(): FormArray {
     return this.budgetForm.get('budgets') as FormArray;
   }
 
   constructor() {
-    // Watch for importedData changes
     effect(() => {
       const data = this.importedData();
-      const categories = this.categories();
-      if (data && data.length > 0 && categories.length > 0) {
-        this.initializeForm(data);
+      if (data && data.length > 0) {
+        this.loadCategoriesThenInitializeForm(data);
       }
     });
   }
 
   ngOnInit() {
-    this.loadCategories();
-    // Wait for categories to load before initializing form
-    this.budgetCategoryService.getByCompany(this.companyId()).subscribe({
+    this.budgetForm = this.fb.group({
+      budgets: this.fb.array([]),
+    });
+    this.setupTypeahead();
+    const data = this.importedData();
+    if (data?.length > 0) {
+      this.loadCategoriesThenInitializeForm(data);
+    }
+  }
+
+  /**
+   * Carga categorías una sola vez con el endpoint y luego inicializa el formulario.
+   * Así cada fila del archivo puede resolverse: existe → se asigna; no existe → LOCAL (pendiente).
+   */
+  loadCategoriesThenInitializeForm(data: ImportedBudget[]): void {
+    const companyId = this.companyId();
+    if (!companyId) return;
+    this.isLoadingCategories.set(true);
+    this.typeaheadSearchResults.set(null);
+    this.budgetCategoryService.getByCompany(companyId).subscribe({
       next: (categories) => {
-        this.categories.set(categories);
+        this.categories.set(Array.isArray(categories) ? categories : []);
         this.isLoadingCategories.set(false);
-        // Initialize form after categories are loaded
-        const data = this.importedData();
-        if (data && data.length > 0) {
-          this.initializeForm(data);
-        }
+        this.initializeForm(data);
       },
-      error: (error: unknown) => {
-        console.error('Error loading categories:', error);
+      error: () => {
         this.isLoadingCategories.set(false);
+        this.initializeForm(data);
       },
     });
   }
 
-  loadCategories(): void {
-    this.isLoadingCategories.set(true);
-    this.budgetCategoryService.getByCompany(this.companyId()).subscribe({
-      next: (categories) => {
-        this.categories.set(categories);
-        this.isLoadingCategories.set(false);
-      },
-      error: (error: unknown) => {
-        console.error('Error loading categories:', error);
-        this.isLoadingCategories.set(false);
-      },
-    });
+  /**
+   * Typeahead: solo busca cuando el usuario escribe. Término vacío = no petición, se muestran categories + pendientes.
+   */
+  setupTypeahead(): void {
+    this.categoryInput$
+      .pipe(
+        debounceTime(400),
+        distinctUntilChanged(),
+        switchMap((term: string) => {
+          this.currentSearchTerm.set(term || '');
+          const companyId = this.companyId();
+          if (!companyId) return EMPTY;
+          const trimmed = (term || '').trim();
+          if (trimmed.length === 0) {
+            this.typeaheadSearchResults.set(null);
+            this.isLoadingCategories.set(false);
+            return EMPTY;
+          }
+          this.isLoadingCategories.set(true);
+          return this.budgetCategoryService.search(companyId, trimmed).pipe(
+            map((categories) => ({ results: Array.isArray(categories) ? categories : [] })),
+            catchError(() => {
+              this.isLoadingCategories.set(false);
+              return of({ results: [] });
+            })
+          );
+        })
+      )
+      .subscribe((payload) => {
+        if (payload && 'results' in payload) {
+          this.typeaheadSearchResults.set(payload.results);
+          this.isLoadingCategories.set(false);
+        }
+      });
+  }
+
+  categoryRowValidator(group: AbstractControl): { categoryRequired: boolean } | null {
+    const g = group as FormGroup;
+    const catVal = g.get('category_id')?.value;
+    const nameVal = g.get('category_name_text')?.value;
+    const nameText = (nameVal == null ? '' : String(nameVal)).trim();
+    const hasCat = catVal != null && (typeof catVal === 'object' ? catVal?.id != null : true);
+    return hasCat || nameText.length > 0 ? null : { categoryRequired: true };
+  }
+
+  compareCategories(cat1: BudgetCategory | number | null, cat2: BudgetCategory | number | null): boolean {
+    if (!cat1 || !cat2) return false;
+    if (typeof cat1 === 'object' && typeof cat2 === 'object') {
+      if (cat1.id && cat2.id && cat1.id > 0 && cat2.id > 0) return cat1.id === cat2.id;
+      if (cat1.name && cat2.name) return cat1.name.toLowerCase() === cat2.name.toLowerCase();
+    }
+    if (typeof cat1 === 'number' && typeof cat2 === 'object' && cat2.id) return cat1 === cat2.id;
+    if (typeof cat2 === 'number' && typeof cat1 === 'object' && cat1.id) return cat2 === cat1.id;
+    return cat1 === cat2;
+  }
+
+  /**
+   * Igual que process-modal (onAddTag): mantiene el valor en el selector.
+   * NO crea en BD aquí; se crea al hacer "Guardar Presupuestos".
+   */
+  onCreateCategoryFromTag(term: string | unknown, rowIndex: number): void {
+    let categoryName: string;
+    if (typeof term === 'string') {
+      categoryName = term;
+    } else if (term && typeof term === 'object' && (term as { name?: string }).name) {
+      categoryName = (term as { name: string }).name;
+    } else if (term && typeof term === 'object' && (term as { value?: string }).value) {
+      categoryName = (term as { value: string }).value;
+    } else {
+      categoryName = this.currentSearchTerm();
+    }
+    if (!categoryName?.trim()) return;
+
+    const nameTrimmed = categoryName.trim();
+
+    const existing = this.categoriesList().find(
+      (c) => c.name.toLowerCase() === nameTrimmed.toLowerCase()
+    );
+    if (existing) {
+      const row = this.budgetsArray.at(rowIndex) as FormGroup;
+      row?.patchValue({ category_id: existing, category_name_text: nameTrimmed });
+      this.cdr.detectChanges();
+      return;
+    }
+
+    const companyId = this.companyId();
+    if (!companyId) return;
+
+    const code = nameTrimmed.toUpperCase().replace(/\s+/g, '_').replace(/[^A-Z0-9_]/g, '').substring(0, 20);
+    const pending = { id: -1, name: nameTrimmed, code: code || 'CAT', company_id: companyId };
+
+    const current = this.pendingCategories();
+    if (!current.some((p) => p.name.toLowerCase() === nameTrimmed.toLowerCase())) {
+      this.pendingCategories.set([...current, pending]);
+    }
+
+    this.currentSearchTerm.set('');
+
+    // Crítico: actualizar [items] (vía detectChanges) ANTES de patchValue.
+    // Si patchValue ocurre primero, ng-select busca el item en la lista antigua y no lo encuentra.
+    this.cdr.detectChanges();
+
+    const row = this.budgetsArray.at(rowIndex) as FormGroup;
+    const valueToSet = { category_id: pending, category_name_text: nameTrimmed };
+    row?.patchValue(valueToSet);
+    this.cdr.detectChanges();
   }
 
   // Fuzzy matching: normalize strings (lowercase, remove spaces)
@@ -120,64 +255,69 @@ export class OperationBudgetImportModalComponent implements OnInit {
     return str.toLowerCase().replace(/\s+/g, '').trim();
   }
 
-  // Find similar category by name (case-insensitive, space-insensitive)
+  // Find similar category by name (case-insensitive) en la lista en memoria
   findSimilarCategory(categoryName: string | null): BudgetCategory | null {
     if (!categoryName) return null;
-    
     const normalizedSearch = this.normalizeString(categoryName);
     const allCategories = this.categories();
-    
-    // First try exact match (normalized)
-    const exactMatch = allCategories.find(cat => 
-      this.normalizeString(cat.name) === normalizedSearch
-    );
-    if (exactMatch) return exactMatch;
-    
-    // Then try contains match (normalized)
-    const containsMatch = allCategories.find(cat => 
-      this.normalizeString(cat.name).includes(normalizedSearch) ||
-      normalizedSearch.includes(this.normalizeString(cat.name))
-    );
-    if (containsMatch) return containsMatch;
-    
-    return null;
+    const exact = allCategories.find((c) => this.normalizeString(c.name) === normalizedSearch);
+    return exact || null;
   }
 
-  // Create category if it doesn't exist
-  async createCategoryIfNeeded(categoryName: string): Promise<BudgetCategory | null> {
-    if (!categoryName || !categoryName.trim()) return null;
-    
-    // Check if it already exists (fuzzy match)
-    const existing = this.findSimilarCategory(categoryName);
-    if (existing) return existing;
-    
-    // Create new category
+  /**
+   * Resuelve el id de categoría para guardar: valida con el endpoint.
+   * Si existe (búsqueda por nombre) devuelve su id; si no existe, crea con el endpoint y devuelve el id.
+   */
+  async resolveCategoryIdForSubmit(categoryName: string): Promise<number | null> {
+    const name = categoryName?.trim();
+    if (!name) return null;
+    const companyId = this.companyId();
+    if (!companyId) return null;
     try {
-      const newCategory = await firstValueFrom(
+      const results = await firstValueFrom(this.budgetCategoryService.search(companyId, name));
+      const list = Array.isArray(results) ? results : [];
+      const exact = list.find((c) => this.normalizeString(c.name) === this.normalizeString(name));
+      if (exact) return exact.id;
+      const created = await firstValueFrom(
         this.budgetCategoryService.create({
-          name: categoryName.trim(),
-          code: categoryName.trim().toUpperCase().substring(0, 10).replace(/\s+/g, '_'),
-          company_id: this.companyId(),
+          name,
+          code: name.toUpperCase().replace(/\s+/g, '_').replace(/[^A-Z0-9_]/g, '').substring(0, 20) || 'CAT',
+          company_id: companyId,
         })
       );
-      
-      if (newCategory) {
-        // Add to local list
-        this.categories.set([...this.categories(), newCategory]);
-        return newCategory;
+      if (created?.id) {
+        this.categories.update((prev) => (prev.some((c) => c.id === created.id) ? prev : [...prev, created]));
+        return created.id;
       }
-    } catch (error) {
-      console.error('Error creating category:', error);
+    } catch (err) {
+      console.error('resolveCategoryIdForSubmit', err);
     }
-    
     return null;
   }
 
+  /**
+   * Inicializa el formulario con los datos importados.
+   * Para cada fila con categoría: busca en la lista cargada; si existe la asigna, si no existe la deja como LOCAL (pendiente).
+   */
   initializeForm(data: ImportedBudget[]) {
+    this.pendingCategories.set([]);
+    this.typeaheadSearchResults.set(null);
+    const allCategories = this.categories();
+    const formatAmount = (amount: number | null): string => {
+      if (amount === null || amount === undefined || isNaN(amount)) return '';
+      if (amount % 1 === 0) {
+        return amount.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+      }
+      const parts = amount.toFixed(2).split('.');
+      const integerPart = parts[0];
+      const decimalPart = parts[1];
+      const formattedInteger = integerPart.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+      return `${formattedInteger}.${decimalPart}`;
+    };
+
     const budgetGroups = data.map((budget) => {
-      // Calculate difference and percentage
-      const budgetAmount = budget.budget_amount || 0;
-      const executedAmount = budget.executed_amount || 0;
+      const budgetAmount = budget.budget_amount ?? 0;
+      const executedAmount = budget.executed_amount ?? 0;
       const difference = budgetAmount - executedAmount;
       const percentage = budgetAmount > 0 ? (executedAmount / budgetAmount) * 100 : 0;
 
@@ -203,38 +343,54 @@ export class OperationBudgetImportModalComponent implements OnInit {
         }
       }
 
-      // Format budget amount and executed amount with commas
-      const formatAmount = (amount: number): string => {
-        if (amount === null || amount === undefined || isNaN(amount)) return '';
-        if (amount % 1 === 0) {
-          return amount.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+      // Categoría: buscar en endpoint (ya cargado). Si existe → asignar; si no → LOCAL (pendiente).
+      const categoryName = budget.category_name?.trim() || null;
+      let selectedCategory: BudgetCategory | { id: number; name: string; code: string; company_id: number } | null = null;
+      if (categoryName) {
+        const exact = allCategories.find((c) => this.normalizeString(c.name) === this.normalizeString(categoryName));
+        if (exact) {
+          selectedCategory = exact;
+        } else {
+          const companyId = this.companyId();
+          if (companyId) {
+            const currentPending = this.pendingCategories().find((p) => p.name.toLowerCase() === categoryName.toLowerCase());
+            if (currentPending) {
+              selectedCategory = currentPending;
+            } else {
+              const code = categoryName.toUpperCase().replace(/\s+/g, '_').replace(/[^A-Z0-9_]/g, '').substring(0, 20) || 'CAT';
+              const pending = { id: -1, name: categoryName, code, company_id: companyId };
+              this.pendingCategories.update((prev) => [...prev, pending]);
+              selectedCategory = pending;
+            }
+          }
         }
-        const parts = amount.toFixed(2).split('.');
-        const integerPart = parts[0];
-        const decimalPart = parts[1];
-        const formattedInteger = integerPart.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
-        return `${formattedInteger}.${decimalPart}`;
-      };
+      }
 
-      // Try to find similar category
-      const categoryName = budget.category_name || '';
-      const similarCategory = this.findSimilarCategory(categoryName);
-      const selectedCategory = similarCategory || null;
-
-      return this.fb.group({
-        category_id: [selectedCategory?.id || null, Validators.required],
-        category_name_text: [categoryName, Validators.required], // Keep original text for reference
-        budget_date: [dateValue, Validators.required],
-        budget_amount: [formatAmount(budgetAmount), [Validators.required, this.currencyValidator]],
-        executed_amount: [formatAmount(executedAmount), [Validators.required, this.currencyValidator]],
-        difference_amount: [{ value: formatAmount(difference), disabled: true }],
-        percentage: [{ value: percentage.toFixed(2), disabled: true }],
-      });
+      return this.fb.group(
+        {
+          category_id: [selectedCategory],
+          category_name_text: [categoryName],
+          budget_date: [dateValue, Validators.required],
+          budget_amount: [
+            budget.budget_amount != null ? formatAmount(budget.budget_amount) : '',
+            [Validators.required, this.currencyValidator],
+          ],
+          executed_amount: [
+            budget.executed_amount != null ? formatAmount(budget.executed_amount) : '',
+            [Validators.required, this.currencyValidator],
+          ],
+          difference_amount: [{ value: formatAmount(difference), disabled: true }],
+          percentage: [{ value: percentage.toFixed(2), disabled: true }],
+        },
+        { validators: [this.categoryRowValidator.bind(this)] }
+      );
     });
 
     this.budgetForm = this.fb.group({
       budgets: this.fb.array(budgetGroups),
     });
+
+    this.cdr.detectChanges();
 
     // Watch for changes to recalculate difference and percentage
     this.budgetsArray.controls.forEach((control, index) => {
@@ -374,7 +530,9 @@ export class OperationBudgetImportModalComponent implements OnInit {
     }
 
     return this.budgetsArray.controls.every((control) => {
-      const categoryId = control.get('category_id')?.value;
+      const categoryValue = control.get('category_id')?.value;
+      const categoryNameText = (control.get('category_name_text')?.value || '').trim();
+      const hasCategory = categoryValue != null && (typeof categoryValue === 'object' ? categoryValue?.id : true);
       const budgetDate = control.get('budget_date')?.value;
       const budgetAmountStr = control.get('budget_amount')?.value?.toString().replace(/[^0-9.-]/g, '') || '';
       const executedAmountStr = control.get('executed_amount')?.value?.toString().replace(/[^0-9.-]/g, '') || '';
@@ -383,12 +541,13 @@ export class OperationBudgetImportModalComponent implements OnInit {
       const executedAmount = parseFloat(executedAmountStr);
 
       return (
-        categoryId !== null &&
-        categoryId !== undefined &&
+        (hasCategory || categoryNameText.length > 0) &&
         budgetDate &&
         budgetDate.trim() !== '' &&
+        budgetAmountStr !== '' &&
         !isNaN(budgetAmount) &&
-        budgetAmount > 0 &&
+        budgetAmount >= 0 &&
+        executedAmountStr !== '' &&
         !isNaN(executedAmount) &&
         executedAmount >= 0
       );
@@ -447,36 +606,27 @@ export class OperationBudgetImportModalComponent implements OnInit {
         continue; // Skip if no valid date
       }
 
-      // Get category ID - use selected category_id or create from category_name_text
+      // Obtener id de categoría: si ya tiene id de BD usarlo; si no, validar con endpoint y crear si hace falta
       let categoryId: number | null = null;
-      
-      if (budgetData.category_id) {
-        // Category was selected from dropdown
-        categoryId = budgetData.category_id;
-      } else if (budgetData.category_name_text) {
-        // Category was not selected, try to find similar or create
-        const categoryName = budgetData.category_name_text.trim();
-        if (categoryName) {
-          // Try to find similar category first
-          const similarCategory = this.findSimilarCategory(categoryName);
-          if (similarCategory) {
-            categoryId = similarCategory.id;
-          } else {
-            // Create new category
-            const newCategory = await this.createCategoryIfNeeded(categoryName);
-            if (newCategory) {
-              categoryId = newCategory.id;
-            } else {
-              this.toastr.error(`No se pudo crear la categoría "${categoryName}"`, 'Error');
-              this.isSubmitting.set(false);
-              return;
-            }
-          }
-        }
+      const catVal = budgetData.category_id;
+      if (catVal != null && typeof catVal === 'object' && catVal.id != null && catVal.id > 0) {
+        categoryId = catVal.id;
       }
-
-      if (!categoryId) {
-        continue; // Skip if no category
+      if (categoryId == null) {
+        let categoryNameForSubmit: string | null = null;
+        if (catVal != null && typeof catVal === 'object' && catVal.name) {
+          categoryNameForSubmit = String(catVal.name).trim();
+        }
+        if (!categoryNameForSubmit && budgetData.category_name_text) {
+          categoryNameForSubmit = String(budgetData.category_name_text).trim();
+        }
+        if (!categoryNameForSubmit) continue;
+        categoryId = await this.resolveCategoryIdForSubmit(categoryNameForSubmit);
+        if (categoryId == null) {
+          this.toastr.error(`No se pudo crear o encontrar la categoría "${categoryNameForSubmit}"`, 'Error');
+          this.isSubmitting.set(false);
+          return;
+        }
       }
 
       budgets.push({
