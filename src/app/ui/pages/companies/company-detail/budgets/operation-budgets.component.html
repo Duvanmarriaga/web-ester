@@ -163,6 +163,23 @@
                           {{ budget.budget_date | date : "MM/yyyy" : "UTC" }}
                         </span>
                       </div>
+                      <div class="budget-month-category-col">
+                        @if (budget.category?.name) {
+                        <div class="budget-month-data-item">
+                          <span class="budget-data-label">Categoría</span>
+                          <span class="budget-data-value fw-medium">
+                            {{ budget.category?.name }}
+                          </span>
+                        </div>
+                        } @else if (budget.operation_budget_category_name) {
+                        <div class="budget-month-data-item">
+                          <span class="budget-data-label">Categoría</span>
+                          <span class="budget-data-value fw-medium">
+                            {{ budget.operation_budget_category_name }}
+                          </span>
+                        </div>
+                        }
+                      </div>
                       <div class="budget-month-data-col">
                         <div class="budget-month-data-item">
                           <span class="budget-data-label">Presupuesto</span>
@@ -254,6 +271,23 @@
                         <span class="budget-month-date fw-medium">
                           {{ budget.budget_date | date : "MM/yyyy" : "UTC" }}
                         </span>
+                      </div>
+                      <div class="budget-month-category-col">
+                        @if (budget.category?.name) {
+                        <div class="budget-month-data-item">
+                          <span class="budget-data-label">Categoría</span>
+                          <span class="budget-data-value fw-medium">
+                            {{ budget.category?.name }}
+                          </span>
+                        </div>
+                        } @else if (budget.operation_budget_category_name) {
+                        <div class="budget-month-data-item">
+                          <span class="budget-data-label">Categoría</span>
+                          <span class="budget-data-value fw-medium">
+                            {{ budget.operation_budget_category_name }}
+                          </span>
+                        </div>
+                        }
                       </div>
                       <div class="budget-month-data-col">
                         <div class="budget-month-data-item">

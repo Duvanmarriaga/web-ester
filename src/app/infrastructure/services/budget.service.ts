@@ -8,6 +8,18 @@ import { PaginatedResponse } from '../../entities/interfaces/pagination.interfac
 export interface Budget {
   id?: number;
   operation_budget_category_id: number;
+  /**
+   * Algunos endpoints devuelven la relación (join) para poder mostrar la etiqueta en el listado.
+   * Es opcional para no romper si el backend no la incluye.
+   */
+  category?: {
+    id: number;
+    code: string;
+    name: string;
+    company_id: number;
+  } | null;
+  /** Fallback alternativo si el backend expone el nombre separado. */
+  operation_budget_category_name?: string | null;
   company_id: number;
   operation_budget_annual_id?: number | null;
   budget_date: string;

@@ -31,7 +31,7 @@
 
 .budget-month-item {
   display: grid;
-  grid-template-columns: 120px 1fr auto;
+  grid-template-columns: 100px 120px 1fr auto;
   align-items: center;
   gap: map.get($spacing-scale, 3);
   background-color: white;
@@ -47,6 +47,11 @@
 }
 
 .budget-month-date-col {
+  display: flex;
+  align-items: center;
+}
+
+.budget-month-category-col {
   display: flex;
   align-items: center;
 }
