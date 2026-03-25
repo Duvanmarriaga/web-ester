@@ -288,15 +288,21 @@ export class InvestmentImportModalComponent implements OnInit {
 
     return this.investmentsArray.controls.every((control) => {
       const description = control.get('description')?.value?.trim() || '';
-      const amountStr = control.get('amount')?.value?.toString().replace(/[^0-9.-]/g, '') || '';
-      const executedAmountStr = control.get('executed_amount')?.value?.toString().replace(/[^0-9.-]/g, '') || '';
+      const amountRaw = control.get('amount')?.value;
+      const executedAmountRaw = control.get('executed_amount')?.value;
+      const hasAmountValue = amountRaw !== null && amountRaw !== undefined && String(amountRaw).trim() !== '';
+      const hasExecutedAmountValue = executedAmountRaw !== null && executedAmountRaw !== undefined && String(executedAmountRaw).trim() !== '';
+      const amountStr = hasAmountValue ? String(amountRaw).replace(/[^0-9.-]/g, '') : '';
+      const executedAmountStr = hasExecutedAmountValue ? String(executedAmountRaw).replace(/[^0-9.-]/g, '') : '';
       const amount = parseFloat(amountStr);
       const executedAmount = parseFloat(executedAmountStr);
 
       return (
         description.length > 0 &&
+        hasAmountValue &&
         !isNaN(amount) &&
         amount >= 0 &&
+        hasExecutedAmountValue &&
         !isNaN(executedAmount) &&
         executedAmount >= 0
       );

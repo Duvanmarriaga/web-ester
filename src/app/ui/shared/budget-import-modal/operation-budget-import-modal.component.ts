@@ -453,6 +453,13 @@ export class OperationBudgetImportModalComponent implements OnInit {
     
     const input = event.target as HTMLInputElement;
     let value = input.value.replace(/[^0-9.]/g, '');
+    if (value.trim() === '') {
+      input.value = '';
+      investmentGroup.patchValue({ [field]: '' }, { emitEvent: true });
+      this.recalculateRow(index);
+      this.cdr.detectChanges();
+      return;
+    }
     
     const parts = value.split('.');
     if (parts.length > 2) {
@@ -478,8 +485,15 @@ export class OperationBudgetImportModalComponent implements OnInit {
     
     const control = investmentGroup.get(field);
     if (!control) return;
-    
-    let value = control.value?.toString().replace(/[^0-9.]/g, '') || '0';
+
+    const rawValue = control.value?.toString() ?? '';
+    if (rawValue.trim() === '') {
+      control.setValue('', { emitEvent: true });
+      this.recalculateRow(index);
+      return;
+    }
+
+    let value = rawValue.replace(/[^0-9.]/g, '');
     const numValue = parseFloat(value) || 0;
     const formatted = this.formatNumberWithCommas(numValue);
     control.setValue(formatted, { emitEvent: true });
@@ -534,8 +548,12 @@ export class OperationBudgetImportModalComponent implements OnInit {
       const categoryNameText = (control.get('category_name_text')?.value || '').trim();
       const hasCategory = categoryValue != null && (typeof categoryValue === 'object' ? categoryValue?.id : true);
       const budgetDate = control.get('budget_date')?.value;
-      const budgetAmountStr = control.get('budget_amount')?.value?.toString().replace(/[^0-9.-]/g, '') || '';
-      const executedAmountStr = control.get('executed_amount')?.value?.toString().replace(/[^0-9.-]/g, '') || '';
+      const budgetAmountRaw = control.get('budget_amount')?.value;
+      const executedAmountRaw = control.get('executed_amount')?.value;
+      const hasBudgetAmountValue = budgetAmountRaw !== null && budgetAmountRaw !== undefined && String(budgetAmountRaw).trim() !== '';
+      const hasExecutedAmountValue = executedAmountRaw !== null && executedAmountRaw !== undefined && String(executedAmountRaw).trim() !== '';
+      const budgetAmountStr = hasBudgetAmountValue ? String(budgetAmountRaw).replace(/[^0-9.-]/g, '') : '';
+      const executedAmountStr = hasExecutedAmountValue ? String(executedAmountRaw).replace(/[^0-9.-]/g, '') : '';
 
       const budgetAmount = parseFloat(budgetAmountStr);
       const executedAmount = parseFloat(executedAmountStr);
@@ -544,10 +562,10 @@ export class OperationBudgetImportModalComponent implements OnInit {
         (hasCategory || categoryNameText.length > 0) &&
         budgetDate &&
         budgetDate.trim() !== '' &&
-        budgetAmountStr !== '' &&
+        hasBudgetAmountValue &&
         !isNaN(budgetAmount) &&
         budgetAmount >= 0 &&
-        executedAmountStr !== '' &&
+        hasExecutedAmountValue &&
         !isNaN(executedAmount) &&
         executedAmount >= 0
       );
