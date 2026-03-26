@@ -546,28 +546,29 @@ export class OperationBudgetImportModalComponent implements OnInit {
     return this.budgetsArray.controls.every((control) => {
       const categoryValue = control.get('category_id')?.value;
       const categoryNameText = (control.get('category_name_text')?.value || '').trim();
-      const hasCategory = categoryValue != null && (typeof categoryValue === 'object' ? categoryValue?.id : true);
-      const budgetDate = control.get('budget_date')?.value;
+      const hasCategory =
+        categoryValue !== null &&
+        categoryValue !== undefined &&
+        (typeof categoryValue !== 'string' || categoryValue.trim() !== '');
+
+      const budgetDateRaw = control.get('budget_date')?.value;
+      const budgetDate = budgetDateRaw !== null && budgetDateRaw !== undefined ? String(budgetDateRaw).trim() : '';
       const budgetAmountRaw = control.get('budget_amount')?.value;
       const executedAmountRaw = control.get('executed_amount')?.value;
-      const hasBudgetAmountValue = budgetAmountRaw !== null && budgetAmountRaw !== undefined && String(budgetAmountRaw).trim() !== '';
-      const hasExecutedAmountValue = executedAmountRaw !== null && executedAmountRaw !== undefined && String(executedAmountRaw).trim() !== '';
-      const budgetAmountStr = hasBudgetAmountValue ? String(budgetAmountRaw).replace(/[^0-9.-]/g, '') : '';
-      const executedAmountStr = hasExecutedAmountValue ? String(executedAmountRaw).replace(/[^0-9.-]/g, '') : '';
-
-      const budgetAmount = parseFloat(budgetAmountStr);
-      const executedAmount = parseFloat(executedAmountStr);
+      const hasBudgetAmountValue =
+        budgetAmountRaw !== null &&
+        budgetAmountRaw !== undefined &&
+        String(budgetAmountRaw).trim() !== '';
+      const hasExecutedAmountValue =
+        executedAmountRaw !== null &&
+        executedAmountRaw !== undefined &&
+        String(executedAmountRaw).trim() !== '';
 
       return (
         (hasCategory || categoryNameText.length > 0) &&
-        budgetDate &&
-        budgetDate.trim() !== '' &&
+        budgetDate !== '' &&
         hasBudgetAmountValue &&
-        !isNaN(budgetAmount) &&
-        budgetAmount >= 0 &&
-        hasExecutedAmountValue &&
-        !isNaN(executedAmount) &&
-        executedAmount >= 0
+        hasExecutedAmountValue
       );
     });
   }

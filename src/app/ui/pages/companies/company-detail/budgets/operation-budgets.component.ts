@@ -95,6 +95,8 @@ export class OperationBudgetsComponent implements OnInit {
   openMenuId = signal<string | null>(null);
   openMenuOnLeft = signal(false);
   openMenuAbove = signal(false);
+  menuLeft = signal<number>(0);
+  menuTop = signal<number>(0);
   budgetModalComponent = viewChild<OperationBudgetModalComponent>('budgetModal');
 
   ngOnInit() {
@@ -129,8 +131,14 @@ export class OperationBudgetsComponent implements OnInit {
         const gap = 4;
         const spaceRight = window.innerWidth - rect.right;
         const spaceBelow = window.innerHeight - rect.bottom;
-        this.openMenuOnLeft.set(spaceRight < menuWidth + gap);
-        this.openMenuAbove.set(spaceBelow < menuHeight + gap);
+        const openLeft = spaceRight < menuWidth + gap;
+        const openAbove = spaceBelow < menuHeight + gap;
+        this.openMenuOnLeft.set(openLeft);
+        this.openMenuAbove.set(openAbove);
+        const left = openLeft ? rect.left - menuWidth - gap : rect.right + gap;
+        const top = openAbove ? rect.bottom - menuHeight : rect.top;
+        this.menuLeft.set(Math.max(gap, Math.min(left, window.innerWidth - menuWidth - gap)));
+        this.menuTop.set(Math.max(gap, Math.min(top, window.innerHeight - menuHeight - gap)));
       }
     }
     this.openMenuId.set(current === menuId ? null : menuId);
